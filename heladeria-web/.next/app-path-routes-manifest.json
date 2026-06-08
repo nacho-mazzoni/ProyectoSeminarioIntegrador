@@ -1,0 +1,12 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico",
+  "/login/page": "/login",
+  "/page": "/",
+  "/perfil/direcciones/page": "/perfil/direcciones",
+  "/perfil/page": "/perfil",
+  "/perfil/pedidos/nuevo/page": "/perfil/pedidos/nuevo",
+  "/perfil/pedidos/page": "/perfil/pedidos",
+  "/registro/page": "/registro"
+}

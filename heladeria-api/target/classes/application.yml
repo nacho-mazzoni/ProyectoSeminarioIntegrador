@@ -1,0 +1,26 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://db.exzbmqqfafwmzznjyguj.supabase.co:5432/postgres
+    username: postgres
+    password: nachojoaco123
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+supabase:
+  jwt-secret: 0b90ac57-f064-4a05-9baf-88413877fed0
+  publishable-key: sb_publishable_RyChh-Aq-ERfNnvIvw9EUw_BkL0Ldz9
+  project-url: https://exzbmqqfafwmzznjyguj.supabase.co
