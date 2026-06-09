@@ -1,24 +1,20 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+node_modules/
 
 # testing
-/coverage
+coverage/
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build/
+
+# java / maven
+heladeria-api/target/
 
 # misc
 .DS_Store
@@ -47,3 +43,6 @@ HISTORIAL.md
 
 # opencode
 opencode.json
+
+# vscode
+.vscode/

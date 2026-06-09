@@ -1,3 +1,0 @@
-module.exports=[36225,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(65494);a.n(d("[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},88875,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(65494);a.n(d("[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/node_modules/next/dist/client/components/builtin/global-error.js"))},29855,a=>{"use strict";a.i(36225);var b=a.i(88875);a.n(b)},49472,a=>{a.n(a.i(29855))}];
-
-//# sourceMappingURL=0ddg_next_dist_client_components_builtin_global-error_1p3u06x.js.map
