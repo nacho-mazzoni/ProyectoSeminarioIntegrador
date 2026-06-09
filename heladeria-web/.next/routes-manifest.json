@@ -21,7 +21,16 @@
     "afterFiles": [],
     "fallback": []
   },
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/admin/productos/[id]",
+      "regex": "^/admin/productos/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/productos/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",
@@ -40,6 +49,30 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin/productos",
+      "regex": "^/admin/productos(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/productos(?:/)?$"
+    },
+    {
+      "page": "/admin/productos/nuevo",
+      "regex": "^/admin/productos/nuevo(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/productos/nuevo(?:/)?$"
+    },
+    {
+      "page": "/admin/usuarios",
+      "regex": "^/admin/usuarios(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/usuarios(?:/)?$"
+    },
+    {
+      "page": "/admin/usuarios/nuevo",
+      "regex": "^/admin/usuarios/nuevo(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/usuarios/nuevo(?:/)?$"
     },
     {
       "page": "/favicon.ico",

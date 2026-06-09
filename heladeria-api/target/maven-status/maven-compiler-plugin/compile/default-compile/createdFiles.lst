@@ -10,6 +10,7 @@ com/seminario/heladeria/dto/request/LoginRequest.class
 com/seminario/heladeria/entity/DetallePedidoAdicional.class
 com/seminario/heladeria/repository/DireccionRepository.class
 com/seminario/heladeria/service/ProductoService.class
+com/seminario/heladeria/dto/request/ActualizarRolRequest.class
 com/seminario/heladeria/entity/Cliente.class
 com/seminario/heladeria/repository/RolRepository.class
 com/seminario/heladeria/entity/Direccion.class
@@ -49,8 +50,10 @@ com/seminario/heladeria/controller/AuthController.class
 com/seminario/heladeria/config/CorsConfig.class
 com/seminario/heladeria/entity/ZonaEnvio.class
 com/seminario/heladeria/HeladeriaApplication.class
+com/seminario/heladeria/service/AdminUsuarioService.class
 com/seminario/heladeria/repository/PromocionRepository.class
 com/seminario/heladeria/service/PedidoService.class
+com/seminario/heladeria/controller/AdminUsuarioController.class
 com/seminario/heladeria/dto/request/DireccionRequest.class
 com/seminario/heladeria/dto/response/PedidoResponse$HistorialResponse.class
 com/seminario/heladeria/service/AuthService.class

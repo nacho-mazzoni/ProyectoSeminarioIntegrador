@@ -2,35 +2,55 @@
   "app": {
     "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/_not-found/page": [
       "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0w5z4e7s8jfe5.woff2"
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
+    ],
+    "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/admin/productos/[id]/page": [
+      "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
+    ],
+    "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/admin/productos/nuevo/page": [
+      "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
+    ],
+    "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/admin/productos/page": [
+      "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
+    ],
+    "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/admin/usuarios/nuevo/page": [
+      "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
+    ],
+    "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/admin/usuarios/page": [
+      "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
     ],
     "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/login/page": [
       "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0w5z4e7s8jfe5.woff2"
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
     ],
     "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/page": [
       "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0w5z4e7s8jfe5.woff2"
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
     ],
     "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/perfil/direcciones/page": [
       "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0w5z4e7s8jfe5.woff2"
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
     ],
     "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/perfil/page": [
       "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0w5z4e7s8jfe5.woff2"
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
     ],
     "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/perfil/pedidos/nuevo/page": [
       "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0w5z4e7s8jfe5.woff2"
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
     ],
     "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/perfil/pedidos/page": [
       "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0w5z4e7s8jfe5.woff2"
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
     ],
     "[project]/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-web/src/app/registro/page": [
       "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0w5z4e7s8jfe5.woff2"
+      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
     ]
   },
   "appUsingSizeAdjust": true,

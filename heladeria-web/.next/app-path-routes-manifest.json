@@ -1,6 +1,11 @@
 {
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
+  "/admin/productos/[id]/page": "/admin/productos/[id]",
+  "/admin/productos/nuevo/page": "/admin/productos/nuevo",
+  "/admin/productos/page": "/admin/productos",
+  "/admin/usuarios/nuevo/page": "/admin/usuarios/nuevo",
+  "/admin/usuarios/page": "/admin/usuarios",
   "/favicon.ico/route": "/favicon.ico",
   "/login/page": "/login",
   "/page": "/",

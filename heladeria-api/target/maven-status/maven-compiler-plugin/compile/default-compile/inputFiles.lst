@@ -1,12 +1,14 @@
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/HeladeriaApplication.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/config/CorsConfig.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/config/SecurityConfig.java
+/home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/controller/AdminUsuarioController.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/controller/AuthController.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/controller/ClienteController.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/controller/DireccionController.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/controller/PedidoController.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/controller/ProductoController.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/controller/ZonaEnvioController.java
+/home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/dto/request/ActualizarRolRequest.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/dto/request/ClienteRequest.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/dto/request/DireccionRequest.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/dto/request/LoginRequest.java
@@ -49,6 +51,7 @@
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/repository/UsuarioRepository.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/repository/ZonaEnvioRepository.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/security/JwtAuthenticationFilter.java
+/home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/service/AdminUsuarioService.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/service/AuthService.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/service/ClienteService.java
 /home/nacho_mazzoni/Escritorio/UTN/4/Seminario Integrador/Proyecto/heladeria-api/src/main/java/com/seminario/heladeria/service/DireccionService.java
