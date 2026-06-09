@@ -22,6 +22,14 @@ export interface Categoria {
   requiereSabores: boolean
 }
 
+export interface ProductoRequest {
+  nombre: string
+  stockEnvases: number
+  precioBase: number
+  maxSabores: number
+  idCategoria: number
+}
+
 export interface Producto {
   idProducto: number
   nombre: string

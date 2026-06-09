@@ -8,6 +8,7 @@ import type {
   Usuario,
   Direccion,
   Pedido,
+  ProductoRequest,
 } from "./types"
 
 const API = process.env.NEXT_PUBLIC_API_URL!
@@ -47,6 +48,20 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return res.json()
 }
 
+async function put<T>(path: string, body: unknown): Promise<T> {
+  const headers = await authHeaders()
+  const res = await fetch(`${API}${path}`, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(err.error ?? "Error de red")
+  }
+  return res.json()
+}
+
 async function del(path: string): Promise<void> {
   const headers = await authHeaders()
   const res = await fetch(`${API}${path}`, { method: "DELETE", headers })
@@ -57,6 +72,19 @@ async function del(path: string): Promise<void> {
 }
 
 export const api = {
+  admin: {
+    productos: {
+      crear: (data: ProductoRequest) => post<Producto>("/admin/productos", data),
+      actualizar: (id: number, data: ProductoRequest) => put<Producto>(`/admin/productos/${id}`, data),
+    },
+    usuarios: {
+      listar: () => get<Usuario[]>("/admin/usuarios"),
+      actualizarRol: (id: number, idRol: number) =>
+        put<Usuario>(`/admin/usuarios/${id}/rol`, { idRol }),
+      actualizarRolPorEmail: (email: string, idRol: number) =>
+        put<Usuario>(`/admin/usuarios/by-email/${encodeURIComponent(email)}/rol`, { idRol }),
+    },
+  },
   auth: {
     me: () => get<Usuario>("/auth/me"),
   },

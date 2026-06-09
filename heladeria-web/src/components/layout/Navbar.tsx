@@ -4,14 +4,23 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
+import { api } from "@/lib/api"
 
 export default function Navbar() {
   const router = useRouter()
   const supabase = createClient()
   const [session, setSession] = useState<boolean | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(!!data.session))
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        setSession(true)
+        api.auth.me().then((u) => setIsAdmin(u.rol === "Administrador")).catch(() => {})
+      } else {
+        setSession(false)
+      }
+    })
   }, [supabase])
 
   const handleLogout = async () => {
@@ -30,6 +39,11 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           {session ? (
             <>
+              {isAdmin && (
+                <Link href="/admin/productos" className="text-amber-600 font-semibold hover:text-amber-700">
+                  Admin
+                </Link>
+              )}
               <Link href="/perfil/pedidos" className="hover:text-amber-600">
                 Mis Pedidos
               </Link>
