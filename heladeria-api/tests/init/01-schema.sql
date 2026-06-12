@@ -1,3 +1,28 @@
+-- ============================================================================
+-- DROP existente (para idempotencia)
+-- ============================================================================
+
+DROP TABLE IF EXISTS detalle_pedido_adicional CASCADE;
+DROP TABLE IF EXISTS detalle_pedido_sabor CASCADE;
+DROP TABLE IF EXISTS detalle_pedido CASCADE;
+DROP TABLE IF EXISTS pago CASCADE;
+DROP TABLE IF EXISTS historial_estado CASCADE;
+DROP TABLE IF EXISTS pedido CASCADE;
+DROP TABLE IF EXISTS direccion CASCADE;
+DROP TABLE IF EXISTS producto CASCADE;
+DROP TABLE IF EXISTS adicional CASCADE;
+DROP TABLE IF EXISTS sabor CASCADE;
+DROP TABLE IF EXISTS promocion CASCADE;
+DROP TABLE IF EXISTS categoria CASCADE;
+DROP TABLE IF EXISTS zona_envio CASCADE;
+DROP TABLE IF EXISTS cliente CASCADE;
+DROP TABLE IF EXISTS usuario CASCADE;
+DROP TABLE IF EXISTS rol CASCADE;
+
+-- ============================================================================
+-- CREACIÓN DE TABLAS
+-- ============================================================================
+
 -- 1. ROL
 CREATE TABLE rol (
     id_rol     BIGSERIAL PRIMARY KEY,

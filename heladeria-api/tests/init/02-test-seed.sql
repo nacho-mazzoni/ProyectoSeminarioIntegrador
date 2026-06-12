@@ -2,6 +2,24 @@
 -- TEST SEED — Datos controlados para tests de integración
 -- ============================================================================
 
+-- Limpiar datos previos
+TRUNCATE TABLE detalle_pedido_adicional CASCADE;
+TRUNCATE TABLE detalle_pedido_sabor CASCADE;
+TRUNCATE TABLE detalle_pedido CASCADE;
+TRUNCATE TABLE pago CASCADE;
+TRUNCATE TABLE historial_estado CASCADE;
+TRUNCATE TABLE pedido CASCADE;
+TRUNCATE TABLE direccion CASCADE;
+TRUNCATE TABLE producto CASCADE;
+TRUNCATE TABLE adicional CASCADE;
+TRUNCATE TABLE sabor CASCADE;
+TRUNCATE TABLE promocion CASCADE;
+TRUNCATE TABLE categoria CASCADE;
+TRUNCATE TABLE zona_envio CASCADE;
+TRUNCATE TABLE cliente CASCADE;
+TRUNCATE TABLE usuario CASCADE;
+TRUNCATE TABLE rol CASCADE;
+
 -- Roles
 INSERT INTO rol (nombre_rol) VALUES ('Administrador'), ('Cliente');
 
