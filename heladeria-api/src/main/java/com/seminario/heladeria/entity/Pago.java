@@ -37,6 +37,17 @@ public class Pago {
 
     public Pago() {}
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = Instant.now();
+    }
+
     public Long getIdPago() { return idPago; }
     public void setIdPago(Long idPago) { this.idPago = idPago; }
 

@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@ActiveProfiles("test-local")
+@ActiveProfiles("test")
 @Transactional
 class PedidoServiceTest {
 
@@ -122,7 +122,7 @@ class PedidoServiceTest {
         Pedido pedido = pedidoService.crear(cliente, request);
 
         List<HistorialEstado> historial = historialEstadoRepository
-                .findByIdPedidoOrderByFechaHoraAsc(pedido.getIdPedido());
+                .findByPedidoIdPedidoOrderByFechaHoraAsc(pedido.getIdPedido());
         assertThat(historial).hasSize(1);
         assertThat(historial.get(0).getEstado()).isEqualTo("PENDIENTE");
     }

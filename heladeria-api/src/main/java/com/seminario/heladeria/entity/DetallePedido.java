@@ -40,6 +40,11 @@ public class DetallePedido {
 
     public DetallePedido() {}
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = Instant.now();
+    }
+
     public Long getIdDetalle() { return idDetalle; }
     public void setIdDetalle(Long idDetalle) { this.idDetalle = idDetalle; }
 

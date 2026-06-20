@@ -1,101 +1,92 @@
-import { createClient } from "./supabase/client"
-import type {
-  Categoria,
-  Producto,
-  Sabor,
-  Adicional,
-  ZonaEnvio,
-  Usuario,
-  Direccion,
-  Pedido,
-} from "./types"
+import type { Categoria, Producto, Sabor, Adicional, ZonaEnvio, Usuario, Direccion, Pedido } from "./types"
 
 const API = process.env.NEXT_PUBLIC_API_URL!
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const supabase = createClient()
-  const { data } = await supabase.auth.getSession()
-  const token = data.session?.access_token
-
+function authHeaders(): Record<string, string> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
 }
 
-async function get<T>(path: string): Promise<T> {
-  const headers = await authHeaders()
-  const res = await fetch(`${API}${path}`, { headers })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error ?? "Error de red")
+async function handleError(res: Response): Promise<never> {
+  if (res.status === 401) {
+    localStorage.removeItem("token")
   }
+  const err = await res.json().catch(() => ({ error: res.statusText }))
+  throw new Error(err.error ?? "Error de red")
+}
+
+async function getPublic<T>(path: string): Promise<T> {
+  const res = await fetch(`${API}${path}`, {
+    headers: { "Content-Type": "application/json" },
+  })
+  if (!res.ok) await handleError(res)
   return res.json()
 }
 
-async function post<T>(path: string, body: unknown): Promise<T> {
-  const headers = await authHeaders()
+async function getAuth<T>(path: string): Promise<T> {
+  const res = await fetch(`${API}${path}`, { headers: authHeaders() })
+  if (!res.ok) await handleError(res)
+  return res.json()
+}
+
+async function postAuth<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     method: "POST",
-    headers,
+    headers: authHeaders(),
     body: JSON.stringify(body),
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error ?? "Error de red")
-  }
+  if (!res.ok) await handleError(res)
   return res.json()
 }
 
-async function del(path: string): Promise<void> {
-  const headers = await authHeaders()
-  const res = await fetch(`${API}${path}`, { method: "DELETE", headers })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error ?? "Error de red")
-  }
+async function delAuth(path: string): Promise<void> {
+  const res = await fetch(`${API}${path}`, { method: "DELETE", headers: authHeaders() })
+  if (!res.ok) await handleError(res)
 }
 
 export const api = {
   auth: {
-    me: () => get<Usuario>("/auth/me"),
+    me: () => getAuth<Usuario>("/auth/me"),
   },
   productos: {
-    listar: () => get<Producto[]>("/productos"),
-    obtener: (id: number) => get<Producto>(`/productos/${id}`),
+    listar: () => getPublic<Producto[]>("/productos"),
+    obtener: (id: number) => getPublic<Producto>(`/productos/${id}`),
   },
   categorias: {
-    listar: () => get<Categoria[]>("/categorias"),
+    listar: () => getPublic<Categoria[]>("/categorias"),
   },
   sabores: {
-    listar: () => get<Sabor[]>("/sabores"),
+    listar: () => getPublic<Sabor[]>("/sabores"),
   },
   adicionales: {
-    listar: () => get<Adicional[]>("/adicionales"),
+    listar: () => getPublic<Adicional[]>("/adicionales"),
   },
   zonas: {
-    listar: () => get<ZonaEnvio[]>("/zonas-envio"),
+    listar: () => getPublic<ZonaEnvio[]>("/zonas-envio"),
   },
   clientes: {
     crearOCargar: (data: { email: string; telefono?: string }) =>
-      post<Usuario>("/clientes", data),
+      postAuth<Usuario>("/clientes", data),
     actualizar: (data: { email: string; telefono?: string }) =>
-      post<Usuario>("/clientes", data),
+      postAuth<Usuario>("/clientes", data),
   },
   direcciones: {
-    listar: () => get<Direccion[]>("/direcciones"),
+    listar: () => getAuth<Direccion[]>("/direcciones"),
     crear: (data: {
       calle: string
       numero: string
       ciudad: string
       referencia?: string
       idZona: number
-    }) => post<Direccion>("/direcciones", data),
-    eliminar: (id: number) => del(`/direcciones/${id}`),
+    }) => postAuth<Direccion>("/direcciones", data),
+    eliminar: (id: number) => delAuth(`/direcciones/${id}`),
   },
   pedidos: {
-    listar: () => get<Pedido[]>("/pedidos"),
-    obtener: (id: number) => get<Pedido>(`/pedidos/${id}`),
+    listar: () => getAuth<Pedido[]>("/pedidos"),
+    obtener: (id: number) => getAuth<Pedido>(`/pedidos/${id}`),
     crear: (data: {
       metodoEntrega: string
       idDireccion: number
@@ -106,6 +97,6 @@ export const api = {
         idsSabor?: number[]
         idsAdicional?: number[]
       }[]
-    }) => post<Pedido>("/pedidos", data),
+    }) => postAuth<Pedido>("/pedidos", data),
   },
 }

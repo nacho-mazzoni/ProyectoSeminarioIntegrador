@@ -27,6 +27,17 @@ public class ZonaEnvio {
 
     public ZonaEnvio() {}
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = Instant.now();
+    }
+
     public Long getIdZona() { return idZona; }
     public void setIdZona(Long idZona) { this.idZona = idZona; }
 

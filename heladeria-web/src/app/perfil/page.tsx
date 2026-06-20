@@ -34,10 +34,10 @@ export default function PerfilPage() {
   if (!usuario) return <div className="text-center py-16">Cargando...</div>
 
   return (
-    <div className="max-w-lg mx-auto mt-12 px-4">
+    <>
       <h1 className="text-2xl font-bold mb-6">Mi Perfil</h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md">
         <input
           value={usuario.email}
           disabled
@@ -61,6 +61,6 @@ export default function PerfilPage() {
           Guardar
         </button>
       </form>
-    </div>
+    </>
   )
 }

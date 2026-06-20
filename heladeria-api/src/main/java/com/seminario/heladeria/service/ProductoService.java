@@ -1,6 +1,7 @@
 package com.seminario.heladeria.service;
 
 import com.seminario.heladeria.dto.request.ProductoRequest;
+import com.seminario.heladeria.dto.response.*;
 import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
 import org.springframework.stereotype.Service;
@@ -26,17 +27,22 @@ public class ProductoService {
         this.adicionalRepository = adicionalRepository;
     }
 
-    public List<Producto> findAllProductos() {
-        return productoRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> findAllProductoResponses() {
+        return productoRepository.findAll().stream()
+                .map(ProductoResponse::from)
+                .toList();
     }
 
-    public Producto findProductoById(Long id) {
-        return productoRepository.findById(id)
+    @Transactional(readOnly = true)
+    public ProductoResponse findProductoResponseById(Long id) {
+        Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        return ProductoResponse.from(producto);
     }
 
     @Transactional
-    public Producto crearProducto(ProductoRequest request) {
+    public ProductoResponse crearProducto(ProductoRequest request) {
         Categoria categoria = categoriaRepository.findById(request.getIdCategoria())
                 .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
 
@@ -47,12 +53,13 @@ public class ProductoService {
         producto.setMaxSabores(request.getMaxSabores());
         producto.setCategoria(categoria);
 
-        return productoRepository.save(producto);
+        return ProductoResponse.from(productoRepository.save(producto));
     }
 
     @Transactional
-    public Producto actualizarProducto(Long id, ProductoRequest request) {
-        Producto producto = findProductoById(id);
+    public ProductoResponse actualizarProducto(Long id, ProductoRequest request) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
         Categoria categoria = categoriaRepository.findById(request.getIdCategoria())
                 .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
 
@@ -62,26 +69,27 @@ public class ProductoService {
         producto.setMaxSabores(request.getMaxSabores());
         producto.setCategoria(categoria);
 
-        return productoRepository.save(producto);
+        return ProductoResponse.from(productoRepository.save(producto));
     }
 
-    public List<Categoria> findAllCategorias() {
-        return categoriaRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<CategoriaResponse> findAllCategoriaResponses() {
+        return categoriaRepository.findAll().stream()
+                .map(CategoriaResponse::from)
+                .toList();
     }
 
-    public List<Sabor> findAllSabores() {
-        return saborRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<SaborResponse> findSaborResponsesDisponibles() {
+        return saborRepository.findByDisponibleTrue().stream()
+                .map(SaborResponse::from)
+                .toList();
     }
 
-    public List<Sabor> findSaboresDisponibles() {
-        return saborRepository.findByDisponibleTrue();
-    }
-
-    public List<Adicional> findAllAdicionales() {
-        return adicionalRepository.findAll();
-    }
-
-    public List<Adicional> findAdicionalesDisponibles() {
-        return adicionalRepository.findByDisponibleTrue();
+    @Transactional(readOnly = true)
+    public List<AdicionalResponse> findAdicionalResponsesDisponibles() {
+        return adicionalRepository.findByDisponibleTrue().stream()
+                .map(AdicionalResponse::from)
+                .toList();
     }
 }

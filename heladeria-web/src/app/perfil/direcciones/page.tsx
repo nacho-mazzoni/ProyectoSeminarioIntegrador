@@ -47,7 +47,7 @@ export default function DireccionesPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto mt-12 px-4">
+    <>
       <h1 className="text-2xl font-bold mb-6">Mis Direcciones</h1>
 
       <form onSubmit={handleCrear} className="flex flex-col gap-3 mb-8 bg-white p-5 rounded-xl shadow-sm border">
@@ -85,6 +85,6 @@ export default function DireccionesPage() {
         ))}
         {direcciones.length === 0 && <p className="text-stone-400 text-center py-8">No tenés direcciones cargadas</p>}
       </div>
-    </div>
+    </>
   )
 }

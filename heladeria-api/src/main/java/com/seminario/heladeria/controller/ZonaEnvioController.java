@@ -1,6 +1,6 @@
 package com.seminario.heladeria.controller;
 
-import com.seminario.heladeria.entity.ZonaEnvio;
+import com.seminario.heladeria.dto.response.ZonaEnvioResponse;
 import com.seminario.heladeria.service.ZonaEnvioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +20,7 @@ public class ZonaEnvioController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ZonaEnvio>> listar() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<ZonaEnvioResponse>> listar() {
+        return ResponseEntity.ok(service.findAllResponses());
     }
 }

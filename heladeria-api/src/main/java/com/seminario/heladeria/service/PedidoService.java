@@ -45,7 +45,7 @@ public class PedidoService {
     }
 
     public List<Pedido> findByCliente(Long idCliente) {
-        return pedidoRepository.findByIdClienteOrderByFechaDesc(idCliente);
+        return pedidoRepository.findByClienteIdUsuarioOrderByFechaDesc(idCliente);
     }
 
     public Pedido findById(Long id) {
@@ -70,6 +70,7 @@ public class PedidoService {
             pedido.setPromocion(promocion);
         }
 
+        pedido.setTotal(BigDecimal.ZERO);
         pedido = pedidoRepository.save(pedido);
 
         BigDecimal total = BigDecimal.ZERO;
@@ -151,7 +152,7 @@ public class PedidoService {
     public PedidoResponse buildResponse(Pedido pedido) {
         PedidoResponse response = PedidoResponse.from(pedido);
 
-        List<DetallePedido> detalles = detallePedidoRepository.findByIdPedido(pedido.getIdPedido());
+        List<DetallePedido> detalles = detallePedidoRepository.findByPedidoIdPedido(pedido.getIdPedido());
         List<PedidoResponse.DetallePedidoResponse> detalleResponses = new ArrayList<>();
         for (DetallePedido d : detalles) {
             PedidoResponse.DetallePedidoResponse dr = new PedidoResponse.DetallePedidoResponse();
@@ -170,7 +171,7 @@ public class PedidoService {
         response.setDetalles(detalleResponses);
 
         List<HistorialEstado> historial = historialEstadoRepository
-                .findByIdPedidoOrderByFechaHoraAsc(pedido.getIdPedido());
+                .findByPedidoIdPedidoOrderByFechaHoraAsc(pedido.getIdPedido());
         response.setHistorial(historial.stream()
                 .map(PedidoResponse.HistorialResponse::from)
                 .toList());

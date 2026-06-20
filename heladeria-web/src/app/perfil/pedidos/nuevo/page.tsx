@@ -115,7 +115,7 @@ export default function NuevoPedidoPage() {
     }
 
     try {
-      const result = await api.pedidos.crear({
+      await api.pedidos.crear({
         metodoEntrega,
         idDireccion: metodoEntrega === "delivery" ? Number(idDireccion) : 0,
         codigoPromocion: codigoPromocion || undefined,

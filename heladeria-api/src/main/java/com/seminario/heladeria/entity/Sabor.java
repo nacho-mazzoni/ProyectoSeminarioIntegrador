@@ -32,6 +32,17 @@ public class Sabor {
 
     public Sabor() {}
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = Instant.now();
+    }
+
     public Long getIdSabor() { return idSabor; }
     public void setIdSabor(Long idSabor) { this.idSabor = idSabor; }
 

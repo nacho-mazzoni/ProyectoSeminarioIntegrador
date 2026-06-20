@@ -25,6 +25,11 @@ public class DetallePedidoSabor {
 
     public DetallePedidoSabor() {}
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = Instant.now();
+    }
+
     public DetallePedidoSaborId getId() { return id; }
     public void setId(DetallePedidoSaborId id) { this.id = id; }
 

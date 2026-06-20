@@ -19,7 +19,7 @@ export default function PedidosPage() {
   if (loading) return <div className="text-center py-16">Cargando...</div>
 
   return (
-    <div className="max-w-3xl mx-auto mt-12 px-4">
+    <>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Mis Pedidos</h1>
         <Link
@@ -110,6 +110,6 @@ export default function PedidosPage() {
           )
         })}
       </div>
-    </div>
+    </>
   )
 }

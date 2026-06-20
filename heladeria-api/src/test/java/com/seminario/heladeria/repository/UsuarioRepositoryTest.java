@@ -14,11 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ActiveProfiles("test-local")
-@Sql(scripts = {
-    "file:./tests/init/01-schema.sql",
-    "file:./tests/init/02-test-seed.sql"
-}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@ActiveProfiles("test")
 class UsuarioRepositoryTest {
 
     @Autowired

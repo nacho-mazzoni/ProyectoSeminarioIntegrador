@@ -2,56 +2,32 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 
 export default function Navbar() {
   const router = useRouter()
-  const supabase = createClient()
-  const [session, setSession] = useState<boolean | null>(null)
+  const [session, setSession] = useState<boolean>(false)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(!!data.session))
-  }, [supabase])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setSession(false)
-    router.push("/login")
-  }
+    setSession(!!localStorage.getItem("token"))
+  })
 
   return (
     <nav className="bg-white shadow-md border-b">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold text-amber-600">
-          Heladería
-        </Link>
-
+        <Link href="/" className="text-xl font-bold text-amber-600">Heladería</Link>
         <div className="flex items-center gap-4">
+          <Link href="/" className="hover:text-amber-600">Productos</Link>
           {session ? (
-            <>
-              <Link href="/perfil/pedidos" className="hover:text-amber-600">
-                Mis Pedidos
-              </Link>
-              <Link href="/perfil/direcciones" className="hover:text-amber-600">
-                Direcciones
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="bg-amber-500 text-white px-4 py-1.5 rounded hover:bg-amber-600"
-              >
-                Cerrar Sesión
-              </button>
-            </>
+            <Link href="/perfil"
+              className="bg-amber-500 text-white px-4 py-1.5 rounded hover:bg-amber-600">
+              Mi Perfil
+            </Link>
           ) : (
             <>
-              <Link href="/login" className="hover:text-amber-600">
-                Ingresar
-              </Link>
-              <Link
-                href="/registro"
-                className="bg-amber-500 text-white px-4 py-1.5 rounded hover:bg-amber-600"
-              >
+              <Link href="/login" className="hover:text-amber-600">Ingresar</Link>
+              <Link href="/registro"
+                className="bg-amber-500 text-white px-4 py-1.5 rounded hover:bg-amber-600">
                 Registrarse
               </Link>
             </>

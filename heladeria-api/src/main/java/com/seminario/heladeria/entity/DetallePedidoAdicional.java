@@ -25,6 +25,11 @@ public class DetallePedidoAdicional {
 
     public DetallePedidoAdicional() {}
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = Instant.now();
+    }
+
     public DetallePedidoAdicionalId getId() { return id; }
     public void setId(DetallePedidoAdicionalId id) { this.id = id; }
 

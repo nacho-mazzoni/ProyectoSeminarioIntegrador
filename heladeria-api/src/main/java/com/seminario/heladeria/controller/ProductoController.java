@@ -1,7 +1,7 @@
 package com.seminario.heladeria.controller;
 
 import com.seminario.heladeria.dto.request.ProductoRequest;
-import com.seminario.heladeria.entity.*;
+import com.seminario.heladeria.dto.response.*;
 import com.seminario.heladeria.service.ProductoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -21,40 +21,40 @@ public class ProductoController {
     }
 
     @GetMapping("/categorias")
-    public ResponseEntity<List<Categoria>> listarCategorias() {
-        return ResponseEntity.ok(productoService.findAllCategorias());
+    public ResponseEntity<List<CategoriaResponse>> listarCategorias() {
+        return ResponseEntity.ok(productoService.findAllCategoriaResponses());
     }
 
     @GetMapping("/productos")
-    public ResponseEntity<List<Producto>> listarProductos() {
-        return ResponseEntity.ok(productoService.findAllProductos());
+    public ResponseEntity<List<ProductoResponse>> listarProductos() {
+        return ResponseEntity.ok(productoService.findAllProductoResponses());
     }
 
     @GetMapping("/productos/{id}")
-    public ResponseEntity<Producto> obtenerProducto(@PathVariable Long id) {
-        return ResponseEntity.ok(productoService.findProductoById(id));
+    public ResponseEntity<ProductoResponse> obtenerProducto(@PathVariable Long id) {
+        return ResponseEntity.ok(productoService.findProductoResponseById(id));
     }
 
     @PostMapping("/admin/productos")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<Producto> crearProducto(@Valid @RequestBody ProductoRequest request) {
+    public ResponseEntity<ProductoResponse> crearProducto(@Valid @RequestBody ProductoRequest request) {
         return ResponseEntity.ok(productoService.crearProducto(request));
     }
 
     @PutMapping("/admin/productos/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<Producto> actualizarProducto(
+    public ResponseEntity<ProductoResponse> actualizarProducto(
             @PathVariable Long id, @Valid @RequestBody ProductoRequest request) {
         return ResponseEntity.ok(productoService.actualizarProducto(id, request));
     }
 
     @GetMapping("/sabores")
-    public ResponseEntity<List<Sabor>> listarSabores() {
-        return ResponseEntity.ok(productoService.findSaboresDisponibles());
+    public ResponseEntity<List<SaborResponse>> listarSabores() {
+        return ResponseEntity.ok(productoService.findSaborResponsesDisponibles());
     }
 
     @GetMapping("/adicionales")
-    public ResponseEntity<List<Adicional>> listarAdicionales() {
-        return ResponseEntity.ok(productoService.findAdicionalesDisponibles());
+    public ResponseEntity<List<AdicionalResponse>> listarAdicionales() {
+        return ResponseEntity.ok(productoService.findAdicionalResponsesDisponibles());
     }
 }

@@ -30,6 +30,17 @@ public class Adicional {
 
     public Adicional() {}
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = Instant.now();
+    }
+
     public Long getIdAdicional() { return idAdicional; }
     public void setIdAdicional(Long idAdicional) { this.idAdicional = idAdicional; }
 

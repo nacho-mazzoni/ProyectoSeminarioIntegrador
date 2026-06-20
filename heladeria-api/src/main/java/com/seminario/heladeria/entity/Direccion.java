@@ -40,6 +40,17 @@ public class Direccion {
 
     public Direccion() {}
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = Instant.now();
+    }
+
     public Long getIdDireccion() { return idDireccion; }
     public void setIdDireccion(Long idDireccion) { this.idDireccion = idDireccion; }
 

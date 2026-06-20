@@ -27,7 +27,7 @@ public class DireccionService {
     }
 
     public List<Direccion> findByCliente(Long idCliente) {
-        return direccionRepository.findByIdUsuario(idCliente);
+        return direccionRepository.findByClienteIdUsuario(idCliente);
     }
 
     public Direccion findById(Long id) {

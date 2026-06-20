@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
-    List<Pedido> findByIdClienteOrderByFechaDesc(Long idCliente);
+    List<Pedido> findByClienteIdUsuarioOrderByFechaDesc(Long idUsuario);
 }

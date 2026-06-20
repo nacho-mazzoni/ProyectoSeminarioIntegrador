@@ -30,6 +30,11 @@ public class HistorialEstado {
 
     public HistorialEstado() {}
 
+    @PrePersist
+    void prePersist() {
+        this.createdAt = Instant.now();
+    }
+
     public Long getIdHist() { return idHist; }
     public void setIdHist(Long idHist) { this.idHist = idHist; }
 
