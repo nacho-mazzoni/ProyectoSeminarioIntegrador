@@ -9,12 +9,14 @@ export default function PerfilLayout({ children }: { children: React.ReactNode }
 
   const handleLogout = () => {
     localStorage.removeItem("token")
+    localStorage.removeItem("rol")
     router.push("/")
   }
 
   const links = [
     { href: "/perfil", label: "Información" },
     { href: "/perfil/pedidos", label: "Mis Pedidos" },
+    { href: "/perfil/pedidos/nuevo", label: "Carrito" },
     { href: "/perfil/direcciones", label: "Direcciones" },
   ]
 

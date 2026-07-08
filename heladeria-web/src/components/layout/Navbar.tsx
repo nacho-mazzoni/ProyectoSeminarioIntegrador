@@ -7,9 +7,11 @@ import { useEffect, useState } from "react"
 export default function Navbar() {
   const router = useRouter()
   const [session, setSession] = useState<boolean>(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     setSession(!!localStorage.getItem("token"))
+    setIsAdmin(localStorage.getItem("rol") === "Administrador")
   })
 
   return (
@@ -19,10 +21,15 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <Link href="/" className="hover:text-amber-600">Productos</Link>
           {session ? (
-            <Link href="/perfil"
-              className="bg-amber-500 text-white px-4 py-1.5 rounded hover:bg-amber-600">
-              Mi Perfil
-            </Link>
+            <>
+              {isAdmin && (
+                <Link href="/admin" className="hover:text-amber-600">Admin</Link>
+              )}
+              <Link href="/perfil"
+                className="bg-amber-500 text-white px-4 py-1.5 rounded hover:bg-amber-600">
+                Mi Perfil
+              </Link>
+            </>
           ) : (
             <>
               <Link href="/login" className="hover:text-amber-600">Ingresar</Link>

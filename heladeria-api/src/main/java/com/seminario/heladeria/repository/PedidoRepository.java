@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findByClienteIdUsuarioOrderByFechaDesc(Long idUsuario);
+    List<Pedido> findAllByOrderByFechaDesc();
 }

@@ -31,6 +31,7 @@ export default function LoginPage() {
 
       const data = await res.json()
       localStorage.setItem("token", data.token)
+      localStorage.setItem("rol", data.usuario?.rol ?? "")
       router.push("/")
       router.refresh()
     } catch {

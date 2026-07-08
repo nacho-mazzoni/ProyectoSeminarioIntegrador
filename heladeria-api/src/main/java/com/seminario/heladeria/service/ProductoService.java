@@ -1,6 +1,6 @@
 package com.seminario.heladeria.service;
 
-import com.seminario.heladeria.dto.request.ProductoRequest;
+import com.seminario.heladeria.dto.request.*;
 import com.seminario.heladeria.dto.response.*;
 import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
@@ -72,11 +72,38 @@ public class ProductoService {
         return ProductoResponse.from(productoRepository.save(producto));
     }
 
+    @Transactional
+    public void eliminarProducto(Long id) {
+        productoRepository.deleteById(id);
+    }
+
     @Transactional(readOnly = true)
     public List<CategoriaResponse> findAllCategoriaResponses() {
         return categoriaRepository.findAll().stream()
                 .map(CategoriaResponse::from)
                 .toList();
+    }
+
+    @Transactional
+    public CategoriaResponse crearCategoria(CategoriaRequest request) {
+        Categoria categoria = new Categoria();
+        categoria.setNombre(request.getNombre());
+        categoria.setRequiereSabores(request.getRequiereSabores());
+        return CategoriaResponse.from(categoriaRepository.save(categoria));
+    }
+
+    @Transactional
+    public CategoriaResponse actualizarCategoria(Long id, CategoriaRequest request) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
+        categoria.setNombre(request.getNombre());
+        categoria.setRequiereSabores(request.getRequiereSabores());
+        return CategoriaResponse.from(categoriaRepository.save(categoria));
+    }
+
+    @Transactional
+    public void eliminarCategoria(Long id) {
+        categoriaRepository.deleteById(id);
     }
 
     @Transactional(readOnly = true)
@@ -87,9 +114,73 @@ public class ProductoService {
     }
 
     @Transactional(readOnly = true)
+    public List<SaborResponse> findAllSaborResponses() {
+        return saborRepository.findAll().stream()
+                .map(SaborResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public SaborResponse crearSabor(SaborRequest request) {
+        Sabor sabor = new Sabor();
+        sabor.setNombre(request.getNombre());
+        sabor.setStockBaldes(request.getStockBaldes());
+        sabor.setDisponible(request.getDisponible());
+        sabor.setCapBalde(request.getCapBalde());
+        return SaborResponse.from(saborRepository.save(sabor));
+    }
+
+    @Transactional
+    public SaborResponse actualizarSabor(Long id, SaborRequest request) {
+        Sabor sabor = saborRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sabor no encontrado"));
+        sabor.setNombre(request.getNombre());
+        sabor.setStockBaldes(request.getStockBaldes());
+        sabor.setDisponible(request.getDisponible());
+        sabor.setCapBalde(request.getCapBalde());
+        return SaborResponse.from(saborRepository.save(sabor));
+    }
+
+    @Transactional
+    public void eliminarSabor(Long id) {
+        saborRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
     public List<AdicionalResponse> findAdicionalResponsesDisponibles() {
         return adicionalRepository.findByDisponibleTrue().stream()
                 .map(AdicionalResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdicionalResponse> findAllAdicionalResponses() {
+        return adicionalRepository.findAll().stream()
+                .map(AdicionalResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public AdicionalResponse crearAdicional(AdicionalRequest request) {
+        Adicional adicional = new Adicional();
+        adicional.setNombre(request.getNombre());
+        adicional.setPrecioExtra(request.getPrecioExtra());
+        adicional.setDisponible(request.getDisponible());
+        return AdicionalResponse.from(adicionalRepository.save(adicional));
+    }
+
+    @Transactional
+    public AdicionalResponse actualizarAdicional(Long id, AdicionalRequest request) {
+        Adicional adicional = adicionalRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Adicional no encontrado"));
+        adicional.setNombre(request.getNombre());
+        adicional.setPrecioExtra(request.getPrecioExtra());
+        adicional.setDisponible(request.getDisponible());
+        return AdicionalResponse.from(adicionalRepository.save(adicional));
+    }
+
+    @Transactional
+    public void eliminarAdicional(Long id) {
+        adicionalRepository.deleteById(id);
     }
 }

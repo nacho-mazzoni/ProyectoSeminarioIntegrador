@@ -53,6 +53,40 @@ public class PedidoService {
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
     }
 
+    public List<Pedido> findAll() {
+        return pedidoRepository.findAllByOrderByFechaDesc();
+    }
+
+    @Transactional
+    public Pedido cancelar(Pedido pedido) {
+        String estadoActual = historialEstadoRepository
+                .findByPedidoIdPedidoOrderByFechaHoraAsc(pedido.getIdPedido())
+                .stream()
+                .reduce((first, second) -> second)
+                .map(HistorialEstado::getEstado)
+                .orElse("PENDIENTE");
+
+        if (!"PENDIENTE".equals(estadoActual)) {
+            throw new RuntimeException("Solo se pueden cancelar pedidos pendientes");
+        }
+
+        List<DetallePedido> detalles = detallePedidoRepository.findByPedidoIdPedido(pedido.getIdPedido());
+        for (DetallePedido detalle : detalles) {
+            Producto producto = detalle.getProducto();
+            producto.setStockEnvases(producto.getStockEnvases() + detalle.getCantidad());
+            productoRepository.save(producto);
+        }
+
+        HistorialEstado historial = new HistorialEstado();
+        historial.setFechaHora(Instant.now());
+        historial.setEstado("CANCELADO");
+        historial.setNotas("Cancelado por el cliente");
+        historial.setPedido(pedido);
+        historialEstadoRepository.save(historial);
+
+        return pedido;
+    }
+
     @Transactional
     public Pedido crear(Cliente cliente, PedidoRequest request) {
         Pedido pedido = new Pedido();

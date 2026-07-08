@@ -87,4 +87,19 @@ public class AuthService {
                 .map(UsuarioResponse::fromCliente)
                 .orElseGet(() -> UsuarioResponse.from(usuario));
     }
+
+    @Transactional
+    public void cambiarPassword(Usuario usuario, String passwordActual, String passwordNueva) {
+        if (!passwordEncoder.matches(passwordActual, usuario.getClave())) {
+            throw new RuntimeException("La contraseña actual no es correcta");
+        }
+        usuario.setClave(passwordEncoder.encode(passwordNueva));
+        usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public void eliminarCuenta(Usuario usuario) {
+        usuario.setActivo(false);
+        usuarioRepository.save(usuario);
+    }
 }

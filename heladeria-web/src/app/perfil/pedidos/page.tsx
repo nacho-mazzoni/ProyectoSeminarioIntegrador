@@ -9,12 +9,24 @@ export default function PedidosPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const cargar = () => {
     api.pedidos.listar().then((p) => {
       setPedidos(p)
       setLoading(false)
     })
-  }, [])
+  }
+
+  useEffect(() => { cargar() }, [])
+
+  const handleCancelar = async (id: number) => {
+    if (!confirm("¿Estás seguro de cancelar este pedido?")) return
+    try {
+      await api.pedidos.cancelar(id)
+      cargar()
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Error al cancelar")
+    }
+  }
 
   if (loading) return <div className="text-center py-16">Cargando...</div>
 
@@ -37,6 +49,7 @@ export default function PedidosPage() {
       <div className="flex flex-col gap-4">
         {pedidos.map((p) => {
           const ultimoEstado = p.historial?.[p.historial.length - 1]
+          const esCancelable = ultimoEstado?.estado === "PENDIENTE"
           return (
             <div
               key={p.idPedido}
@@ -60,10 +73,24 @@ export default function PedidosPage() {
                     Entrega: {p.metodoEntrega} — {p.direccion}
                   </p>
                 </div>
-                <div className="text-right">
-                  <span className="inline-block bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                <div className="text-right flex flex-col gap-2 items-end">
+                  <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${
+                    ultimoEstado?.estado === "CANCELADO"
+                      ? "bg-red-100 text-red-800"
+                      : ultimoEstado?.estado === "ENTREGADO"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}>
                     {ultimoEstado?.estado ?? "PENDIENTE"}
                   </span>
+                  {esCancelable && (
+                    <button
+                      onClick={() => handleCancelar(p.idPedido)}
+                      className="text-xs text-red-600 underline hover:text-red-800"
+                    >
+                      Cancelar
+                    </button>
+                  )}
                 </div>
               </div>
 

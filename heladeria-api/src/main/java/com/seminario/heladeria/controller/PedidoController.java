@@ -51,4 +51,16 @@ public class PedidoController {
         Pedido pedido = pedidoService.crear(cliente, request);
         return ResponseEntity.ok(pedidoService.buildResponse(pedido));
     }
+
+    @PatchMapping("/{id}/cancelar")
+    public ResponseEntity<PedidoResponse> cancelar(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable Long id) {
+        Pedido pedido = pedidoService.findById(id);
+        if (!pedido.getCliente().getIdUsuario().equals(usuario.getIdUsuario())) {
+            return ResponseEntity.status(403).build();
+        }
+        pedido = pedidoService.cancelar(pedido);
+        return ResponseEntity.ok(pedidoService.buildResponse(pedido));
+    }
 }

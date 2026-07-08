@@ -2,6 +2,10 @@
 -- DROP existente (para idempotencia)
 -- ============================================================================
 
+DROP TABLE IF EXISTS carrito_item_adicional CASCADE;
+DROP TABLE IF EXISTS carrito_item_sabor CASCADE;
+DROP TABLE IF EXISTS carrito_item CASCADE;
+DROP TABLE IF EXISTS carrito CASCADE;
 DROP TABLE IF EXISTS detalle_pedido_adicional CASCADE;
 DROP TABLE IF EXISTS detalle_pedido_sabor CASCADE;
 DROP TABLE IF EXISTS detalle_pedido CASCADE;
@@ -201,6 +205,46 @@ CREATE TABLE detalle_pedido_adicional (
     CONSTRAINT fk_dpa_adicional FOREIGN KEY (id_adicional) REFERENCES adicional (id_adicional)
 );
 
+-- 17. CARRITO
+CREATE TABLE carrito (
+    id_carrito BIGSERIAL PRIMARY KEY,
+    id_cliente BIGINT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT fk_carrito_cliente FOREIGN KEY (id_cliente) REFERENCES cliente (id_usuario)
+);
+
+-- 18. CARRITO_ITEM
+CREATE TABLE carrito_item (
+    id_item     BIGSERIAL PRIMARY KEY,
+    id_carrito  BIGINT  NOT NULL,
+    id_producto BIGINT  NOT NULL,
+    cantidad    INTEGER NOT NULL DEFAULT 1 CHECK (cantidad > 0),
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT fk_ci_carrito  FOREIGN KEY (id_carrito)  REFERENCES carrito (id_carrito) ON DELETE CASCADE,
+    CONSTRAINT fk_ci_producto FOREIGN KEY (id_producto) REFERENCES producto (id_producto)
+);
+
+-- 19. CARRITO_ITEM_SABOR (M:N)
+CREATE TABLE carrito_item_sabor (
+    id_item  BIGINT NOT NULL,
+    id_sabor BIGINT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT pk_carrito_item_sabor PRIMARY KEY (id_item, id_sabor),
+    CONSTRAINT fk_cis_item  FOREIGN KEY (id_item)  REFERENCES carrito_item (id_item) ON DELETE CASCADE,
+    CONSTRAINT fk_cis_sabor FOREIGN KEY (id_sabor) REFERENCES sabor (id_sabor)
+);
+
+-- 20. CARRITO_ITEM_ADICIONAL (M:N)
+CREATE TABLE carrito_item_adicional (
+    id_item     BIGINT NOT NULL,
+    id_adicional BIGINT NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT pk_carrito_item_adicional PRIMARY KEY (id_item, id_adicional),
+    CONSTRAINT fk_cia_item      FOREIGN KEY (id_item)      REFERENCES carrito_item (id_item) ON DELETE CASCADE,
+    CONSTRAINT fk_cia_adicional FOREIGN KEY (id_adicional) REFERENCES adicional (id_adicional)
+);
+
 -- ÍNDICES
 CREATE INDEX idx_usuario_email      ON usuario (email);
 CREATE INDEX idx_pedido_cliente     ON pedido (id_cliente);
@@ -228,7 +272,8 @@ BEGIN
         SELECT unnest(ARRAY[
             'rol', 'usuario', 'cliente', 'zona_envio', 'categoria',
             'promocion', 'direccion', 'producto', 'sabor', 'adicional',
-            'pedido', 'pago', 'historial_estado', 'detalle_pedido'
+            'pedido', 'pago', 'historial_estado', 'detalle_pedido',
+            'carrito', 'carrito_item'
         ])
     LOOP
         EXECUTE format(

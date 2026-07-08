@@ -79,3 +79,24 @@ export interface Pedido {
   detalles: DetallePedido[]
   historial: HistorialEstado[]
 }
+
+export interface CarritoItem {
+  idItem: number
+  idProducto: number
+  nombre: string
+  cantidad: number
+  precioBase: number
+  sabores: string[]
+  adicionales: string[]
+}
+
+export interface Carrito {
+  idCarrito: number
+  items: CarritoItem[]
+  subtotal: number
+}
+
+export interface Rol {
+  idRol: number
+  nombreRol: string
+}
