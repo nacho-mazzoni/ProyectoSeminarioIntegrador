@@ -1,6 +1,6 @@
 package com.seminario.heladeria.repository;
 
-import com.seminario.heladeria.entity.Usuario;
+import com.seminario.heladeria.entity.Cliente;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -16,32 +16,31 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Sql("/test-seed.sql")
-class UsuarioRepositoryTest {
+class ClienteRepositoryTest {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private ClienteRepository clienteRepository;
 
     @Test
-    void findByEmail_shouldReturnUserWhenExists() {
-        Optional<Usuario> result = usuarioRepository.findByEmail("cliente@test.com");
+    void findById_shouldReturnCliente() {
+        Optional<Cliente> result = clienteRepository.findById(2L);
 
         assertThat(result).isPresent();
-        assertThat(result.get().getEmail()).isEqualTo("cliente@test.com");
-        assertThat(result.get().getActivo()).isTrue();
+        assertThat(result.get().getTelefono()).isEqualTo("123456789");
     }
 
     @Test
-    void findByEmail_shouldReturnEmptyWhenEmailNotExists() {
-        Optional<Usuario> result = usuarioRepository.findByEmail("noexiste@test.com");
+    void findById_shouldReturnEmptyWhenNotFound() {
+        Optional<Cliente> result = clienteRepository.findById(999L);
 
         assertThat(result).isEmpty();
     }
 
     @Test
-    void findByEmail_shouldReturnAdminUser() {
-        Optional<Usuario> result = usuarioRepository.findByEmail("admin@heladeria.com");
+    void findByIdUsuario_shouldReturnCliente() {
+        Optional<Cliente> result = clienteRepository.findByIdUsuario(2L);
 
         assertThat(result).isPresent();
-        assertThat(result.get().getRol().getNombreRol()).isEqualTo("Administrador");
+        assertThat(result.get().getIdUsuario()).isEqualTo(2L);
     }
 }
