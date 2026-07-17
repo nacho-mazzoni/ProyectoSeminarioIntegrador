@@ -1,6 +1,7 @@
 import type {
   Categoria, Producto, Sabor, Adicional, ZonaEnvio,
-  Usuario, Direccion, Pedido, Carrito, Rol,
+  Usuario, Direccion, Pedido, Carrito, Rol, CheckoutResponse,
+  Promocion, DashboardResponse, ReporteIngresosResponse, ReportePedidosResponse,
 } from "./types"
 
 const API = process.env.NEXT_PUBLIC_API_URL!
@@ -29,8 +30,9 @@ async function getPublic<T>(path: string): Promise<T> {
   return res.json()
 }
 
-async function getAuth<T>(path: string): Promise<T> {
-  const res = await fetch(`${API}${path}`, { headers: authHeaders() })
+async function getAuth<T>(path: string, params?: string): Promise<T> {
+  const url = params ? `${API}${path}?${params}` : `${API}${path}`
+  const res = await fetch(url, { headers: authHeaders() })
   if (!res.ok) await handleError(res)
   return res.json()
 }
@@ -74,7 +76,15 @@ export const api = {
     me: () => getAuth<Usuario>("/auth/me"),
   },
   productos: {
-    listar: () => getPublic<Producto[]>("/productos"),
+    listar: (params?: { nombre?: string; categoria?: number; precioMin?: number; precioMax?: number }) => {
+      const q = new URLSearchParams()
+      if (params?.nombre) q.set("nombre", params.nombre)
+      if (params?.categoria) q.set("categoria", String(params.categoria))
+      if (params?.precioMin) q.set("precioMin", String(params.precioMin))
+      if (params?.precioMax) q.set("precioMax", String(params.precioMax))
+      const qs = q.toString()
+      return getPublic<Producto[]>(`/productos${qs ? "?" + qs : ""}`)
+    },
     obtener: (id: number) => getPublic<Producto>(`/productos/${id}`),
   },
   categorias: {
@@ -85,6 +95,10 @@ export const api = {
   },
   adicionales: {
     listar: () => getPublic<Adicional[]>("/adicionales"),
+  },
+  promociones: {
+    listar: () => getPublic<Promocion[]>("/promociones"),
+    validar: (codigo: string) => getPublic<Promocion>(`/promociones/${codigo}`),
   },
   zonas: {
     listar: () => getPublic<ZonaEnvio[]>("/zonas-envio"),
@@ -117,18 +131,19 @@ export const api = {
       idsSabor?: number[]
       idsAdicional?: number[]
     }) => postAuth<Carrito>("/carrito/items", data),
-    actualizarItem: (idItem: number, data: {
+    actualizarItem: (id: number, data: {
       idProducto: number
       cantidad: number
       idsSabor?: number[]
       idsAdicional?: number[]
-    }) => putAuth<Carrito>(`/carrito/items/${idItem}`, data),
-    eliminarItem: (idItem: number) => delAuth(`/carrito/items/${idItem}`),
+    }) => putAuth<Carrito>(`/carrito/items/${id}`, data),
+    eliminarItem: (id: number) => delAuth(`/carrito/items/${id}`),
     checkout: (data: {
       metodoEntrega: string
       idDireccion: number
       codigoPromocion?: string
-    }) => postAuth<Pedido>("/carrito/checkout", data),
+      metodoPago: string
+    }) => postAuth<CheckoutResponse>("/carrito/checkout", data),
   },
   pedidos: {
     listar: () => getAuth<Pedido[]>("/pedidos"),
@@ -144,6 +159,16 @@ export const api = {
         idsAdicional?: number[]
       }[]
     }) => postAuth<Pedido>("/pedidos", data),
+    editar: (id: number, data: {
+      idDireccion?: number
+      codigoPromocion?: string
+      detalles: {
+        idProducto: number
+        cantidad: number
+        idsSabor?: number[]
+        idsAdicional?: number[]
+      }[]
+    }) => putAuth<Pedido>(`/pedidos/${id}`, data),
     cancelar: (id: number) => patchAuth<Pedido>(`/pedidos/${id}/cancelar`),
   },
   admin: {
@@ -182,32 +207,18 @@ export const api = {
     },
     sabores: {
       listar: () => getAuth<Sabor[]>("/admin/sabores"),
-      crear: (data: {
-        nombre: string
-        stockBaldes: number
-        disponible: boolean
-        capBalde?: string
-      }) => postAuth<Sabor>("/admin/sabores", data),
-      actualizar: (id: number, data: {
-        nombre: string
-        stockBaldes: number
-        disponible: boolean
-        capBalde?: string
-      }) => putAuth<Sabor>(`/admin/sabores/${id}`, data),
+      crear: (data: { nombre: string; stockBaldes: number; disponible: boolean; capBalde?: string }) =>
+        postAuth<Sabor>("/admin/sabores", data),
+      actualizar: (id: number, data: { nombre: string; stockBaldes: number; disponible: boolean; capBalde?: string }) =>
+        putAuth<Sabor>(`/admin/sabores/${id}`, data),
       eliminar: (id: number) => delAuth(`/admin/sabores/${id}`),
     },
     adicionales: {
       listar: () => getAuth<Adicional[]>("/admin/adicionales"),
-      crear: (data: {
-        nombre: string
-        precioExtra: number
-        disponible: boolean
-      }) => postAuth<Adicional>("/admin/adicionales", data),
-      actualizar: (id: number, data: {
-        nombre: string
-        precioExtra: number
-        disponible: boolean
-      }) => putAuth<Adicional>(`/admin/adicionales/${id}`, data),
+      crear: (data: { nombre: string; precioExtra: number; disponible: boolean }) =>
+        postAuth<Adicional>("/admin/adicionales", data),
+      actualizar: (id: number, data: { nombre: string; precioExtra: number; disponible: boolean }) =>
+        putAuth<Adicional>(`/admin/adicionales/${id}`, data),
       eliminar: (id: number) => delAuth(`/admin/adicionales/${id}`),
     },
     pedidos: {
@@ -217,6 +228,44 @@ export const api = {
     },
     roles: {
       listar: () => getAuth<Rol[]>("/admin/roles"),
+    },
+    promociones: {
+      listar: () => getAuth<Promocion[]>("/admin/promociones"),
+      obtener: (id: number) => getAuth<Promocion>(`/admin/promociones/${id}`),
+      crear: (data: {
+        codigo: string
+        descripcion?: string
+        porcDesc: number
+        activa?: boolean
+        fechaInicio?: string
+        fechaFin?: string
+      }) => postAuth<Promocion>("/admin/promociones", data),
+      actualizar: (id: number, data: {
+        codigo: string
+        descripcion?: string
+        porcDesc: number
+        activa?: boolean
+        fechaInicio?: string
+        fechaFin?: string
+      }) => putAuth<Promocion>(`/admin/promociones/${id}`, data),
+      eliminar: (id: number) => delAuth(`/admin/promociones/${id}`),
+    },
+    reportes: {
+      dashboard: () => getAuth<DashboardResponse>("/admin/reportes/dashboard"),
+      pedidos: (params?: { desde?: string; hasta?: string; page?: number; size?: number }) => {
+        const q = new URLSearchParams()
+        if (params?.desde) q.set("desde", params.desde)
+        if (params?.hasta) q.set("hasta", params.hasta)
+        if (params?.page !== undefined) q.set("page", String(params.page))
+        if (params?.size !== undefined) q.set("size", String(params.size))
+        return getAuth<ReportePedidosResponse>(`/admin/reportes/pedidos${q.toString() ? "?" + q.toString() : ""}`)
+      },
+      ingresos: (params?: { desde?: string; hasta?: string }) => {
+        const q = new URLSearchParams()
+        if (params?.desde) q.set("desde", params.desde)
+        if (params?.hasta) q.set("hasta", params.hasta)
+        return getAuth<ReporteIngresosResponse>(`/admin/reportes/ingresos${q.toString() ? "?" + q.toString() : ""}`)
+      },
     },
   },
 }

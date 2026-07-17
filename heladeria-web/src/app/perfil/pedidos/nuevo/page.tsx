@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api"
-import type { Producto, Sabor, Adicional, Direccion } from "@/lib/types"
+import type { Producto, Sabor, Adicional, Direccion, Promocion } from "@/lib/types"
 
 export default function NuevoPedidoPage() {
   const router = useRouter()
@@ -11,6 +11,7 @@ export default function NuevoPedidoPage() {
   const [sabores, setSabores] = useState<Sabor[]>([])
   const [adicionales, setAdicionales] = useState<Adicional[]>([])
   const [direcciones, setDirecciones] = useState<Direccion[]>([])
+  const [promociones, setPromociones] = useState<Promocion[]>([])
   const [items, setItems] = useState<{
     idItem: number | null
     idProducto: number
@@ -23,9 +24,12 @@ export default function NuevoPedidoPage() {
   const [metodoEntrega, setMetodoEntrega] = useState("retiro")
   const [idDireccion, setIdDireccion] = useState<number | "">("")
   const [codigoPromocion, setCodigoPromocion] = useState("")
+  const [metodoPago, setMetodoPago] = useState("efectivo")
+  const [descuento, setDescuento] = useState(0)
   const [error, setError] = useState("")
   const [ok, setOk] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [promoError, setPromoError] = useState("")
 
   const cargarCarrito = useCallback(async () => {
     try {
@@ -40,9 +44,7 @@ export default function NuevoPedidoPage() {
         idsAdicional: [] as number[],
       }))
       setItems(mapeados)
-    } catch {
-      // si no hay carrito, empezar vacío
-    }
+    } catch {}
   }, [])
 
   useEffect(() => {
@@ -51,28 +53,28 @@ export default function NuevoPedidoPage() {
       api.sabores.listar(),
       api.adicionales.listar(),
       api.direcciones.listar(),
+      api.promociones.listar(),
       cargarCarrito(),
-    ]).then(([p, s, a, d]) => {
+    ]).then(([p, s, a, d, promos]) => {
       setProductos(p)
       setSabores(s)
       setAdicionales(a)
       setDirecciones(d)
+      setPromociones(promos)
       setLoading(false)
     })
   }, [cargarCarrito])
 
-  const actualizarIds = (itemsActuales: typeof items) => {
-    const saborMap: Record<number, string> = Object.fromEntries(
-      sabores.filter((s) => s.disponible).map((s) => [s.idSabor, s.nombre])
-    )
-    const adicMap: Record<number, string> = Object.fromEntries(
-      adicionales.filter((a) => a.disponible).map((a) => [a.idAdicional, a.nombre])
-    )
-    return itemsActuales.map((item) => {
-      const itemSaborNombres = item.idsSabor.map((id) => saborMap[id]).filter(Boolean)
-      const itemAdicNombres = item.idsAdicional.map((id) => adicMap[id]).filter(Boolean)
-      return { ...item, saboresNombres: itemSaborNombres, adicionalesNombres: itemAdicNombres }
-    })
+  const validarPromo = async () => {
+    if (!codigoPromocion) { setDescuento(0); setPromoError(""); return }
+    try {
+      const promo = await api.promociones.validar(codigoPromocion)
+      setDescuento(promo.porcDesc)
+      setPromoError("")
+    } catch {
+      setDescuento(0)
+      setPromoError("Codigo invalido")
+    }
   }
 
   const syncCarrito = async () => {
@@ -91,10 +93,7 @@ export default function NuevoPedidoPage() {
 
   const agregarProducto = async (p: Producto) => {
     try {
-      await api.carrito.agregarItem({
-        idProducto: p.idProducto,
-        cantidad: 1,
-      })
+      await api.carrito.agregarItem({ idProducto: p.idProducto, cantidad: 1 })
       await syncCarrito()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error")
@@ -106,10 +105,8 @@ export default function NuevoPedidoPage() {
     if (!item.idItem) return
     try {
       await api.carrito.actualizarItem(item.idItem, {
-        idProducto: item.idProducto,
-        cantidad,
-        idsSabor: item.idsSabor,
-        idsAdicional: item.idsAdicional,
+        idProducto: item.idProducto, cantidad,
+        idsSabor: item.idsSabor, idsAdicional: item.idsAdicional,
       })
       await syncCarrito()
     } catch (err: unknown) {
@@ -124,10 +121,8 @@ export default function NuevoPedidoPage() {
     const nuevosSabores = tiene ? item.idsSabor.filter((s) => s !== idSabor) : [...item.idsSabor, idSabor]
     try {
       await api.carrito.actualizarItem(item.idItem, {
-        idProducto: item.idProducto,
-        cantidad: item.cantidad,
-        idsSabor: nuevosSabores,
-        idsAdicional: item.idsAdicional,
+        idProducto: item.idProducto, cantidad: item.cantidad,
+        idsSabor: nuevosSabores, idsAdicional: item.idsAdicional,
       })
       await syncCarrito()
     } catch (err: unknown) {
@@ -142,10 +137,8 @@ export default function NuevoPedidoPage() {
     const nuevosAdic = tiene ? item.idsAdicional.filter((a) => a !== idAdicional) : [...item.idsAdicional, idAdicional]
     try {
       await api.carrito.actualizarItem(item.idItem, {
-        idProducto: item.idProducto,
-        cantidad: item.cantidad,
-        idsSabor: item.idsSabor,
-        idsAdicional: nuevosAdic,
+        idProducto: item.idProducto, cantidad: item.cantidad,
+        idsSabor: item.idsSabor, idsAdicional: nuevosAdic,
       })
       await syncCarrito()
     } catch (err: unknown) {
@@ -165,29 +158,29 @@ export default function NuevoPedidoPage() {
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.precioBase * item.cantidad, 0)
+  const descuentoMonto = subtotal * (descuento / 100)
+  const total = subtotal - descuentoMonto
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
-    if (items.length === 0) {
-      setError("Agregá al menos un producto")
-      return
-    }
-
-    if (metodoEntrega === "delivery" && !idDireccion) {
-      setError("Seleccioná una dirección de entrega")
-      return
-    }
+    if (items.length === 0) { setError("Agrega al menos un producto"); return }
+    if (metodoEntrega === "delivery" && !idDireccion) { setError("Selecciona una direccion"); return }
 
     try {
-      await api.carrito.checkout({
+      const result = await api.carrito.checkout({
         metodoEntrega,
         idDireccion: metodoEntrega === "delivery" ? Number(idDireccion) : 0,
         codigoPromocion: codigoPromocion || undefined,
+        metodoPago,
       })
-      setOk(true)
-      setTimeout(() => router.push("/perfil/pedidos"), 1500)
+      if (result.initPoint) {
+        window.location.href = result.initPoint
+      } else {
+        setOk(true)
+        setTimeout(() => router.push("/perfil/pedidos"), 1500)
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al crear pedido")
     }
@@ -198,7 +191,7 @@ export default function NuevoPedidoPage() {
   if (ok) {
     return (
       <div className="text-center py-24">
-        <h1 className="text-2xl font-bold text-green-600 mb-2">¡Pedido creado con éxito!</h1>
+        <h1 className="text-2xl font-bold text-green-600 mb-2">Pedido creado con exito!</h1>
         <p className="text-stone-500">Redirigiendo a Mis Pedidos...</p>
       </div>
     )
@@ -214,12 +207,8 @@ export default function NuevoPedidoPage() {
             <h2 className="font-semibold mb-3">Productos</h2>
             <div className="grid grid-cols-2 gap-3">
               {productos.map((p) => (
-                <button
-                  key={p.idProducto}
-                  type="button"
-                  onClick={() => agregarProducto(p)}
-                  className="bg-white border rounded-lg p-3 text-left hover:border-amber-400 transition text-sm"
-                >
+                <button key={p.idProducto} type="button" onClick={() => agregarProducto(p)}
+                  className="bg-white border rounded-lg p-3 text-left hover:border-amber-400 transition text-sm">
                   <p className="font-medium">{p.nombre}</p>
                   <p className="text-amber-600">${p.precioBase.toFixed(2)}</p>
                   <p className="text-stone-400 text-xs">Stock: {p.stockEnvases}</p>
@@ -240,54 +229,35 @@ export default function NuevoPedidoPage() {
                         <p className="text-amber-600 text-sm">${item.precioBase.toFixed(2)} c/u</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <select
-                          value={item.cantidad}
-                          onChange={(e) => cambiarCantidad(idx, Number(e.target.value))}
-                          className="border rounded px-2 py-1 text-sm"
-                        >
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                            <option key={n} value={n}>{n}</option>
-                          ))}
+                        <select value={item.cantidad} onChange={(e) => cambiarCantidad(idx, Number(e.target.value))}
+                          className="border rounded px-2 py-1 text-sm">
+                          {[1,2,3,4,5,6,7,8,9,10].map((n) => <option key={n} value={n}>{n}</option>)}
                         </select>
                         <button type="button" onClick={() => quitarItem(idx)} className="text-red-500 text-sm hover:underline">Quitar</button>
                       </div>
                     </div>
-
                     {sabores.filter((s) => s.disponible).length > 0 && (
                       <div className="mt-2">
                         <p className="text-xs text-stone-500 mb-1">Sabores:</p>
                         <div className="flex flex-wrap gap-1">
                           {sabores.filter((s) => s.disponible).map((s) => (
-                            <button
-                              key={s.idSabor}
-                              type="button"
-                              onClick={() => toggleSabor(idx, s.idSabor)}
+                            <button key={s.idSabor} type="button" onClick={() => toggleSabor(idx, s.idSabor)}
                               className={`text-xs px-2 py-0.5 rounded-full border ${
-                                item.idsSabor.includes(s.idSabor)
-                                  ? "bg-amber-500 text-white border-amber-500"
-                                  : "bg-white border-stone-300"
-                              }`}
-                            >{s.nombre}</button>
+                                item.idsSabor.includes(s.idSabor) ? "bg-amber-500 text-white border-amber-500" : "bg-white border-stone-300"
+                              }`}>{s.nombre}</button>
                           ))}
                         </div>
                       </div>
                     )}
-
                     {adicionales.filter((a) => a.disponible).length > 0 && (
                       <div className="mt-2">
                         <p className="text-xs text-stone-500 mb-1">Adicionales:</p>
                         <div className="flex flex-wrap gap-1">
                           {adicionales.filter((a) => a.disponible).map((a) => (
-                            <button
-                              key={a.idAdicional}
-                              type="button"
-                              onClick={() => toggleAdicional(idx, a.idAdicional)}
+                            <button key={a.idAdicional} type="button" onClick={() => toggleAdicional(idx, a.idAdicional)}
                               className={`text-xs px-2 py-0.5 rounded-full border ${
-                                item.idsAdicional.includes(a.idAdicional)
-                                  ? "bg-amber-500 text-white border-amber-500"
-                                  : "bg-white border-stone-300"
-                              }`}
-                            >{a.nombre} (+${a.precioExtra.toFixed(2)})</button>
+                                item.idsAdicional.includes(a.idAdicional) ? "bg-amber-500 text-white border-amber-500" : "bg-white border-stone-300"
+                              }`}>{a.nombre} (+${a.precioExtra.toFixed(2)})</button>
                           ))}
                         </div>
                       </div>
@@ -304,12 +274,9 @@ export default function NuevoPedidoPage() {
             <h2 className="font-semibold">Resumen</h2>
 
             <div>
-              <p className="text-sm text-stone-500">Método de entrega</p>
-              <select
-                value={metodoEntrega}
-                onChange={(e) => setMetodoEntrega(e.target.value)}
-                className="border rounded px-3 py-2 w-full mt-1 text-sm"
-              >
+              <p className="text-sm text-stone-500">Metodo de entrega</p>
+              <select value={metodoEntrega} onChange={(e) => setMetodoEntrega(e.target.value)}
+                className="border rounded px-3 py-2 w-full mt-1 text-sm">
                 <option value="retiro">Retiro en local</option>
                 <option value="delivery">Delivery</option>
               </select>
@@ -317,34 +284,56 @@ export default function NuevoPedidoPage() {
 
             {metodoEntrega === "delivery" && (
               <div>
-                <p className="text-sm text-stone-500">Dirección</p>
-                <select
-                  value={idDireccion}
-                  onChange={(e) => setIdDireccion(e.target.value ? Number(e.target.value) : "")}
-                  className="border rounded px-3 py-2 w-full mt-1 text-sm"
-                >
+                <p className="text-sm text-stone-500">Direccion</p>
+                <select value={idDireccion} onChange={(e) => setIdDireccion(e.target.value ? Number(e.target.value) : "")}
+                  className="border rounded px-3 py-2 w-full mt-1 text-sm">
                   <option value="">Seleccionar</option>
                   {direcciones.map((d) => (
-                    <option key={d.idDireccion} value={d.idDireccion}>
-                      {d.calle} {d.numero} — {d.zona}
-                    </option>
+                    <option key={d.idDireccion} value={d.idDireccion}>{d.calle} {d.numero} - {d.zona}</option>
                   ))}
                 </select>
               </div>
             )}
 
             <div>
-              <p className="text-sm text-stone-500">Código promocional</p>
-              <input
-                value={codigoPromocion}
-                onChange={(e) => setCodigoPromocion(e.target.value)}
-                placeholder="Opcional"
-                className="border rounded px-3 py-2 w-full mt-1 text-sm"
-              />
+              <p className="text-sm text-stone-500">Metodo de pago</p>
+              <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}
+                className="border rounded px-3 py-2 w-full mt-1 text-sm">
+                <option value="efectivo">Efectivo</option>
+                <option value="mercado_pago">Mercado Pago</option>
+              </select>
             </div>
 
-            <div className="border-t pt-3">
-              <p className="text-lg font-bold">Total: ${subtotal.toFixed(2)}</p>
+            <div>
+              <p className="text-sm text-stone-500">Codigo promocional</p>
+              <div className="flex gap-2 mt-1">
+                <input value={codigoPromocion} onChange={(e) => setCodigoPromocion(e.target.value)}
+                  placeholder="Opcional" className="border rounded px-3 py-2 flex-1 text-sm" />
+                <button type="button" onClick={validarPromo}
+                  className="bg-stone-200 px-3 py-2 rounded text-sm hover:bg-stone-300">Aplicar</button>
+              </div>
+              {promoError && <p className="text-red-500 text-xs mt-1">{promoError}</p>}
+              {descuento > 0 && <p className="text-green-600 text-xs mt-1">{descuento}% de descuento aplicado</p>}
+            </div>
+
+            {promociones.length > 0 && (
+              <div>
+                <p className="text-xs text-stone-500 mb-1">Promociones activas:</p>
+                <div className="flex flex-wrap gap-1">
+                  {promociones.map((p) => (
+                    <button key={p.idPromocion} type="button" onClick={() => { setCodigoPromocion(p.codigo); validarPromo() }}
+                      className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-300">
+                      {p.codigo} - {p.porcDesc}% OFF
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="border-t pt-3 space-y-1">
+              <p className="text-sm text-stone-500">Subtotal: ${subtotal.toFixed(2)}</p>
+              {descuento > 0 && <p className="text-sm text-green-600">Descuento: -${descuentoMonto.toFixed(2)}</p>}
+              <p className="text-lg font-bold">Total: ${total.toFixed(2)}</p>
             </div>
 
             {error && <p className="text-red-600 text-sm">{error}</p>}

@@ -76,6 +76,8 @@ export interface Pedido {
   cliente: string
   direccion: string
   promocion?: string
+  metodoPago?: string
+  estadoPago?: string
   detalles: DetallePedido[]
   historial: HistorialEstado[]
 }
@@ -99,4 +101,40 @@ export interface Carrito {
 export interface Rol {
   idRol: number
   nombreRol: string
+}
+
+export interface CheckoutResponse {
+  pedido: Pedido
+  initPoint?: string
+  pagoId?: number
+}
+
+export interface Promocion {
+  idPromocion: number
+  codigo: string
+  descripcion?: string
+  porcDesc: number
+  activa: boolean
+  createdAt: string
+}
+
+export interface DashboardResponse {
+  totalUsuarios: number
+  totalProductos: number
+  totalPedidos: number
+  ingresosTotales: number
+  topProductos: { nombre: string; cantidadVendida: number }[]
+}
+
+export interface ReporteIngresosResponse {
+  totalIngresos: number
+  cantidadPedidos: number
+  promedio: number
+  porDia: { fecha: string; total: number; cantidad: number }[]
+}
+
+export interface ReportePedidosResponse {
+  pedidos: Pedido[]
+  totalPages: number
+  totalElements: number
 }

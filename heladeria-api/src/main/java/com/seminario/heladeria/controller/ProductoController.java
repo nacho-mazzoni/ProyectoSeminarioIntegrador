@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -28,8 +29,12 @@ public class ProductoController {
     }
 
     @GetMapping("/productos")
-    public ResponseEntity<List<ProductoResponse>> listarProductos() {
-        return ResponseEntity.ok(productoService.findAllProductoResponses());
+    public ResponseEntity<List<ProductoResponse>> listarProductos(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) Long categoria,
+            @RequestParam(required = false) BigDecimal precioMin,
+            @RequestParam(required = false) BigDecimal precioMax) {
+        return ResponseEntity.ok(productoService.findAllProductoResponses(nombre, categoria, precioMin, precioMax));
     }
 
     @GetMapping("/productos/{id}")
@@ -52,7 +57,7 @@ public class ProductoController {
     @GetMapping("/admin/productos")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<List<ProductoResponse>> listarProductosAdmin() {
-        return ResponseEntity.ok(productoService.findAllProductoResponses());
+        return ResponseEntity.ok(productoService.findAllProductoResponses(null, null, null, null));
     }
 
     @PostMapping("/admin/productos")

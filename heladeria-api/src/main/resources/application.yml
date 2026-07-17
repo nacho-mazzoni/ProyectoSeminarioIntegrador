@@ -9,3 +9,6 @@ app:
   jwt:
     secret: 0b90ac57-f064-4a05-9baf-88413877fed0
     expiration: 86400000
+
+mercadopago:
+  access-token: TEST-7261349138779377-070917-0e75dd4ec51293b4d209776ceac71391-381092806

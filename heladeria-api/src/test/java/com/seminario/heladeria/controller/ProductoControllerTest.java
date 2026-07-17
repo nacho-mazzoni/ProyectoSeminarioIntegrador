@@ -49,7 +49,7 @@ class ProductoControllerTest {
         var prod = new ProductoResponse();
         ReflectionTestUtils.setField(prod, "idProducto", 1L);
         ReflectionTestUtils.setField(prod, "nombre", "Prod 1");
-        when(productoService.findAllProductoResponses()).thenReturn(List.of(prod));
+        when(productoService.findAllProductoResponses(null, null, null, null)).thenReturn(List.of(prod));
 
         mockMvc.perform(get("/api/productos").with(user("test@test.com")))
                 .andExpect(status().isOk())

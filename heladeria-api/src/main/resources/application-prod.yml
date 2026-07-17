@@ -1,3 +1,6 @@
+mercadopago:
+  access-token: ${MP_ACCESS_TOKEN}
+
 spring:
   datasource:
     url: jdbc:postgresql://db.exzbmqqfafwmzznjyguj.supabase.co:5432/postgres

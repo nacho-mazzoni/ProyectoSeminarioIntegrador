@@ -4,6 +4,7 @@ import com.seminario.heladeria.dto.request.CarritoItemRequest;
 import com.seminario.heladeria.dto.request.CheckoutRequest;
 import com.seminario.heladeria.dto.request.PedidoRequest;
 import com.seminario.heladeria.dto.response.CarritoResponse;
+import com.seminario.heladeria.dto.response.CheckoutResponse;
 import com.seminario.heladeria.dto.response.PedidoResponse;
 import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
@@ -23,6 +24,8 @@ public class CarritoService {
     private final SaborRepository saborRepository;
     private final AdicionalRepository adicionalRepository;
     private final PedidoService pedidoService;
+    private final PagoService pagoService;
+    private final DireccionService direccionService;
 
     public CarritoService(CarritoRepository carritoRepository,
                           CarritoItemRepository carritoItemRepository,
@@ -30,7 +33,9 @@ public class CarritoService {
                           ProductoRepository productoRepository,
                           SaborRepository saborRepository,
                           AdicionalRepository adicionalRepository,
-                          PedidoService pedidoService) {
+                          PedidoService pedidoService,
+                          PagoService pagoService,
+                          DireccionService direccionService) {
         this.carritoRepository = carritoRepository;
         this.carritoItemRepository = carritoItemRepository;
         this.clienteService = clienteService;
@@ -38,6 +43,8 @@ public class CarritoService {
         this.saborRepository = saborRepository;
         this.adicionalRepository = adicionalRepository;
         this.pedidoService = pedidoService;
+        this.pagoService = pagoService;
+        this.direccionService = direccionService;
     }
 
     @Transactional
@@ -56,6 +63,18 @@ public class CarritoService {
         Carrito carrito = obtenerOCrear(usuario);
         Producto producto = productoRepository.findById(request.getIdProducto())
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        if (producto.getCategoria().getRequiereSabores() &&
+            (request.getIdsSabor() == null || request.getIdsSabor().isEmpty())) {
+            throw new RuntimeException("Este producto requiere al menos un sabor");
+        }
+        if (!producto.getCategoria().getRequiereSabores() &&
+                request.getIdsSabor() != null && !request.getIdsSabor().isEmpty()) {
+            throw new RuntimeException("Este producto no admite sabores");
+        }
+        if (request.getIdsSabor() != null && request.getIdsSabor().size() > producto.getMaxSabores()) {
+            throw new RuntimeException("Maximo " + producto.getMaxSabores() + " sabores permitidos");
+        }
 
         CarritoItem item = new CarritoItem();
         item.setCarrito(carrito);
@@ -99,6 +118,17 @@ public class CarritoService {
 
         if (!item.getCarrito().getIdCarrito().equals(carrito.getIdCarrito())) {
             throw new RuntimeException("El item no pertenece al carrito del usuario");
+        }
+
+        Producto producto = productoRepository.findById(request.getIdProducto())
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        if (producto.getCategoria().getRequiereSabores() &&
+                (request.getIdsSabor() == null || request.getIdsSabor().isEmpty())) {
+            throw new RuntimeException("Este producto requiere al menos un sabor");
+        }
+        if (request.getIdsSabor() != null && request.getIdsSabor().size() > producto.getMaxSabores()) {
+            throw new RuntimeException("Maximo " + producto.getMaxSabores() + " sabores permitidos");
         }
 
         item.setCantidad(request.getCantidad());
@@ -152,14 +182,21 @@ public class CarritoService {
     }
 
     @Transactional
-    public PedidoResponse checkout(Usuario usuario, CheckoutRequest request) {
+    public CheckoutResponse checkout(Usuario usuario, CheckoutRequest request) {
         Carrito carrito = obtenerOCrear(usuario);
 
         if (carrito.getItems().isEmpty()) {
-            throw new RuntimeException("El carrito está vacío");
+            throw new RuntimeException("El carrito esta vacio");
         }
 
         Cliente cliente = clienteService.findById(usuario.getIdUsuario());
+
+        if (request.getIdDireccion() != null && request.getIdDireccion() > 0) {
+            Direccion direccion = direccionService.findById(request.getIdDireccion());
+            if (!direccion.getCliente().getIdUsuario().equals(cliente.getIdUsuario())) {
+                throw new RuntimeException("La direccion no pertenece al usuario");
+            }
+        }
 
         PedidoRequest pedidoRequest = new PedidoRequest();
         pedidoRequest.setMetodoEntrega(request.getMetodoEntrega());
@@ -182,9 +219,19 @@ public class CarritoService {
         pedidoRequest.setDetalles(detalles);
 
         Pedido pedido = pedidoService.crear(cliente, pedidoRequest);
+        PedidoResponse pedidoResponse = pedidoService.buildResponse(pedido);
 
-        carritoRepository.delete(carrito);
-
-        return pedidoService.buildResponse(pedido);
+        if ("mercado_pago".equals(request.getMetodoPago())) {
+            pagoService.crearPagoConMP(pedido);
+            String initPoint = pagoService.crearPreferenciaMP(pedido);
+            PedidoResponse finalResponse = pedidoService.buildResponse(pedido);
+            carritoRepository.delete(carrito);
+            return new CheckoutResponse(finalResponse, initPoint, null);
+        } else {
+            pagoService.crearPagoEfectivo(pedido);
+            PedidoResponse finalResponse = pedidoService.buildResponse(pedido);
+            carritoRepository.delete(carrito);
+            return new CheckoutResponse(finalResponse, null, null);
+        }
     }
 }

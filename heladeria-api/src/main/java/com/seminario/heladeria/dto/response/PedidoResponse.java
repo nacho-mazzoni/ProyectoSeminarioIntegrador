@@ -15,6 +15,8 @@ public class PedidoResponse {
     private String cliente;
     private String direccion;
     private String promocion;
+    private String metodoPago;
+    private String estadoPago;
     private List<DetallePedidoResponse> detalles;
     private List<HistorialResponse> historial;
 
@@ -39,11 +41,15 @@ public class PedidoResponse {
     public String getCliente() { return cliente; }
     public String getDireccion() { return direccion; }
     public String getPromocion() { return promocion; }
+    public String getMetodoPago() { return metodoPago; }
+    public String getEstadoPago() { return estadoPago; }
     public List<DetallePedidoResponse> getDetalles() { return detalles; }
     public List<HistorialResponse> getHistorial() { return historial; }
 
     public void setDetalles(List<DetallePedidoResponse> detalles) { this.detalles = detalles; }
     public void setHistorial(List<HistorialResponse> historial) { this.historial = historial; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
+    public void setEstadoPago(String estadoPago) { this.estadoPago = estadoPago; }
 
     public static class DetallePedidoResponse {
         private Long idDetalle;

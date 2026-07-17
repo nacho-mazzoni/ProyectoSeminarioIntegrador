@@ -84,6 +84,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Mercado Pago SDK -->
+        <dependency>
+            <groupId>com.mercadopago</groupId>
+            <artifactId>sdk-java</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
         <!-- Dev -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

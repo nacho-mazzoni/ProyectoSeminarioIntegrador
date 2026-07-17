@@ -3,7 +3,7 @@ package com.seminario.heladeria.controller;
 import com.seminario.heladeria.dto.request.CarritoItemRequest;
 import com.seminario.heladeria.dto.request.CheckoutRequest;
 import com.seminario.heladeria.dto.response.CarritoResponse;
-import com.seminario.heladeria.dto.response.PedidoResponse;
+import com.seminario.heladeria.dto.response.CheckoutResponse;
 import com.seminario.heladeria.entity.Usuario;
 import com.seminario.heladeria.service.CarritoService;
 import jakarta.validation.Valid;
@@ -34,25 +34,25 @@ public class CarritoController {
         return ResponseEntity.ok(carritoService.obtenerResponse(usuario));
     }
 
-    @PutMapping("/items/{idItem}")
+    @PutMapping("/items/{id}")
     public ResponseEntity<CarritoResponse> actualizarItem(
             @AuthenticationPrincipal Usuario usuario,
-            @PathVariable Long idItem,
+            @PathVariable Long id,
             @Valid @RequestBody CarritoItemRequest request) {
-        carritoService.actualizarItem(usuario, idItem, request);
+        carritoService.actualizarItem(usuario, id, request);
         return ResponseEntity.ok(carritoService.obtenerResponse(usuario));
     }
 
-    @DeleteMapping("/items/{idItem}")
+    @DeleteMapping("/items/{id}")
     public ResponseEntity<CarritoResponse> eliminarItem(
             @AuthenticationPrincipal Usuario usuario,
-            @PathVariable Long idItem) {
-        carritoService.eliminarItem(usuario, idItem);
+            @PathVariable Long id) {
+        carritoService.eliminarItem(usuario, id);
         return ResponseEntity.ok(carritoService.obtenerResponse(usuario));
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<PedidoResponse> checkout(
+    public ResponseEntity<CheckoutResponse> checkout(
             @AuthenticationPrincipal Usuario usuario,
             @Valid @RequestBody CheckoutRequest request) {
         return ResponseEntity.ok(carritoService.checkout(usuario, request));

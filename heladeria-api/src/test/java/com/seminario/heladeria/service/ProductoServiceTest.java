@@ -27,7 +27,7 @@ class ProductoServiceTest {
 
     @Test
     void findAllProductoResponses_shouldReturnAllProducts() {
-        var result = productoService.findAllProductoResponses();
+        var result = productoService.findAllProductoResponses(null, null, null, null);
 
         assertThat(result).hasSize(5);
     }

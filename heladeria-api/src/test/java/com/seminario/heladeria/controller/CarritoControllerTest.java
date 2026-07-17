@@ -3,6 +3,7 @@ package com.seminario.heladeria.controller;
 import com.seminario.heladeria.dto.request.CarritoItemRequest;
 import com.seminario.heladeria.dto.request.CheckoutRequest;
 import com.seminario.heladeria.dto.response.CarritoResponse;
+import com.seminario.heladeria.dto.response.CheckoutResponse;
 import com.seminario.heladeria.dto.response.PedidoResponse;
 import com.seminario.heladeria.entity.Rol;
 import com.seminario.heladeria.entity.Usuario;
@@ -87,7 +88,7 @@ class CarritoControllerTest {
 
     @Test
     void checkout_shouldReturnPedidoResponse() throws Exception {
-        var response = new PedidoResponse();
+        var response = new CheckoutResponse(new PedidoResponse(), null, null);
         when(carritoService.checkout(any(), any(CheckoutRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/carrito/checkout").with(authentication(auth()))

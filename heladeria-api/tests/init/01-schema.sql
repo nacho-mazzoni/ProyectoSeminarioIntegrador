@@ -78,7 +78,10 @@ CREATE TABLE categoria (
 CREATE TABLE promocion (
     id_promocion BIGSERIAL    PRIMARY KEY,
     codigo       VARCHAR(50)  NOT NULL UNIQUE,
+    descripcion  TEXT,
     porc_desc    NUMERIC(5,2) NOT NULL,
+    fecha_inicio TIMESTAMPTZ,
+    fecha_fin    TIMESTAMPTZ,
     activa       BOOLEAN      NOT NULL DEFAULT true,
     created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now()

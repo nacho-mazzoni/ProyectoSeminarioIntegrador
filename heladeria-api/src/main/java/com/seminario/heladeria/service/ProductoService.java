@@ -4,9 +4,13 @@ import com.seminario.heladeria.dto.request.*;
 import com.seminario.heladeria.dto.response.*;
 import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,8 +32,25 @@ public class ProductoService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProductoResponse> findAllProductoResponses() {
-        return productoRepository.findAll().stream()
+    public List<ProductoResponse> findAllProductoResponses(String nombre, Long idCategoria,
+                                                           BigDecimal precioMin, BigDecimal precioMax) {
+        Specification<Producto> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (nombre != null && !nombre.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("nombre")), "%" + nombre.toLowerCase() + "%"));
+            }
+            if (idCategoria != null) {
+                predicates.add(cb.equal(root.get("categoria").get("idCategoria"), idCategoria));
+            }
+            if (precioMin != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("precioBase"), precioMin));
+            }
+            if (precioMax != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("precioBase"), precioMax));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        return productoRepository.findAll(spec).stream()
                 .map(ProductoResponse::from)
                 .toList();
     }

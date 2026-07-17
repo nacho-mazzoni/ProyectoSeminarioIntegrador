@@ -13,6 +13,9 @@ public class CheckoutRequest {
 
     private String codigoPromocion;
 
+    @NotBlank
+    private String metodoPago;
+
     public String getMetodoEntrega() { return metodoEntrega; }
     public void setMetodoEntrega(String metodoEntrega) { this.metodoEntrega = metodoEntrega; }
 
@@ -21,4 +24,7 @@ public class CheckoutRequest {
 
     public String getCodigoPromocion() { return codigoPromocion; }
     public void setCodigoPromocion(String codigoPromocion) { this.codigoPromocion = codigoPromocion; }
+
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
 }

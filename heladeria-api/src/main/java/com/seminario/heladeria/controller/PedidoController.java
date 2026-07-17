@@ -1,5 +1,6 @@
 package com.seminario.heladeria.controller;
 
+import com.seminario.heladeria.dto.request.EditarPedidoRequest;
 import com.seminario.heladeria.dto.request.PedidoRequest;
 import com.seminario.heladeria.dto.response.PedidoResponse;
 import com.seminario.heladeria.entity.Pedido;
@@ -38,8 +39,13 @@ public class PedidoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PedidoResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<PedidoResponse> obtener(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable Long id) {
         Pedido pedido = pedidoService.findById(id);
+        if (!pedido.getCliente().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
+            return ResponseEntity.status(403).build();
+        }
         return ResponseEntity.ok(pedidoService.buildResponse(pedido));
     }
 
@@ -52,12 +58,25 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.buildResponse(pedido));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<PedidoResponse> editar(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable Long id,
+            @Valid @RequestBody EditarPedidoRequest request) {
+        Pedido pedido = pedidoService.findById(id);
+        if (!pedido.getCliente().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
+            return ResponseEntity.status(403).build();
+        }
+        pedido = pedidoService.editar(pedido, request);
+        return ResponseEntity.ok(pedidoService.buildResponse(pedido));
+    }
+
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<PedidoResponse> cancelar(
             @AuthenticationPrincipal Usuario usuario,
             @PathVariable Long id) {
         Pedido pedido = pedidoService.findById(id);
-        if (!pedido.getCliente().getIdUsuario().equals(usuario.getIdUsuario())) {
+        if (!pedido.getCliente().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
             return ResponseEntity.status(403).build();
         }
         pedido = pedidoService.cancelar(pedido);
