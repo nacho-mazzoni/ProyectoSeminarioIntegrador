@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success("¡Bienvenido de vuelta!");
-      router.push("/account");
+      router.push(user?.rol === "ADMINISTRADOR" ? "/admin" : "/account");
     } catch {
       toast.error("No pudimos iniciar sesión. Verificá tus datos.");
     } finally {

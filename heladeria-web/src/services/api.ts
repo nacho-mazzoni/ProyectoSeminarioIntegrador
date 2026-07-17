@@ -8,6 +8,13 @@ import type {
   ZonaEnvioResponse,
   DireccionResponse,
   PedidoResponse,
+  DashboardStatsResponse,
+  ProductoRequest,
+  SaborRequest,
+  AdicionalRequest,
+  CategoriaRequest,
+  ZonaRequest,
+  CambioEstadoRequest,
 } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
@@ -45,6 +52,16 @@ async function getAuth<T>(path: string): Promise<T> {
 async function postAuth<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) await handleError(res);
+  return res.json();
+}
+
+async function putAuth<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API}${path}`, {
+    method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify(body),
   });
@@ -109,5 +126,53 @@ export const api = {
         idsAdicional?: number[]
       }[]
     }) => postAuth<PedidoResponse>("/pedidos", data),
+  },
+  admin: {
+    productos: {
+      crear: (data: ProductoRequest) => postAuth<ProductoResponse>("/admin/productos", data),
+      actualizar: (id: number, data: ProductoRequest) =>
+        putAuth<ProductoResponse>(`/admin/productos/${id}`, data),
+    },
+    pedidos: {
+      listar: (estado?: string) =>
+        getAuth<PedidoResponse[]>(`/admin/pedidos${estado ? `?estado=${estado}` : ""}`),
+      obtener: (id: number) => getAuth<PedidoResponse>(`/admin/pedidos/${id}`),
+      cambiarEstado: (id: number, data: CambioEstadoRequest) =>
+        putAuth<PedidoResponse>(`/admin/pedidos/${id}/estado`, data),
+    },
+    sabores: {
+      listar: () => getAuth<SaborResponse[]>("/admin/sabores"),
+      crear: (data: SaborRequest) => postAuth<SaborResponse>("/admin/sabores", data),
+      actualizar: (id: number, data: SaborRequest) =>
+        putAuth<SaborResponse>(`/admin/sabores/${id}`, data),
+      eliminar: (id: number) => delAuth(`/admin/sabores/${id}`),
+    },
+    adicionales: {
+      listar: () => getAuth<AdicionalResponse[]>("/admin/adicionales"),
+      crear: (data: AdicionalRequest) => postAuth<AdicionalResponse>("/admin/adicionales", data),
+      actualizar: (id: number, data: AdicionalRequest) =>
+        putAuth<AdicionalResponse>(`/admin/adicionales/${id}`, data),
+      eliminar: (id: number) => delAuth(`/admin/adicionales/${id}`),
+    },
+    categorias: {
+      listar: () => getAuth<CategoriaResponse[]>("/admin/categorias"),
+      crear: (data: CategoriaRequest) => postAuth<CategoriaResponse>("/admin/categorias", data),
+      actualizar: (id: number, data: CategoriaRequest) =>
+        putAuth<CategoriaResponse>(`/admin/categorias/${id}`, data),
+      eliminar: (id: number) => delAuth(`/admin/categorias/${id}`),
+    },
+    zonas: {
+      listar: () => getAuth<ZonaEnvioResponse[]>("/admin/zonas-envio"),
+      crear: (data: ZonaRequest) => postAuth<ZonaEnvioResponse>("/admin/zonas-envio", data),
+      actualizar: (id: number, data: ZonaRequest) =>
+        putAuth<ZonaEnvioResponse>(`/admin/zonas-envio/${id}`, data),
+      eliminar: (id: number) => delAuth(`/admin/zonas-envio/${id}`),
+    },
+    usuarios: {
+      listar: () => getAuth<UsuarioResponse[]>("/admin/usuarios"),
+    },
+    dashboard: {
+      stats: () => getAuth<DashboardStatsResponse>("/admin/dashboard/stats"),
+    },
   },
 };

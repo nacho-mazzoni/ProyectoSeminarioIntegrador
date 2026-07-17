@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { IceCream, Menu, ShoppingBag, User } from "lucide-react";
+import { IceCream, Menu, ShoppingBag, Shield, User } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
@@ -90,6 +90,17 @@ export function Navbar() {
                 <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuLabel className="truncate">{user?.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {user?.rol === "ADMINISTRADOR" && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                          <Shield className="mr-2 size-4" />
+                          Panel Admin
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href="/account">Perfil</Link>
                   </DropdownMenuItem>
