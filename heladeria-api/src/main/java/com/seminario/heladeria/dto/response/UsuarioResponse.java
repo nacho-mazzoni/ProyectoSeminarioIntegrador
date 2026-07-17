@@ -16,7 +16,7 @@ public class UsuarioResponse {
         r.idUsuario = usuario.getIdUsuario();
         r.email = usuario.getEmail();
         r.activo = usuario.getActivo();
-        r.rol = usuario.getRol().getNombreRol();
+        r.rol = usuario.getRol().getNombreRol().toUpperCase();
         return r;
     }
 
