@@ -22,9 +22,9 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(email, password);
+      const u = await login(email, password);
       toast.success("¡Bienvenido de vuelta!");
-      router.push("/account");
+      router.push(u.rol === "ADMINISTRADOR" ? "/admin" : "/account");
     } catch {
       toast.error("No pudimos iniciar sesión. Verificá tus datos.");
     } finally {

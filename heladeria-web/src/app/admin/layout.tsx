@@ -1,54 +1,35 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState, type ReactNode } from "react";
+import { AdminGate } from "@/components/admin/AdminGate";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminHeader } from "@/components/admin/AdminHeader";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [isAdmin, setIsAdmin] = useState(false)
-
-  useEffect(() => {
-    const rol = localStorage.getItem("rol")
-    if (rol !== "Administrador") {
-      router.push("/")
-    } else {
-      setIsAdmin(true)
-    }
-  }, [router])
-
-  const links = [
-    { href: "/admin", label: "Dashboard" },
-    { href: "/admin/usuarios", label: "Usuarios" },
-    { href: "/admin/productos", label: "Productos" },
-    { href: "/admin/pedidos", label: "Pedidos" },
-    { href: "/admin/promociones", label: "Promociones" },
-  ]
-
-  if (!isAdmin) return null
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="max-w-7xl mx-auto mt-8 px-4 flex gap-8">
-      <nav className="w-56 shrink-0">
-        <div className="flex flex-col gap-1">
-          <p className="text-xs uppercase tracking-wide text-stone-400 mb-2 px-4">Administración</p>
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`px-4 py-2 rounded text-sm ${
-                pathname === link.href
-                  ? "bg-amber-500 text-white"
-                  : "hover:bg-stone-100"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+    <AdminGate>
+      <div className="flex min-h-dvh">
+        <div className="hidden lg:flex lg:w-64 lg:shrink-0">
+          <div className="fixed left-0 top-0 z-30 h-full w-64">
+            <AdminSidebar />
+          </div>
         </div>
-      </nav>
-      <main className="flex-1 min-w-0">{children}</main>
-    </div>
-  )
+
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="w-64 p-0">
+            <AdminSidebar onClose={() => setMobileOpen(false)} />
+          </SheetContent>
+        </Sheet>
+
+        <div className="flex flex-1 flex-col lg:ml-64">
+          <AdminHeader onMenuClick={() => setMobileOpen(true)} />
+          <main className="flex-1 bg-background p-6">{children}</main>
+        </div>
+      </div>
+    </AdminGate>
+  );
+}
 }

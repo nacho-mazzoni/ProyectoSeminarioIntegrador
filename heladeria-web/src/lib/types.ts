@@ -185,6 +185,55 @@ export interface Pedido {
   historial: HistorialEstado[]
 }
 
+// --- Admin types ---
+
+export interface DashboardStatsResponse {
+  totalProductos: number
+  totalPedidos: number
+  pedidosPendientes: number
+  totalUsuarios: number
+  ingresosMes: number
+  pedidosPorEstado: { estado: string; cantidad: number }[]
+  productosMasVendidos: { producto: string; cantidad: number }[]
+}
+
+export interface ProductoRequest {
+  nombre: string
+  stockEnvases: number
+  precioBase: number
+  maxSabores: number
+  idCategoria: number
+}
+
+export interface SaborRequest {
+  nombre: string
+  stockBaldes: number
+  disponible: boolean
+  capBalde?: string
+}
+
+export interface AdicionalRequest {
+  nombre: string
+  precioExtra: number
+  disponible: boolean
+}
+
+export interface CategoriaRequest {
+  nombre: string
+  requiereSabores: boolean
+}
+
+export interface ZonaRequest {
+  nombreZona: string
+  costoEnvio: number
+}
+
+export interface CambioEstadoRequest {
+  estado: string
+}
+
+// --- Otros tipos ---
+
 export interface CarritoItem {
   idItem: number
   idProducto: number

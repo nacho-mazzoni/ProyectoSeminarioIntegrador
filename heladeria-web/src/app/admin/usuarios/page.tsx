@@ -1,80 +1,77 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
-import type { Usuario, Rol } from "@/lib/types"
+import { useQuery } from "@tanstack/react-query";
+import { Users, AlertCircle } from "lucide-react";
+import { api } from "@/services/api";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 export default function AdminUsuariosPage() {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([])
-  const [roles, setRoles] = useState<Rol[]>([])
-
-  const cargar = () => {
-    api.admin.usuarios.listar().then(setUsuarios)
-    api.admin.roles.listar().then(setRoles)
-  }
-
-  useEffect(() => { cargar() }, [])
-
-  const toggleActivo = async (id: number) => {
-    await api.admin.usuarios.toggleActivo(id)
-    cargar()
-  }
-
-  const cambiarRol = async (id: number, idRol: number) => {
-    await api.admin.usuarios.actualizarRol(id, idRol)
-    cargar()
-  }
+  const { data: usuarios = [], isLoading, error } = useQuery({
+    queryKey: ["admin-usuarios"],
+    queryFn: api.admin.usuarios.listar,
+  });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Usuarios</h1>
-      <div className="bg-white border rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-stone-50 border-b">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium">Email</th>
-              <th className="text-left px-4 py-3 font-medium">Rol</th>
-              <th className="text-left px-4 py-3 font-medium">Estado</th>
-              <th className="text-left px-4 py-3 font-medium">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((u) => (
-              <tr key={u.idUsuario} className="border-b last:border-0 hover:bg-stone-50">
-                <td className="px-4 py-3">{u.email}</td>
-                <td className="px-4 py-3">
-                  <select
-                    value={u.rol}
-                    onChange={(e) => cambiarRol(u.idUsuario, Number(e.target.value))}
-                    className="border rounded px-2 py-1 text-sm"
-                  >
-                    {roles.map((r) => (
-                      <option key={r.idRol} value={r.idRol}>{r.nombreRol}</option>
-                    ))}
-                  </select>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
-                    u.activo ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                  }`}>
-                    {u.activo ? "Activo" : "Inactivo"}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => toggleActivo(u.idUsuario)}
-                    className={`text-sm underline ${
-                      u.activo ? "text-red-600" : "text-green-600"
-                    }`}
-                  >
-                    {u.activo ? "Desactivar" : "Activar"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-display text-xl font-semibold">Usuarios</h2>
+        <p className="text-sm text-muted-foreground">Listado de usuarios registrados en el sistema.</p>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card shadow-soft">
+        {isLoading ? (
+          <div className="p-6 space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+          </div>
+        ) : error ? (
+          <div className="py-12">
+            <EmptyState icon={AlertCircle} title="Error al cargar" description={error.message} />
+          </div>
+        ) : usuarios.length === 0 ? (
+          <div className="py-12">
+            <EmptyState icon={Users} title="Sin usuarios" description="Todavía no hay usuarios registrados." />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16">ID</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Rol</TableHead>
+                <TableHead>Activo</TableHead>
+                <TableHead>Teléfono</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {usuarios.map((u) => (
+                <TableRow key={u.idUsuario}>
+                  <TableCell className="text-muted-foreground">{u.idUsuario}</TableCell>
+                  <TableCell className="font-medium">{u.email}</TableCell>
+                  <TableCell>
+                    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      u.rol === "ADMINISTRADOR"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-secondary text-secondary-foreground"
+                    }`}>
+                      {u.rol}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className={`inline-block size-2.5 rounded-full ${u.activo ? "bg-success" : "bg-destructive"}`} />
+                    <span className="ml-1.5 text-sm">{u.activo ? "Sí" : "No"}</span>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{u.telefono ?? "—"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
-  )
+  );
+}
 }
