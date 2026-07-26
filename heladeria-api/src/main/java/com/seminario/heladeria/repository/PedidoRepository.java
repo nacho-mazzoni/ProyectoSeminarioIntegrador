@@ -38,4 +38,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
            "FROM DetallePedido dp JOIN dp.producto pr " +
            "GROUP BY pr.idProducto, pr.nombre ORDER BY SUM(dp.cantidad) DESC")
     List<DashboardResponse.TopProducto> findTopProductos(Pageable pageable);
+
+    boolean existsByDireccionIdDireccion(Long idDireccion);
+
+    List<Pedido> findByDireccionIdDireccion(Long idDireccion);
 }

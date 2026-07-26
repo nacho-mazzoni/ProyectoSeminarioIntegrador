@@ -1,5 +1,6 @@
 mercadopago:
   access-token: ${MP_ACCESS_TOKEN}
+  notification-url: ${MP_NOTIFICATION_URL:}
 
 spring:
   datasource:

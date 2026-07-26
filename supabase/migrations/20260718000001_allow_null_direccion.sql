@@ -1,0 +1,1 @@
+ALTER TABLE pedido ALTER COLUMN id_direccion DROP NOT NULL;

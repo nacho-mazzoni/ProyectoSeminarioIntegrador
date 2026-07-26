@@ -100,14 +100,15 @@ export const api = {
     listar: () => getAuth<PedidoResponse[]>("/pedidos"),
     crear: (data: {
       metodoEntrega: string
-      idDireccion: number
+      idDireccion?: number
       codigoPromocion?: string
+      metodoPago?: string
       detalles: {
         idProducto: number
         cantidad: number
         idsSabor?: number[]
         idsAdicional?: number[]
       }[]
-    }) => postAuth<PedidoResponse>("/pedidos", data),
+    }) => postAuth<PedidoResponse & { initPoint?: string }>("/pedidos", data),
   },
 };

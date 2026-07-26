@@ -44,8 +44,10 @@ public class DireccionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        direccionService.eliminar(id);
+    public ResponseEntity<Void> eliminar(@AuthenticationPrincipal Usuario usuario,
+                                         @PathVariable Long id) {
+        var cliente = clienteService.findById(usuario.getIdUsuario());
+        direccionService.eliminar(id, cliente.getIdUsuario());
         return ResponseEntity.noContent().build();
     }
 }

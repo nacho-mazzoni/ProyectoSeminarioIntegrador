@@ -6,6 +6,7 @@ import com.seminario.heladeria.dto.response.PedidoResponse;
 import com.seminario.heladeria.entity.Pedido;
 import com.seminario.heladeria.entity.Usuario;
 import com.seminario.heladeria.service.ClienteService;
+import com.seminario.heladeria.service.PagoService;
 import com.seminario.heladeria.service.PedidoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +21,14 @@ public class PedidoController {
 
     private final PedidoService pedidoService;
     private final ClienteService clienteService;
+    private final PagoService pagoService;
 
     public PedidoController(PedidoService pedidoService,
-                            ClienteService clienteService) {
+                            ClienteService clienteService,
+                            PagoService pagoService) {
         this.pedidoService = pedidoService;
         this.clienteService = clienteService;
+        this.pagoService = pagoService;
     }
 
     @GetMapping
@@ -55,7 +59,12 @@ public class PedidoController {
             @Valid @RequestBody PedidoRequest request) {
         var cliente = clienteService.findById(usuario.getIdUsuario());
         Pedido pedido = pedidoService.crear(cliente, request);
-        return ResponseEntity.ok(pedidoService.buildResponse(pedido));
+        PedidoResponse response = pedidoService.buildResponse(pedido);
+        if ("mercado_pago".equals(request.getMetodoPago())) {
+            String initPoint = pagoService.crearPreferenciaMP(pedido);
+            response.setInitPoint(initPoint);
+        }
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")

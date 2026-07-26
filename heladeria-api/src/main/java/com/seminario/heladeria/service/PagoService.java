@@ -9,6 +9,7 @@ import com.mercadopago.resources.preference.Preference;
 import com.seminario.heladeria.entity.Pago;
 import com.seminario.heladeria.entity.Pedido;
 import com.seminario.heladeria.repository.PagoRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +21,12 @@ import java.util.List;
 public class PagoService {
 
     private final PagoRepository pagoRepository;
+    private final String notificationUrl;
 
-    public PagoService(PagoRepository pagoRepository) {
+    public PagoService(PagoRepository pagoRepository,
+                       @Value("${mercadopago.notification-url:}") String notificationUrl) {
         this.pagoRepository = pagoRepository;
+        this.notificationUrl = notificationUrl;
     }
 
     @Transactional
@@ -56,11 +60,13 @@ public class PagoService {
                     .currencyId("ARS")
                     .build();
 
-            PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+            var builder = PreferenceRequest.builder()
                     .items(List.of(item))
-                    .externalReference(pedido.getIdPedido().toString())
-                    .notificationUrl("https://cartoon-shrubbery-flanking.ngrok-free.dev")
-                    .build();
+                    .externalReference(pedido.getIdPedido().toString());
+            if (!notificationUrl.isBlank()) {
+                builder.notificationUrl(notificationUrl);
+            }
+            PreferenceRequest preferenceRequest = builder.build();
 
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);

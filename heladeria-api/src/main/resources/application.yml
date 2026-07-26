@@ -3,7 +3,7 @@ server:
 
 spring:
   profiles:
-    active: prod
+    active: local
 
 app:
   jwt:
@@ -12,3 +12,4 @@ app:
 
 mercadopago:
   access-token: TEST-7261349138779377-070917-0e75dd4ec51293b4d209776ceac71391-381092806
+  notification-url: "https://cartoon-shrubbery-flanking.ngrok-free.dev"

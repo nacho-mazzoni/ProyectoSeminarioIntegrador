@@ -190,8 +190,10 @@ public class PedidoService {
         pedido.setMetodoEntrega(request.getMetodoEntrega());
         pedido.setCliente(cliente);
 
-        Direccion direccion = direccionService.findById(request.getIdDireccion());
-        pedido.setDireccion(direccion);
+        if (request.getIdDireccion() != null && request.getIdDireccion() > 0) {
+            Direccion direccion = direccionService.findById(request.getIdDireccion());
+            pedido.setDireccion(direccion);
+        }
 
         Promocion promocion = null;
         if (request.getCodigoPromocion() != null && !request.getCodigoPromocion().isBlank()) {
@@ -271,12 +273,18 @@ public class PedidoService {
             total = total.subtract(descuento);
         }
 
-        if ("delivery".equalsIgnoreCase(request.getMetodoEntrega())) {
-            total = total.add(direccion.getZonaEnvio().getCostoEnvio());
+        if ("delivery".equalsIgnoreCase(request.getMetodoEntrega()) && pedido.getDireccion() != null) {
+            total = total.add(pedido.getDireccion().getZonaEnvio().getCostoEnvio());
         }
 
         pedido.setTotal(total);
         pedido = pedidoRepository.save(pedido);
+
+        if ("mercado_pago".equals(request.getMetodoPago())) {
+            pagoService.crearPagoConMP(pedido);
+        } else {
+            pagoService.crearPagoEfectivo(pedido);
+        }
 
         HistorialEstado historial = new HistorialEstado();
         historial.setFechaHora(Instant.now());

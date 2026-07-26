@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Loader2, MapPin, MapPinPlus, Wallet } from "lucide-react";
+import { CreditCard, Loader2, MapPin, MapPinPlus, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
 import { useCart } from "@/context/cart-context";
@@ -32,6 +32,7 @@ export default function CheckoutPage() {
   const { items, subtotal, deliveryFee, total, clear } = useCart();
   const [addressId, setAddressId] = useState<number>();
   const [metodoEntrega, setMetodoEntrega] = useState("retiro");
+  const [metodoPago, setMetodoPago] = useState("efectivo");
   const [placing, setPlacing] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
   const [addrCalle, setAddrCalle] = useState("");
@@ -85,9 +86,10 @@ export default function CheckoutPage() {
   const placeOrder = async () => {
     setPlacing(true);
     try {
-      await api.pedidos.crear({
+      const res = await api.pedidos.crear({
         metodoEntrega,
-        idDireccion: metodoEntrega === "delivery" ? Number(addressId) : 0,
+        ...(metodoEntrega === "delivery" ? { idDireccion: Number(addressId) } : {}),
+        metodoPago,
         detalles: items.map((i) => ({
           idProducto: i.product.idProducto,
           cantidad: i.quantity,
@@ -96,8 +98,12 @@ export default function CheckoutPage() {
         })),
       });
       clear();
-      toast.success("¡Pedido realizado! Estamos preparando tus helados.");
-      navigate.push("/orders");
+      if (res.initPoint) {
+        window.location.href = res.initPoint;
+      } else {
+        toast.success("¡Pedido realizado! Estamos preparando tus helados.");
+        navigate.push("/orders");
+      }
     } catch {
       toast.error("Algo salió mal. Intentalo de nuevo.");
     } finally {
@@ -135,7 +141,7 @@ export default function CheckoutPage() {
               ))}
             </RadioGroup>
 
-            {metodoEntrega === "delivery" && (
+            {metodoEntrega === "delivery" ? (
               <div className="mt-4 space-y-3">
                 <p className="text-sm font-medium">Dirección de entrega</p>
                 {selectedAddress && !selectedZone && (
@@ -245,6 +251,10 @@ export default function CheckoutPage() {
                   </DialogContent>
                 </Dialog>
               </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-dashed border-border bg-secondary/30 p-4 text-center text-sm text-muted-foreground">
+                Retirá tu pedido por nuestra sucursal. No necesitás registrar una dirección.
+              </div>
             )}
           </section>
 
@@ -253,16 +263,17 @@ export default function CheckoutPage() {
               <Wallet className="size-5 text-primary" />
               <h2 className="font-display text-xl font-semibold">Método de pago</h2>
             </div>
-            <RadioGroup value="cash" className="gap-3">
+            <RadioGroup value={metodoPago} onValueChange={setMetodoPago} className="gap-3">
               {[
-                { id: "cash", label: "Efectivo contra entrega", icon: Wallet },
+                { id: "efectivo", label: "Efectivo contra entrega", icon: Wallet },
+                { id: "mercado_pago", label: "Mercado Pago", icon: CreditCard },
               ].map((m) => (
                 <Label
                   key={m.id}
                   htmlFor={`pay-${m.id}`}
                   className={cn(
                     "flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors",
-                    "border-primary bg-secondary",
+                    metodoPago === m.id ? "border-primary bg-secondary" : "border-border hover:bg-secondary/60",
                   )}
                 >
                   <RadioGroupItem id={`pay-${m.id}`} value={m.id} />

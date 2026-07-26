@@ -11,10 +11,11 @@ public class PedidoRequest {
     @NotBlank
     private String metodoEntrega;
 
-    @NotNull
     private Long idDireccion;
 
     private String codigoPromocion;
+
+    private String metodoPago;
 
     @NotEmpty @Valid
     private List<DetalleRequest> detalles;
@@ -27,6 +28,9 @@ public class PedidoRequest {
 
     public String getCodigoPromocion() { return codigoPromocion; }
     public void setCodigoPromocion(String codigoPromocion) { this.codigoPromocion = codigoPromocion; }
+
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
 
     public List<DetalleRequest> getDetalles() { return detalles; }
     public void setDetalles(List<DetalleRequest> detalles) { this.detalles = detalles; }
