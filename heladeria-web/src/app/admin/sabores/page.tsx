@@ -19,7 +19,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const schema = z.object({
-  nombre: z.string().min(1, "Requerido"),
+  nombre: z.string().min(1, "El nombre es requerido"),
   stockBaldes: z.coerce.number().int().nonnegative(),
   disponible: z.boolean(),
   capBalde: z.string().optional(),
@@ -61,8 +61,11 @@ function SaborFormDialog({
         ? api.admin.sabores.actualizar(sabor.idSabor, data)
         : api.admin.sabores.crear(data),
     onSuccess: () => { toast.success(sabor ? "Sabor actualizado" : "Sabor creado"); onSuccess(); onOpenChange(false); },
-    onError: () => toast.error("No se pudo guardar"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo guardar"),
   });
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const disponible = form.watch("disponible");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,7 +92,7 @@ function SaborFormDialog({
           <div className="flex items-center gap-3">
             <Switch
               id="sabor-disponible"
-              checked={form.watch("disponible")}
+              checked={disponible}
               onCheckedChange={(v) => form.setValue("disponible", v)}
             />
             <Label htmlFor="sabor-disponible">Disponible</Label>
@@ -119,7 +122,7 @@ export default function AdminSaboresPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.admin.sabores.eliminar(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-sabores"] }); toast.success("Sabor eliminado"); },
-    onError: () => toast.error("No se pudo eliminar"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo eliminar"),
   });
 
   const openCreate = () => { setEditing(undefined); setDialogOpen(true); };
@@ -176,7 +179,7 @@ export default function AdminSaboresPage() {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Eliminar sabor</AlertDialogTitle>
-                          <AlertDialogDescription>¿Eliminar "{s.nombre}"? Esta acción no se puede deshacer.</AlertDialogDescription>
+                          <AlertDialogDescription>¿Eliminar &ldquo;{s.nombre}&rdquo;? Esta acción no se puede deshacer.</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel className="rounded-full">Cancelar</AlertDialogCancel>

@@ -1,249 +1,113 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
-import type { Producto, Categoria, Sabor, Adicional } from "@/lib/types"
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Plus, Search, X, IceCreamCone } from "lucide-react";
+import { api } from "@/services/api";
+import { formatPrice } from "@/lib/cart-utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/shared/EmptyState";
 
-type Tab = "productos" | "categorias" | "sabores" | "adicionales"
+export default function AdminProductsPage() {
+  const [term, setTerm] = useState("");
 
-export default function AdminProductosPage() {
-  const [tab, setTab] = useState<Tab>("productos")
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: api.productos.listar,
+  });
+
+  const filtered = products.filter((p) =>
+    !term.trim() || p.nombre.toLowerCase().includes(term.toLowerCase()),
+  );
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Productos</h1>
-      <div className="flex gap-2 mb-6">
-        {(["productos", "categorias", "sabores", "adicionales"] as Tab[]).map((t) => (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="font-display text-xl font-semibold">Productos</h2>
+          <p className="text-sm text-muted-foreground">Gestioná el catálogo de productos.</p>
+        </div>
+        <Button asChild className="rounded-full">
+          <Link href="/admin/productos/new">
+            <Plus className="size-4" />
+            Nuevo producto
+          </Link>
+        </Button>
+      </div>
+
+      <div className="relative max-w-sm">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="Buscar productos..."
+          className="h-10 rounded-full pl-10 pr-10"
+        />
+        {term && (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-1.5 rounded text-sm ${
-              tab === t ? "bg-amber-500 text-white" : "bg-white border hover:border-amber-400"
-            }`}
+            type="button"
+            onClick={() => setTerm("")}
+            className="absolute right-3 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-secondary"
           >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
+            <X className="size-3.5" />
           </button>
-        ))}
+        )}
       </div>
-      {tab === "productos" && <ProductosTab />}
-      {tab === "categorias" && <CategoriasTab />}
-      {tab === "sabores" && <SaboresTab />}
-      {tab === "adicionales" && <AdicionalesTab />}
-    </div>
-  )
-}
 
-function ProductosTab() {
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [categorias, setCategoria] = useState<Categoria[]>([])
-  const [form, setForm] = useState({ nombre: "", stockEnvases: 0, precioBase: 0, maxSabores: 0, idCategoria: 0 })
-  const [editId, setEditId] = useState<number | null>(null)
-
-  const cargar = () => {
-    api.admin.productos.listar().then(setProductos)
-    api.admin.categorias.listar().then(setCategoria)
-  }
-  useEffect(() => { cargar() }, [])
-
-  const guardar = async () => {
-    if (editId) {
-      await api.admin.productos.actualizar(editId, form)
-    } else {
-      await api.admin.productos.crear(form)
-    }
-    setForm({ nombre: "", stockEnvases: 0, precioBase: 0, maxSabores: 0, idCategoria: 0 })
-    setEditId(null)
-    cargar()
-  }
-
-  const editar = (p: Producto) => {
-    setForm({ nombre: p.nombre, stockEnvases: p.stockEnvases, precioBase: p.precioBase, maxSabores: p.maxSabores, idCategoria: p.categoria.idCategoria })
-    setEditId(p.idProducto)
-  }
-
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <form onSubmit={(e) => { e.preventDefault(); guardar() }} className="bg-white border rounded-xl p-5 space-y-3">
-        <h2 className="font-semibold">{editId ? "Editar" : "Nuevo"} Producto</h2>
-        <input placeholder="Nombre" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required className="border rounded px-3 py-2 w-full text-sm" />
-        <div className="flex gap-3">
-          <input type="number" placeholder="Stock" value={form.stockEnvases} onChange={(e) => setForm({ ...form, stockEnvases: +e.target.value })} required className="border rounded px-3 py-2 w-full text-sm" />
-          <input type="number" step="0.01" placeholder="Precio" value={form.precioBase} onChange={(e) => setForm({ ...form, precioBase: +e.target.value })} required className="border rounded px-3 py-2 w-full text-sm" />
-        </div>
-        <div className="flex gap-3">
-          <input type="number" placeholder="Max sabores" value={form.maxSabores} onChange={(e) => setForm({ ...form, maxSabores: +e.target.value })} required className="border rounded px-3 py-2 w-full text-sm" />
-          <select value={form.idCategoria} onChange={(e) => setForm({ ...form, idCategoria: +e.target.value })} required className="border rounded px-3 py-2 w-full text-sm">
-            <option value={0}>Categoria</option>
-            {categorias.map((c) => <option key={c.idCategoria} value={c.idCategoria}>{c.nombre}</option>)}
-          </select>
-        </div>
-        <div className="flex gap-2">
-          <button className="bg-amber-500 text-white px-4 py-2 rounded text-sm hover:bg-amber-600">{editId ? "Actualizar" : "Crear"}</button>
-          {editId && <button type="button" onClick={() => { setEditId(null); setForm({ nombre: "", stockEnvases: 0, precioBase: 0, maxSabores: 0, idCategoria: 0 }) }} className="text-sm text-stone-500 underline">Cancelar</button>}
-        </div>
-      </form>
-      <div className="space-y-2">
-        {productos.map((p) => (
-          <div key={p.idProducto} className="bg-white border rounded-lg p-4 flex justify-between items-start">
-            <div>
-              <p className="font-medium">{p.nombre}</p>
-              <p className="text-sm text-stone-500">${p.precioBase.toFixed(2)} — Stock: {p.stockEnvases} — {p.categoria.nombre}</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => editar(p)} className="text-amber-600 text-sm underline">Editar</button>
-              <button onClick={() => { api.admin.productos.eliminar(p.idProducto); cargar() }} className="text-red-600 text-sm underline">Eliminar</button>
-            </div>
+      <div className="rounded-2xl border border-border bg-card shadow-soft">
+        {isLoading ? (
+          <div className="p-6 space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function CategoriasTab() {
-  const [items, setItems] = useState<Categoria[]>([])
-  const [nombre, setNombre] = useState("")
-  const [reqSab, setReqSab] = useState(false)
-  const [editId, setEditId] = useState<number | null>(null)
-
-  const cargar = () => api.admin.categorias.listar().then(setItems)
-  useEffect(() => { cargar() }, [])
-
-  const guardar = async () => {
-    if (editId) await api.admin.categorias.actualizar(editId, { nombre, requiereSabores: reqSab })
-    else await api.admin.categorias.crear({ nombre, requiereSabores: reqSab })
-    setNombre(""); setReqSab(false); setEditId(null); cargar()
-  }
-
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <form onSubmit={(e) => { e.preventDefault(); guardar() }} className="bg-white border rounded-xl p-5 space-y-3">
-        <h2 className="font-semibold">{editId ? "Editar" : "Nueva"} Categoría</h2>
-        <input placeholder="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required className="border rounded px-3 py-2 w-full text-sm" />
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={reqSab} onChange={(e) => setReqSab(e.target.checked)} />
-          Requiere sabores
-        </label>
-        <div className="flex gap-2">
-          <button className="bg-amber-500 text-white px-4 py-2 rounded text-sm hover:bg-amber-600">{editId ? "Actualizar" : "Crear"}</button>
-          {editId && <button type="button" onClick={() => { setEditId(null); setNombre(""); setReqSab(false) }} className="text-sm text-stone-500 underline">Cancelar</button>}
-        </div>
-      </form>
-      <div className="space-y-2">
-        {items.map((c) => (
-          <div key={c.idCategoria} className="bg-white border rounded-lg p-4 flex justify-between items-start">
-            <div>
-              <p className="font-medium">{c.nombre}</p>
-              <p className="text-sm text-stone-500">{c.requiereSabores ? "Requiere sabores" : "Sin sabores"}</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { setNombre(c.nombre); setReqSab(c.requiereSabores); setEditId(c.idCategoria) }} className="text-amber-600 text-sm underline">Editar</button>
-              <button onClick={() => { api.admin.categorias.eliminar(c.idCategoria); cargar() }} className="text-red-600 text-sm underline">Eliminar</button>
-            </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-12">
+            <EmptyState
+              icon={IceCreamCone}
+              title={term ? "Sin resultados" : "Sin productos"}
+              description={term ? "Probá con otra búsqueda." : "Todavía no hay productos cargados."}
+            />
           </div>
-        ))}
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16">ID</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Categoría</TableHead>
+                <TableHead className="text-right">Precio base</TableHead>
+                <TableHead className="text-right">Stock</TableHead>
+                <TableHead className="text-right">Max sabores</TableHead>
+                <TableHead className="text-right w-24">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((p) => (
+                <TableRow key={p.idProducto}>
+                  <TableCell className="text-muted-foreground">{p.idProducto}</TableCell>
+                  <TableCell className="font-medium">{p.nombre}</TableCell>
+                  <TableCell>{p.categoria.nombre}</TableCell>
+                  <TableCell className="text-right">{formatPrice(p.precioBase)}</TableCell>
+                  <TableCell className="text-right">{p.stockEnvases}</TableCell>
+                  <TableCell className="text-right">{p.maxSabores}</TableCell>
+                  <TableCell className="text-right">
+                    <Button asChild variant="outline" size="sm" className="rounded-full">
+                      <Link href={`/admin/productos/${p.idProducto}/edit`}>Editar</Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
-  )
-}
-
-function SaboresTab() {
-  const [items, setItems] = useState<Sabor[]>([])
-  const [form, setForm] = useState({ nombre: "", stockBaldes: 0, disponible: true, capBalde: "" })
-  const [editId, setEditId] = useState<number | null>(null)
-
-  const cargar = () => api.admin.sabores.listar().then(setItems)
-  useEffect(() => { cargar() }, [])
-
-  const guardar = async () => {
-    if (editId) await api.admin.sabores.actualizar(editId, form)
-    else await api.admin.sabores.crear(form)
-    setForm({ nombre: "", stockBaldes: 0, disponible: true, capBalde: "" })
-    setEditId(null)
-    cargar()
-  }
-
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <form onSubmit={(e) => { e.preventDefault(); guardar() }} className="bg-white border rounded-xl p-5 space-y-3">
-        <h2 className="font-semibold">{editId ? "Editar" : "Nuevo"} Sabor</h2>
-        <input placeholder="Nombre" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required className="border rounded px-3 py-2 w-full text-sm" />
-        <div className="flex gap-3">
-          <input type="number" placeholder="Stock baldes" value={form.stockBaldes} onChange={(e) => setForm({ ...form, stockBaldes: +e.target.value })} required className="border rounded px-3 py-2 w-full text-sm" />
-          <input placeholder="Cap. balde (ej: 5L)" value={form.capBalde} onChange={(e) => setForm({ ...form, capBalde: e.target.value })} className="border rounded px-3 py-2 w-full text-sm" />
-        </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={form.disponible} onChange={(e) => setForm({ ...form, disponible: e.target.checked })} />
-          Disponible
-        </label>
-        <div className="flex gap-2">
-          <button className="bg-amber-500 text-white px-4 py-2 rounded text-sm hover:bg-amber-600">{editId ? "Actualizar" : "Crear"}</button>
-          {editId && <button type="button" onClick={() => { setEditId(null); setForm({ nombre: "", stockBaldes: 0, disponible: true, capBalde: "" }) }} className="text-sm text-stone-500 underline">Cancelar</button>}
-        </div>
-      </form>
-      <div className="space-y-2">
-        {items.map((s) => (
-          <div key={s.idSabor} className="bg-white border rounded-lg p-4 flex justify-between items-start">
-            <div>
-              <p className="font-medium">{s.nombre}</p>
-              <p className="text-sm text-stone-500">Stock: {s.stockBaldes} baldes {s.capBalde && `(${s.capBalde})`}</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { setForm({ nombre: s.nombre, stockBaldes: s.stockBaldes, disponible: s.disponible, capBalde: s.capBalde ?? "" }); setEditId(s.idSabor) }} className="text-amber-600 text-sm underline">Editar</button>
-              <button onClick={() => { api.admin.sabores.eliminar(s.idSabor); cargar() }} className="text-red-600 text-sm underline">Eliminar</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function AdicionalesTab() {
-  const [items, setItems] = useState<Adicional[]>([])
-  const [form, setForm] = useState({ nombre: "", precioExtra: 0, disponible: true })
-  const [editId, setEditId] = useState<number | null>(null)
-
-  const cargar = () => api.admin.adicionales.listar().then(setItems)
-  useEffect(() => { cargar() }, [])
-
-  const guardar = async () => {
-    if (editId) await api.admin.adicionales.actualizar(editId, form)
-    else await api.admin.adicionales.crear(form)
-    setForm({ nombre: "", precioExtra: 0, disponible: true })
-    setEditId(null)
-    cargar()
-  }
-
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <form onSubmit={(e) => { e.preventDefault(); guardar() }} className="bg-white border rounded-xl p-5 space-y-3">
-        <h2 className="font-semibold">{editId ? "Editar" : "Nuevo"} Adicional</h2>
-        <input placeholder="Nombre" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required className="border rounded px-3 py-2 w-full text-sm" />
-        <input type="number" step="0.01" placeholder="Precio extra" value={form.precioExtra} onChange={(e) => setForm({ ...form, precioExtra: +e.target.value })} required className="border rounded px-3 py-2 w-full text-sm" />
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={form.disponible} onChange={(e) => setForm({ ...form, disponible: e.target.checked })} />
-          Disponible
-        </label>
-        <div className="flex gap-2">
-          <button className="bg-amber-500 text-white px-4 py-2 rounded text-sm hover:bg-amber-600">{editId ? "Actualizar" : "Crear"}</button>
-          {editId && <button type="button" onClick={() => { setEditId(null); setForm({ nombre: "", precioExtra: 0, disponible: true }) }} className="text-sm text-stone-500 underline">Cancelar</button>}
-        </div>
-      </form>
-      <div className="space-y-2">
-        {items.map((a) => (
-          <div key={a.idAdicional} className="bg-white border rounded-lg p-4 flex justify-between items-start">
-            <div>
-              <p className="font-medium">{a.nombre}</p>
-              <p className="text-sm text-stone-500">+${a.precioExtra.toFixed(2)}</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { setForm({ nombre: a.nombre, precioExtra: a.precioExtra, disponible: a.disponible }); setEditId(a.idAdicional) }} className="text-amber-600 text-sm underline">Editar</button>
-              <button onClick={() => { api.admin.adicionales.eliminar(a.idAdicional); cargar() }} className="text-red-600 text-sm underline">Eliminar</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  );
 }

@@ -5,10 +5,10 @@ import jakarta.validation.constraints.Size;
 
 public class CambioPasswordRequest {
 
-    @NotBlank
+    @NotBlank(message = "La contraseña actual es obligatoria")
     private String passwordActual;
 
-    @NotBlank @Size(min = 6)
+    @NotBlank(message = "La nueva contraseña es obligatoria") @Size(min = 6, message = "La nueva contraseña debe tener al menos 6 caracteres")
     private String passwordNueva;
 
     public String getPasswordActual() { return passwordActual; }

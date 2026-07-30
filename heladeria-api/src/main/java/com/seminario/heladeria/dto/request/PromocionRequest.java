@@ -7,12 +7,12 @@ import java.time.Instant;
 
 public class PromocionRequest {
 
-    @NotBlank
+    @NotBlank(message = "El código es obligatorio")
     private String codigo;
 
     private String descripcion;
 
-    @NotNull
+    @NotNull(message = "El porcentaje de descuento es obligatorio")
     private BigDecimal porcDesc;
 
     private Boolean activa = true;

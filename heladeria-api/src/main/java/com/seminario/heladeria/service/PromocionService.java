@@ -4,6 +4,9 @@ import com.seminario.heladeria.dto.request.PromocionRequest;
 import com.seminario.heladeria.dto.response.PromocionResponse;
 import com.seminario.heladeria.entity.Promocion;
 import com.seminario.heladeria.repository.PromocionRepository;
+import com.seminario.heladeria.exception.BusinessRuleException;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +14,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class PromocionService {
 
@@ -27,7 +31,7 @@ public class PromocionService {
 
     public PromocionResponse findById(Long id) {
         Promocion p = promocionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Promocion no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Promocion no encontrada"));
         return PromocionResponse.from(p);
     }
 
@@ -41,14 +45,14 @@ public class PromocionService {
 
     public PromocionResponse findByCodigo(String codigo) {
         Promocion p = promocionRepository.findByCodigoAndActivaTrue(codigo)
-                .orElseThrow(() -> new RuntimeException("Promocion invalida o inactiva"));
+                .orElseThrow(() -> new BusinessRuleException("Promoción inválida o inactiva"));
         return PromocionResponse.from(p);
     }
 
     @Transactional
     public PromocionResponse crear(PromocionRequest request) {
         if (promocionRepository.existsByCodigo(request.getCodigo())) {
-            throw new RuntimeException("Ya existe una promocion con ese codigo");
+            throw new BusinessRuleException("Ya existe una promocion con ese codigo");
         }
         Promocion p = new Promocion();
         p.setCodigo(request.getCodigo());
@@ -63,9 +67,9 @@ public class PromocionService {
     @Transactional
     public PromocionResponse actualizar(Long id, PromocionRequest request) {
         Promocion p = promocionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Promocion no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Promocion no encontrada"));
         if (!p.getCodigo().equals(request.getCodigo()) && promocionRepository.existsByCodigo(request.getCodigo())) {
-            throw new RuntimeException("Ya existe otra promocion con ese codigo");
+            throw new BusinessRuleException("Ya existe otra promocion con ese codigo");
         }
         p.setCodigo(request.getCodigo());
         p.setDescripcion(request.getDescripcion());
@@ -79,7 +83,7 @@ public class PromocionService {
     @Transactional
     public void eliminar(Long id) {
         if (!promocionRepository.existsById(id)) {
-            throw new RuntimeException("Promocion no encontrada");
+            throw new ResourceNotFoundException("Promocion no encontrada");
         }
         promocionRepository.deleteById(id);
     }

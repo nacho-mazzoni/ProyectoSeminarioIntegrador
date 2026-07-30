@@ -5,13 +5,13 @@ import jakarta.validation.constraints.NotNull;
 
 public class SaborRequest {
 
-    @NotBlank
+    @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @NotNull
+    @NotNull(message = "El stock es obligatorio")
     private Integer stockBaldes;
 
-    @NotNull
+    @NotNull(message = "Indicá si está disponible")
     private Boolean disponible;
 
     private String capBalde;

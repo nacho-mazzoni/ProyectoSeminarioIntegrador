@@ -8,7 +8,7 @@ import java.util.List;
 
 public class PedidoRequest {
 
-    @NotBlank
+    @NotBlank(message = "Seleccioná un método de entrega")
     private String metodoEntrega;
 
     private Long idDireccion;
@@ -17,7 +17,7 @@ public class PedidoRequest {
 
     private String metodoPago;
 
-    @NotEmpty @Valid
+    @NotEmpty(message = "El pedido debe tener al menos un producto") @Valid
     private List<DetalleRequest> detalles;
 
     public String getMetodoEntrega() { return metodoEntrega; }
@@ -37,10 +37,10 @@ public class PedidoRequest {
 
     public static class DetalleRequest {
 
-        @NotNull
+        @NotNull(message = "El producto es obligatorio")
         private Long idProducto;
 
-        @NotNull
+        @NotNull(message = "La cantidad es obligatoria")
         private Integer cantidad;
 
         private List<Long> idsSabor;

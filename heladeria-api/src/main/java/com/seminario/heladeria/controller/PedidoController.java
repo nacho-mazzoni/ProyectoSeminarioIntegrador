@@ -14,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pedidos")
@@ -54,10 +55,14 @@ public class PedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<PedidoResponse> crear(
+    public ResponseEntity<?> crear(
             @AuthenticationPrincipal Usuario usuario,
             @Valid @RequestBody PedidoRequest request) {
         var cliente = clienteService.findById(usuario.getIdUsuario());
+        if (cliente == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Completá tus datos de perfil antes de realizar un pedido"));
+        }
         Pedido pedido = pedidoService.crear(cliente, request);
         PedidoResponse response = pedidoService.buildResponse(pedido);
         if ("mercado_pago".equals(request.getMetodoPago())) {

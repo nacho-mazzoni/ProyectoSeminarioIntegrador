@@ -137,9 +137,20 @@ Ver prompts en el historial de la sesión. Hacen falta:
 | `/checkout` | Checkout (entrega, dirección, pago) |
 | `/login` | Inicio de sesión |
 | `/register` | Registro |
-| `/account` | Perfil de usuario |
+| `/account` | Perfil + edición de datos, cambio de contraseña, eliminar cuenta |
 | `/addresses` | CRUD de direcciones |
-| `/orders` | Historial de pedidos |
+| `/orders` | Historial de pedidos con cancelación y detalle |
+| `/admin` | Dashboard |
+| `/admin/productos` | CRUD de productos |
+| `/admin/productos/new` | Crear producto |
+| `/admin/productos/[id]/edit` | Editar producto |
+| `/admin/pedidos` | Gestión de pedidos |
+| `/admin/pedidos/[id]` | Detalle y cambio de estado |
+| `/admin/sabores` | CRUD de sabores |
+| `/admin/adicionales` | CRUD de adicionales |
+| `/admin/categorias` | CRUD de categorías |
+| `/admin/zonas` | CRUD de zonas de envío |
+| `/admin/usuarios` | Gestión de usuarios |
 
 ---
 

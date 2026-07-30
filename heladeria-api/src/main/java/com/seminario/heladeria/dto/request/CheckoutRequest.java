@@ -5,15 +5,15 @@ import jakarta.validation.constraints.NotNull;
 
 public class CheckoutRequest {
 
-    @NotBlank
+    @NotBlank(message = "Seleccioná un método de entrega")
     private String metodoEntrega;
 
-    @NotNull
+    @NotNull(message = "Seleccioná una dirección")
     private Long idDireccion;
 
     private String codigoPromocion;
 
-    @NotBlank
+    @NotBlank(message = "Seleccioná un método de pago")
     private String metodoPago;
 
     public String getMetodoEntrega() { return metodoEntrega; }

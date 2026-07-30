@@ -15,6 +15,7 @@ import type {
   CategoriaRequest,
   ZonaRequest,
   CambioEstadoRequest,
+  Promocion,
 } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
@@ -32,7 +33,7 @@ async function handleError(res: Response): Promise<never> {
     localStorage.removeItem("token");
   }
   const err = await res.json().catch(() => ({ error: res.statusText }));
-  throw new Error(err.error ?? "Network error");
+  throw new Error(err.error ?? "Error de red");
 }
 
 async function getPublic<T>(path: string): Promise<T> {
@@ -98,9 +99,16 @@ export const api = {
   zonas: {
     listar: () => getPublic<ZonaEnvioResponse[]>("/zonas-envio"),
   },
+  promociones: {
+    listar: () => getPublic<Promocion[]>("/promociones"),
+    validar: (codigo: string) => getPublic<Promocion>(`/promociones/${codigo}`),
+  },
   clientes: {
     actualizar: (data: { email: string; telefono?: string }) =>
-      postAuth<UsuarioResponse>("/clientes", data),
+      putAuth<UsuarioResponse>("/clientes", data),
+    cambiarPassword: (data: { passwordActual: string; passwordNueva: string }) =>
+      putAuth<void>("/clientes/password", data),
+    eliminarCuenta: () => delAuth("/clientes/cuenta"),
   },
   direcciones: {
     listar: () => getAuth<DireccionResponse[]>("/direcciones"),
@@ -127,6 +135,10 @@ export const api = {
         idsAdicional?: number[]
       }[]
     }) => postAuth<PedidoResponse & { initPoint?: string }>("/pedidos", data),
+    cancelar: (id: number) =>
+      fetch(`${API}/pedidos/${id}/cancelar`, { method: "PATCH", headers: authHeaders() }).then((r) => {
+        if (!r.ok) return r.json().then((e) => { throw new Error(e.error); });
+      }),
   },
   admin: {
     productos: {
@@ -171,6 +183,18 @@ export const api = {
     },
     usuarios: {
       listar: () => getAuth<UsuarioResponse[]>("/admin/usuarios"),
+    },
+    promociones: {
+      listar: () => getAuth<Promocion[]>("/admin/promociones"),
+      crear: (data: {
+        codigo: string; descripcion?: string; porcDesc: number;
+        activa?: boolean; fechaInicio?: string; fechaFin?: string;
+      }) => postAuth<Promocion>("/admin/promociones", data),
+      actualizar: (id: number, data: {
+        codigo: string; descripcion?: string; porcDesc: number;
+        activa?: boolean; fechaInicio?: string; fechaFin?: string;
+      }) => putAuth<Promocion>(`/admin/promociones/${id}`, data),
+      eliminar: (id: number) => delAuth(`/admin/promociones/${id}`),
     },
     dashboard: {
       stats: () => getAuth<DashboardStatsResponse>("/admin/dashboard/stats"),

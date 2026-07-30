@@ -19,7 +19,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const schema = z.object({
-  nombreZona: z.string().min(1, "Requerido"),
+  nombreZona: z.string().min(1, "El nombre de la zona es requerido"),
   costoEnvio: z.coerce.number().positive("Debe ser positivo"),
 });
 
@@ -57,7 +57,7 @@ function ZonaFormDialog({
         ? api.admin.zonas.actualizar(zona.idZona, data)
         : api.admin.zonas.crear(data),
     onSuccess: () => { toast.success(zona ? "Zona actualizada" : "Zona creada"); onSuccess(); onOpenChange(false); },
-    onError: () => toast.error("No se pudo guardar"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo guardar"),
   });
 
   return (
@@ -101,7 +101,7 @@ export default function AdminZonasPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.admin.zonas.eliminar(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-zonas"] }); toast.success("Zona eliminada"); },
-    onError: () => toast.error("No se pudo eliminar"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo eliminar"),
   });
 
   const openCreate = () => { setEditing(undefined); setDialogOpen(true); };
@@ -151,7 +151,7 @@ export default function AdminZonasPage() {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Eliminar zona</AlertDialogTitle>
-                          <AlertDialogDescription>¿Eliminar "{z.nombreZona}"? Esta acción no se puede deshacer.</AlertDialogDescription>
+                          <AlertDialogDescription>¿Eliminar &ldquo;{z.nombreZona}&rdquo;? Esta acción no se puede deshacer.</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel className="rounded-full">Cancelar</AlertDialogCancel>

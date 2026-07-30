@@ -11,10 +11,14 @@ import com.seminario.heladeria.repository.ClienteRepository;
 import com.seminario.heladeria.repository.RolRepository;
 import com.seminario.heladeria.repository.UsuarioRepository;
 import com.seminario.heladeria.security.JwtTokenProvider;
+import com.seminario.heladeria.exception.BusinessRuleException;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class AuthService {
 
@@ -38,14 +42,19 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
+                .orElseThrow(() -> {
+                    log.error("Intento de login con email no registrado: {}", request.getEmail());
+                    return new BusinessRuleException("Credenciales inválidas");
+                });
 
         if (!passwordEncoder.matches(request.getPassword(), usuario.getClave())) {
-            throw new RuntimeException("Credenciales inválidas");
+            log.error("Contraseña incorrecta para: {}", request.getEmail());
+            throw new BusinessRuleException("Credenciales inválidas");
         }
 
         if (!usuario.getActivo()) {
-            throw new RuntimeException("Usuario desactivado");
+            log.error("Usuario desactivado: {}", request.getEmail());
+            throw new BusinessRuleException("Usuario desactivado");
         }
 
         String token = tokenProvider.generateToken(usuario);
@@ -59,11 +68,15 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("El email ya está registrado");
+            log.error("Registro con email ya existente: {}", request.getEmail());
+            throw new BusinessRuleException("El email ya está registrado");
         }
 
         Rol rol = rolRepository.findById(2L)
-                .orElseThrow(() -> new RuntimeException("Rol Cliente no encontrado"));
+                .orElseThrow(() -> {
+                    log.error("Rol Cliente (id=2) no encontrado en la base de datos");
+                    return new ResourceNotFoundException("Rol Cliente no encontrado");
+                });
 
         Usuario usuario = new Usuario();
         usuario.setEmail(request.getEmail());
@@ -91,7 +104,8 @@ public class AuthService {
     @Transactional
     public void cambiarPassword(Usuario usuario, String passwordActual, String passwordNueva) {
         if (!passwordEncoder.matches(passwordActual, usuario.getClave())) {
-            throw new RuntimeException("La contraseña actual no es correcta");
+            log.error("Cambio de contraseña fallido para usuario: {}", usuario.getEmail());
+            throw new BusinessRuleException("La contraseña actual no es correcta");
         }
         usuario.setClave(passwordEncoder.encode(passwordNueva));
         usuarioRepository.save(usuario);

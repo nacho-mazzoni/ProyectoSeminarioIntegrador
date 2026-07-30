@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Loader2, MapPinPlus } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
-import type { DireccionResponse } from "@/lib/types";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { AddressCard } from "@/components/profile/AddressCard";
@@ -52,7 +51,11 @@ export default function AddressesPage() {
       setCalle(""); setNumero(""); setCiudad(""); setReferencia(""); setIdZona("");
       setOpen(false);
     },
-    onError: () => toast.error("No se pudo guardar la dirección"),
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : "No se pudo guardar la dirección";
+      console.error("Error al crear dirección:", msg);
+      toast.error(msg);
+    },
   });
 
   const deleteMutation = useMutation({
@@ -60,6 +63,11 @@ export default function AddressesPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["addresses"] });
       toast.success("Dirección eliminada");
+    },
+    onError: (err: Error) => {
+      const msg = err.message || "No se pudo eliminar la dirección";
+      console.error("Error al eliminar dirección:", msg);
+      toast.error(msg);
     },
   });
 

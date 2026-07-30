@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Leaf, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/shared/PageContainer";
@@ -37,7 +38,7 @@ export function Hero() {
 
         <div className="relative">
           <div className="overflow-hidden rounded-4xl border border-border shadow-lift">
-            <img
+            <Image
               src="/assets/hero.jpg"
               alt="Helados artesanales"
               width={1600}

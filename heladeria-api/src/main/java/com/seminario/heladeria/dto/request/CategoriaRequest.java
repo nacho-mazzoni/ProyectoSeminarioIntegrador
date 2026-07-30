@@ -5,10 +5,10 @@ import jakarta.validation.constraints.NotNull;
 
 public class CategoriaRequest {
 
-    @NotBlank
+    @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @NotNull
+    @NotNull(message = "Indicá si requiere sabores")
     private Boolean requiereSabores;
 
     public String getNombre() { return nombre; }

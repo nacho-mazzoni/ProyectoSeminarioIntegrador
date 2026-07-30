@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { X } from "lucide-react";
 import type { CartItem } from "@/lib/types";
 import { formatPrice, lineTotal } from "@/lib/cart-utils";
@@ -15,10 +16,9 @@ export function CartItemRow({ item, compact = false }: { item: CartItem; compact
 
   return (
     <div className="flex gap-4">
-      <img
+      <Image
         src={getProductImage(item.product.nombre)}
         alt={item.product.nombre}
-        loading="lazy"
         width={800}
         height={800}
         className={compact ? "size-16 rounded-xl object-cover" : "size-20 rounded-2xl object-cover sm:size-24"}

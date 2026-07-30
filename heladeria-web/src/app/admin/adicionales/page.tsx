@@ -20,7 +20,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const schema = z.object({
-  nombre: z.string().min(1, "Requerido"),
+  nombre: z.string().min(1, "El nombre es requerido"),
   precioExtra: z.coerce.number().positive("Debe ser positivo"),
   disponible: z.boolean(),
 });
@@ -60,8 +60,11 @@ function AdicionalFormDialog({
         ? api.admin.adicionales.actualizar(adicional.idAdicional, data)
         : api.admin.adicionales.crear(data),
     onSuccess: () => { toast.success(adicional ? "Adicional actualizado" : "Adicional creado"); onSuccess(); onOpenChange(false); },
-    onError: () => toast.error("No se pudo guardar"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo guardar"),
   });
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const disponible = form.watch("disponible");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -82,7 +85,7 @@ function AdicionalFormDialog({
           <div className="flex items-center gap-3">
             <Switch
               id="adic-disponible"
-              checked={form.watch("disponible")}
+              checked={disponible}
               onCheckedChange={(v) => form.setValue("disponible", v)}
             />
             <Label htmlFor="adic-disponible">Disponible</Label>
@@ -112,7 +115,7 @@ export default function AdminAdicionalesPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.admin.adicionales.eliminar(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-adicionales"] }); toast.success("Adicional eliminado"); },
-    onError: () => toast.error("No se pudo eliminar"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo eliminar"),
   });
 
   const openCreate = () => { setEditing(undefined); setDialogOpen(true); };
@@ -167,7 +170,7 @@ export default function AdminAdicionalesPage() {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Eliminar adicional</AlertDialogTitle>
-                          <AlertDialogDescription>¿Eliminar "{a.nombre}"? Esta acción no se puede deshacer.</AlertDialogDescription>
+                          <AlertDialogDescription>¿Eliminar &ldquo;{a.nombre}&rdquo;? Esta acción no se puede deshacer.</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel className="rounded-full">Cancelar</AlertDialogCancel>

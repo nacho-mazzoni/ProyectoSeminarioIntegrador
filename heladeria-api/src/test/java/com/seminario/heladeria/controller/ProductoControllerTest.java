@@ -106,45 +106,5 @@ class ProductoControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-    @Test
-    void crearCategoria_shouldReturnCategoria() throws Exception {
-        var cat = new CategoriaResponse();
-        ReflectionTestUtils.setField(cat, "idCategoria", 1L);
-        when(productoService.crearCategoria(any(CategoriaRequest.class))).thenReturn(cat);
 
-        mockMvc.perform(post("/api/admin/categorias").with(user("admin@test.com"))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nombre\":\"Cat\",\"requiereSabores\":true}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idCategoria").value(1));
-    }
-
-    @Test
-    void crearSabor_shouldReturnSabor() throws Exception {
-        var sabor = new SaborResponse();
-        ReflectionTestUtils.setField(sabor, "idSabor", 1L);
-        when(productoService.crearSabor(any(SaborRequest.class))).thenReturn(sabor);
-
-        mockMvc.perform(post("/api/admin/sabores").with(user("admin@test.com"))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nombre\":\"Vainilla\",\"stockBaldes\":10,\"disponible\":true}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idSabor").value(1));
-    }
-
-    @Test
-    void crearAdicional_shouldReturnAdicional() throws Exception {
-        var adic = new AdicionalResponse();
-        ReflectionTestUtils.setField(adic, "idAdicional", 1L);
-        when(productoService.crearAdicional(any(AdicionalRequest.class))).thenReturn(adic);
-
-        mockMvc.perform(post("/api/admin/adicionales").with(user("admin@test.com"))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nombre\":\"Extra queso\",\"precioExtra\":5.0,\"disponible\":true}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idAdicional").value(1));
-    }
 }

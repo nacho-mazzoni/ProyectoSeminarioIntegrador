@@ -5,10 +5,10 @@ import java.util.List;
 
 public class CarritoItemRequest {
 
-    @NotNull
+    @NotNull(message = "El producto es obligatorio")
     private Long idProducto;
 
-    @NotNull
+    @NotNull(message = "La cantidad es obligatoria")
     private Integer cantidad;
 
     private List<Long> idsSabor;

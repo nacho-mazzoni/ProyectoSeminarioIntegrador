@@ -13,8 +13,8 @@ export function AdminHeader({ onMenuClick }: { onMenuClick?: () => void }) {
 
   const titles: Record<string, string> = {
     "/admin": "Dashboard",
-    "/admin/products": "Productos",
-    "/admin/orders": "Pedidos",
+    "/admin/productos": "Productos",
+    "/admin/pedidos": "Pedidos",
     "/admin/sabores": "Sabores",
     "/admin/adicionales": "Adicionales",
     "/admin/categorias": "Categorías",

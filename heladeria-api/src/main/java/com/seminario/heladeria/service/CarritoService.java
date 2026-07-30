@@ -8,12 +8,16 @@ import com.seminario.heladeria.dto.response.CheckoutResponse;
 import com.seminario.heladeria.dto.response.PedidoResponse;
 import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
+import com.seminario.heladeria.exception.BusinessRuleException;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class CarritoService {
 
@@ -62,18 +66,25 @@ public class CarritoService {
     public CarritoItem agregarItem(Usuario usuario, CarritoItemRequest request) {
         Carrito carrito = obtenerOCrear(usuario);
         Producto producto = productoRepository.findById(request.getIdProducto())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> {
+                    log.error("Producto no encontrado al agregar item: {}", request.getIdProducto());
+                    return new ResourceNotFoundException("Producto no encontrado");
+                });
 
         if (producto.getCategoria().getRequiereSabores() &&
             (request.getIdsSabor() == null || request.getIdsSabor().isEmpty())) {
-            throw new RuntimeException("Este producto requiere al menos un sabor");
+            log.error("Producto {} requiere sabores pero no se enviaron", request.getIdProducto());
+            throw new BusinessRuleException("Este producto requiere al menos un sabor");
         }
         if (!producto.getCategoria().getRequiereSabores() &&
                 request.getIdsSabor() != null && !request.getIdsSabor().isEmpty()) {
-            throw new RuntimeException("Este producto no admite sabores");
+            log.error("Producto {} no admite sabores pero se enviaron", request.getIdProducto());
+            throw new BusinessRuleException("Este producto no admite sabores");
         }
         if (request.getIdsSabor() != null && request.getIdsSabor().size() > producto.getMaxSabores()) {
-            throw new RuntimeException("Maximo " + producto.getMaxSabores() + " sabores permitidos");
+            log.error("Producto {} excede maximo de sabores: {} > {}", request.getIdProducto(),
+                    request.getIdsSabor().size(), producto.getMaxSabores());
+            throw new BusinessRuleException("Máximo " + producto.getMaxSabores() + " sabores permitidos");
         }
 
         CarritoItem item = new CarritoItem();
@@ -84,7 +95,7 @@ public class CarritoService {
         if (request.getIdsSabor() != null) {
             for (Long idSabor : request.getIdsSabor()) {
                 Sabor sabor = saborRepository.findById(idSabor)
-                        .orElseThrow(() -> new RuntimeException("Sabor no encontrado: " + idSabor));
+                        .orElseThrow(() -> new ResourceNotFoundException("Sabor no encontrado: " + idSabor));
                 CarritoItemSabor cis = new CarritoItemSabor();
                 cis.setId(new CarritoItemSaborId(null, idSabor));
                 cis.setCarritoItem(item);
@@ -96,7 +107,7 @@ public class CarritoService {
         if (request.getIdsAdicional() != null) {
             for (Long idAdicional : request.getIdsAdicional()) {
                 Adicional adicional = adicionalRepository.findById(idAdicional)
-                        .orElseThrow(() -> new RuntimeException("Adicional no encontrado: " + idAdicional));
+                        .orElseThrow(() -> new ResourceNotFoundException("Adicional no encontrado: " + idAdicional));
                 CarritoItemAdicional cia = new CarritoItemAdicional();
                 cia.setId(new CarritoItemAdicionalId(null, idAdicional));
                 cia.setCarritoItem(item);
@@ -114,21 +125,21 @@ public class CarritoService {
     public CarritoItem actualizarItem(Usuario usuario, Long idItem, CarritoItemRequest request) {
         Carrito carrito = obtenerOCrear(usuario);
         CarritoItem item = carritoItemRepository.findById(idItem)
-                .orElseThrow(() -> new RuntimeException("Item no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
 
         if (!item.getCarrito().getIdCarrito().equals(carrito.getIdCarrito())) {
-            throw new RuntimeException("El item no pertenece al carrito del usuario");
+            throw new BusinessRuleException("El item no pertenece al carrito del usuario");
         }
 
         Producto producto = productoRepository.findById(request.getIdProducto())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
 
         if (producto.getCategoria().getRequiereSabores() &&
                 (request.getIdsSabor() == null || request.getIdsSabor().isEmpty())) {
-            throw new RuntimeException("Este producto requiere al menos un sabor");
+            throw new BusinessRuleException("Este producto requiere al menos un sabor");
         }
         if (request.getIdsSabor() != null && request.getIdsSabor().size() > producto.getMaxSabores()) {
-            throw new RuntimeException("Maximo " + producto.getMaxSabores() + " sabores permitidos");
+            throw new BusinessRuleException("Máximo " + producto.getMaxSabores() + " sabores permitidos");
         }
 
         item.setCantidad(request.getCantidad());
@@ -138,7 +149,7 @@ public class CarritoService {
         if (request.getIdsSabor() != null) {
             for (Long idSabor : request.getIdsSabor()) {
                 Sabor sabor = saborRepository.findById(idSabor)
-                        .orElseThrow(() -> new RuntimeException("Sabor no encontrado: " + idSabor));
+                        .orElseThrow(() -> new ResourceNotFoundException("Sabor no encontrado: " + idSabor));
                 CarritoItemSabor cis = new CarritoItemSabor();
                 cis.setId(new CarritoItemSaborId(idItem, idSabor));
                 cis.setCarritoItem(item);
@@ -150,7 +161,7 @@ public class CarritoService {
         if (request.getIdsAdicional() != null) {
             for (Long idAdicional : request.getIdsAdicional()) {
                 Adicional adicional = adicionalRepository.findById(idAdicional)
-                        .orElseThrow(() -> new RuntimeException("Adicional no encontrado: " + idAdicional));
+                        .orElseThrow(() -> new ResourceNotFoundException("Adicional no encontrado: " + idAdicional));
                 CarritoItemAdicional cia = new CarritoItemAdicional();
                 cia.setId(new CarritoItemAdicionalId(idItem, idAdicional));
                 cia.setCarritoItem(item);
@@ -166,10 +177,10 @@ public class CarritoService {
     public void eliminarItem(Usuario usuario, Long idItem) {
         Carrito carrito = obtenerOCrear(usuario);
         CarritoItem item = carritoItemRepository.findById(idItem)
-                .orElseThrow(() -> new RuntimeException("Item no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
 
         if (!item.getCarrito().getIdCarrito().equals(carrito.getIdCarrito())) {
-            throw new RuntimeException("El item no pertenece al carrito del usuario");
+            throw new BusinessRuleException("El item no pertenece al carrito del usuario");
         }
 
         carrito.getItems().remove(item);
@@ -186,7 +197,7 @@ public class CarritoService {
         Carrito carrito = obtenerOCrear(usuario);
 
         if (carrito.getItems().isEmpty()) {
-            throw new RuntimeException("El carrito esta vacio");
+            throw new BusinessRuleException("El carrito está vacío");
         }
 
         Cliente cliente = clienteService.findById(usuario.getIdUsuario());
@@ -194,7 +205,7 @@ public class CarritoService {
         if (request.getIdDireccion() != null && request.getIdDireccion() > 0) {
             Direccion direccion = direccionService.findById(request.getIdDireccion());
             if (!direccion.getCliente().getIdUsuario().equals(cliente.getIdUsuario())) {
-                throw new RuntimeException("La direccion no pertenece al usuario");
+                throw new BusinessRuleException("La dirección no pertenece al usuario");
             }
         }
 

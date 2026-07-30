@@ -47,12 +47,14 @@ export default function NewProductPage() {
     mutationFn: (data: FormData) => api.admin.productos.crear(data),
     onSuccess: () => {
       toast.success("Producto creado");
-      router.push("/admin/products");
+      router.push("/admin/productos");
     },
-    onError: () => toast.error("No se pudo crear el producto"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo crear el producto"),
   });
 
   const onSubmit = (data: FormData) => mutation.mutate(data);
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const idCategoria = form.watch("idCategoria");
 
   if (catLoading) {
     return (
@@ -82,7 +84,7 @@ export default function NewProductPage() {
         <div className="space-y-2">
           <Label htmlFor="categoria">Categoría</Label>
           <Select
-            value={String(form.watch("idCategoria"))}
+            value={String(idCategoria)}
             onValueChange={(v) => form.setValue("idCategoria", Number(v))}
           >
             <SelectTrigger id="categoria" className="h-11">

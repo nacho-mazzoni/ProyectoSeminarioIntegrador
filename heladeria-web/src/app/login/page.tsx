@@ -25,8 +25,10 @@ export default function LoginPage() {
       const u = await login(email, password);
       toast.success("¡Bienvenido de vuelta!");
       router.push(u.rol === "ADMINISTRADOR" ? "/admin" : "/account");
-    } catch {
-      toast.error("No pudimos iniciar sesión. Verificá tus datos.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "No pudimos iniciar sesión. Verificá tus datos.";
+      console.error("Error al iniciar sesión:", msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

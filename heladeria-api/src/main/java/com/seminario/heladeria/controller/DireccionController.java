@@ -47,6 +47,9 @@ public class DireccionController {
     public ResponseEntity<Void> eliminar(@AuthenticationPrincipal Usuario usuario,
                                          @PathVariable Long id) {
         var cliente = clienteService.findById(usuario.getIdUsuario());
+        if (cliente == null) {
+            return ResponseEntity.badRequest().build();
+        }
         direccionService.eliminar(id, cliente.getIdUsuario());
         return ResponseEntity.noContent().build();
     }

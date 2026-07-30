@@ -89,7 +89,7 @@ class CarritoServiceTest {
         Usuario usuario = usuarioRepository.findById(2L).orElseThrow();
 
         CarritoItemRequest request = new CarritoItemRequest();
-        request.setIdProducto(3L);
+        request.setIdProducto(1L);
         request.setCantidad(1);
         request.setIdsSabor(List.of(1L, 2L));
 

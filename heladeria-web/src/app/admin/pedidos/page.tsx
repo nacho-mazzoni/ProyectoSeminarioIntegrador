@@ -1,83 +1,107 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
-import type { Pedido } from "@/lib/types"
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Package, AlertCircle } from "lucide-react";
+import { api } from "@/services/api";
+import { formatPrice } from "@/lib/cart-utils";
+import { OrderStatusBadge } from "@/components/orders/OrderStatusBadge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/shared/EmptyState";
 
-const ESTADOS = ["PENDIENTE", "CONFIRMADO", "EN_PREPARACION", "EN_CAMINO", "ENTREGADO", "CANCELADO"]
+const ESTADOS = ["", "PENDIENTE", "EN_PREPARACION", "EN_CAMINO", "ENTREGADO", "CANCELADO"];
 
-export default function AdminPedidosPage() {
-  const [pedidos, setPedidos] = useState<Pedido[]>([])
+function getUltimoEstado(historial: { estado: string }[]): string {
+  return historial.length > 0 ? historial[historial.length - 1].estado : "";
+}
 
-  const cargar = () => api.admin.pedidos.listar().then(setPedidos)
-  useEffect(() => { cargar() }, [])
+export default function AdminOrdersPage() {
+  const [filtroEstado, setFiltroEstado] = useState("");
 
-  const cambiarEstado = async (id: number, estado: string) => {
-    await api.admin.pedidos.actualizarEstado(id, { estado })
-    cargar()
-  }
-
-  const estadoActual = (p: Pedido) => p.historial?.[p.historial.length - 1]?.estado ?? "PENDIENTE"
+  const { data: orders = [], isLoading, error } = useQuery({
+    queryKey: ["admin-orders", filtroEstado],
+    queryFn: () => api.admin.pedidos.listar(filtroEstado || undefined),
+  });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Pedidos</h1>
-      <div className="flex flex-col gap-4">
-        {pedidos.map((p) => {
-          const actual = estadoActual(p)
-          return (
-            <div key={p.idPedido} className="bg-white border rounded-xl p-5">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <p className="text-sm text-stone-400">
-                    {new Date(p.fecha).toLocaleDateString("es-AR", {
-                      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-display text-xl font-semibold">Pedidos</h2>
+        <p className="text-sm text-muted-foreground">Gestioná todos los pedidos del sistema.</p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Select value={filtroEstado} onValueChange={setFiltroEstado}>
+          <SelectTrigger className="w-48 h-10 rounded-full">
+            <SelectValue placeholder="Todos los estados" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value=" ">Todos los estados</SelectItem>
+            {ESTADOS.filter(Boolean).map((e) => (
+              <SelectItem key={e} value={e}>{e.replace("_", " ")}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card shadow-soft">
+        {isLoading ? (
+          <div className="p-6 space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="py-12">
+            <EmptyState icon={AlertCircle} title="Error al cargar" description={error.message} />
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="py-12">
+            <EmptyState icon={Package} title="Sin pedidos" description={filtroEstado ? "No hay pedidos con ese estado." : "Todavía no hay pedidos."} />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16">ID</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Entrega</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right w-24">Acción</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders.map((o) => (
+                <TableRow key={o.idPedido}>
+                  <TableCell className="text-muted-foreground">#{o.idPedido}</TableCell>
+                  <TableCell className="font-medium">{o.cliente}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {new Date(o.fecha).toLocaleDateString("es-AR", {
+                      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
                     })}
-                  </p>
-                  <p className="font-semibold mt-1">${p.total.toFixed(2)} — {p.cliente}</p>
-                  <p className="text-sm text-stone-500">{p.metodoEntrega} — {p.direccion}</p>
-                </div>
-                <div className="text-right">
-                  <select
-                    value={actual}
-                    onChange={(e) => cambiarEstado(p.idPedido, e.target.value)}
-                    className={`border rounded px-2 py-1 text-sm font-medium ${
-                      actual === "CANCELADO" ? "text-red-600" : ""
-                    }`}
-                  >
-                    {ESTADOS.map((e) => (
-                      <option key={e} value={e}>{e}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <details>
-                <summary className="text-sm text-amber-600 cursor-pointer">Ver detalle</summary>
-                <div className="mt-2 text-sm space-y-2">
-                  {p.detalles?.map((d) => (
-                    <div key={d.idDetalle} className="border-t pt-2">
-                      <p><strong>{d.cantidad}x</strong> {d.producto} — ${(d.precioUnitHist * d.cantidad).toFixed(2)}</p>
-                      {d.sabores?.length > 0 && <p className="text-stone-400 ml-4">Sabores: {d.sabores.join(", ")}</p>}
-                      {d.adicionales?.length > 0 && <p className="text-stone-400 ml-4">Adicionales: {d.adicionales.join(", ")}</p>}
-                    </div>
-                  ))}
-                  {p.historial && (
-                    <div className="border-t pt-2 mt-2">
-                      <p className="font-medium text-xs uppercase tracking-wide text-stone-400 mb-1">Historial</p>
-                      {p.historial.map((h) => (
-                        <p key={h.idHist} className="text-xs text-stone-500">
-                          {new Date(h.fechaHora).toLocaleString("es-AR")} — <span className="font-medium">{h.estado}</span>
-                          {h.notas && ` — ${h.notas}`}
-                        </p>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </details>
-            </div>
-          )
-        })}
+                  </TableCell>
+                  <TableCell>{formatPrice(o.total)}</TableCell>
+                  <TableCell className="text-sm capitalize">{o.metodoEntrega}</TableCell>
+                  <TableCell><OrderStatusBadge status={getUltimoEstado(o.historial)} /></TableCell>
+                  <TableCell className="text-right">
+                    <Button asChild variant="outline" size="sm" className="rounded-full">
+                      <Link href={`/admin/pedidos/${o.idPedido}`}>Ver</Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
-  )
+  );
 }

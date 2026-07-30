@@ -4,6 +4,7 @@ import com.seminario.heladeria.dto.request.ActualizarRolRequest;
 import com.seminario.heladeria.dto.response.UsuarioResponse;
 import com.seminario.heladeria.entity.Rol;
 import com.seminario.heladeria.entity.Usuario;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
 import com.seminario.heladeria.repository.RolRepository;
 import com.seminario.heladeria.repository.UsuarioRepository;
 import jakarta.validation.Valid;
@@ -27,23 +28,14 @@ public class AdminUsuariosController {
         this.rolRepository = rolRepository;
     }
 
-    @GetMapping("/usuarios")
-    public ResponseEntity<List<UsuarioResponse>> listarUsuarios() {
-        var usuarios = usuarioRepository.findAll();
-        var responses = usuarios.stream()
-                .map(UsuarioResponse::from)
-                .toList();
-        return ResponseEntity.ok(responses);
-    }
-
     @PutMapping("/usuarios/{id}/rol")
     public ResponseEntity<UsuarioResponse> actualizarRol(
             @PathVariable Long id,
             @Valid @RequestBody ActualizarRolRequest request) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         Rol rol = rolRepository.findById(request.getIdRol())
-                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
         usuario.setRol(rol);
         usuario = usuarioRepository.save(usuario);
         return ResponseEntity.ok(UsuarioResponse.from(usuario));
@@ -52,7 +44,7 @@ public class AdminUsuariosController {
     @PutMapping("/usuarios/{id}/activo")
     public ResponseEntity<UsuarioResponse> toggleActivo(@PathVariable Long id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuario.setActivo(!usuario.getActivo());
         usuario = usuarioRepository.save(usuario);
         return ResponseEntity.ok(UsuarioResponse.from(usuario));

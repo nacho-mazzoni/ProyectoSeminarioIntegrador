@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public class CambioEstadoRequest {
 
-    @NotBlank
+    @NotBlank(message = "El estado es obligatorio")
     private String estado;
 
     public String getEstado() { return estado; }

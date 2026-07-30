@@ -19,7 +19,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const schema = z.object({
-  nombre: z.string().min(1, "Requerido"),
+  nombre: z.string().min(1, "El nombre es requerido"),
   requiereSabores: z.boolean(),
 });
 
@@ -57,8 +57,11 @@ function CategoriaFormDialog({
         ? api.admin.categorias.actualizar(categoria.idCategoria, data)
         : api.admin.categorias.crear(data),
     onSuccess: () => { toast.success(categoria ? "Categoría actualizada" : "Categoría creada"); onSuccess(); onOpenChange(false); },
-    onError: () => toast.error("No se pudo guardar"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo guardar"),
   });
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const requiereSabores = form.watch("requiereSabores");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -75,7 +78,7 @@ function CategoriaFormDialog({
           <div className="flex items-center gap-3">
             <Switch
               id="cat-sabores"
-              checked={form.watch("requiereSabores")}
+              checked={requiereSabores}
               onCheckedChange={(v) => form.setValue("requiereSabores", v)}
             />
             <Label htmlFor="cat-sabores">Requiere selección de sabores</Label>
@@ -105,7 +108,7 @@ export default function AdminCategoriasPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.admin.categorias.eliminar(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-categorias"] }); toast.success("Categoría eliminada"); },
-    onError: () => toast.error("No se pudo eliminar"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo eliminar"),
   });
 
   const openCreate = () => { setEditing(undefined); setDialogOpen(true); };
@@ -158,7 +161,7 @@ export default function AdminCategoriasPage() {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Eliminar categoría</AlertDialogTitle>
-                          <AlertDialogDescription>¿Eliminar "{c.nombre}"? Esta acción no se puede deshacer.</AlertDialogDescription>
+                          <AlertDialogDescription>¿Eliminar &ldquo;{c.nombre}&rdquo;? Esta acción no se puede deshacer.</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel className="rounded-full">Cancelar</AlertDialogCancel>

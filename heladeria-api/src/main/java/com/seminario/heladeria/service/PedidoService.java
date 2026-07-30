@@ -5,6 +5,9 @@ import com.seminario.heladeria.dto.request.PedidoRequest;
 import com.seminario.heladeria.dto.response.PedidoResponse;
 import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
+import com.seminario.heladeria.exception.BusinessRuleException;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class PedidoService {
 
@@ -54,7 +58,10 @@ public class PedidoService {
 
     public Pedido findById(Long id) {
         return pedidoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+                .orElseThrow(() -> {
+                    log.error("Pedido no encontrado: {}", id);
+                    return new ResourceNotFoundException("Pedido no encontrado");
+                });
     }
 
     public List<Pedido> findAll() {
@@ -66,7 +73,8 @@ public class PedidoService {
         String estadoActual = getUltimoEstado(pedido.getIdPedido());
 
         if (!"PENDIENTE".equals(estadoActual)) {
-            throw new RuntimeException("Solo se pueden cancelar pedidos pendientes");
+            log.error("Intento de cancelar pedido {} con estado {}", pedido.getIdPedido(), estadoActual);
+            throw new BusinessRuleException("Solo se pueden cancelar pedidos pendientes");
         }
 
         restaurarStock(pedido.getIdPedido());
@@ -85,7 +93,8 @@ public class PedidoService {
     public Pedido editar(Pedido pedido, EditarPedidoRequest request) {
         String estadoActual = getUltimoEstado(pedido.getIdPedido());
         if (!"PENDIENTE".equals(estadoActual)) {
-            throw new RuntimeException("Solo se pueden editar pedidos pendientes");
+            log.error("Intento de editar pedido {} con estado {}", pedido.getIdPedido(), estadoActual);
+            throw new BusinessRuleException("Solo se pueden editar pedidos pendientes");
         }
 
         restaurarStock(pedido.getIdPedido());
@@ -97,10 +106,14 @@ public class PedidoService {
             pedido.setDireccion(direccion);
         }
 
+        Long pedidoId = pedido.getIdPedido();
         Promocion promocion = null;
         if (request.getCodigoPromocion() != null && !request.getCodigoPromocion().isBlank()) {
             promocion = promocionRepository.findByCodigoAndActivaTrue(request.getCodigoPromocion())
-                    .orElseThrow(() -> new RuntimeException("Promocion invalida o inactiva"));
+                    .orElseThrow(() -> {
+                        log.error("Promoción inválida o inactiva al editar pedido {}: {}", pedidoId, request.getCodigoPromocion());
+                        return new BusinessRuleException("Promoción inválida o inactiva");
+                    });
             pedido.setPromocion(promocion);
         } else {
             pedido.setPromocion(null);
@@ -110,10 +123,10 @@ public class PedidoService {
 
         for (PedidoRequest.DetalleRequest detReq : request.getDetalles()) {
             Producto producto = productoRepository.findById(detReq.getIdProducto())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detReq.getIdProducto()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado: " + detReq.getIdProducto()));
 
             if (producto.getStockEnvases() < detReq.getCantidad()) {
-                throw new RuntimeException("Stock insuficiente para: " + producto.getNombre());
+                throw new BusinessRuleException("Stock insuficiente para: " + producto.getNombre());
             }
 
             DetallePedido detalle = new DetallePedido();
@@ -126,7 +139,7 @@ public class PedidoService {
             if (detReq.getIdsSabor() != null) {
                 for (Long idSabor : detReq.getIdsSabor()) {
                     Sabor sabor = saborRepository.findById(idSabor)
-                            .orElseThrow(() -> new RuntimeException("Sabor no encontrado: " + idSabor));
+                            .orElseThrow(() -> new ResourceNotFoundException("Sabor no encontrado: " + idSabor));
                     DetallePedidoSabor dps = new DetallePedidoSabor();
                     dps.setId(new DetallePedidoSaborId(null, idSabor));
                     dps.setDetallePedido(detalle);
@@ -140,7 +153,7 @@ public class PedidoService {
             if (detReq.getIdsAdicional() != null) {
                 for (Long idAdicional : detReq.getIdsAdicional()) {
                     Adicional adic = adicionalRepository.findById(idAdicional)
-                            .orElseThrow(() -> new RuntimeException("Adicional no encontrado: " + idAdicional));
+                            .orElseThrow(() -> new ResourceNotFoundException("Adicional no encontrado: " + idAdicional));
                     DetallePedidoAdicional dpa = new DetallePedidoAdicional();
                     dpa.setId(new DetallePedidoAdicionalId(null, idAdicional));
                     dpa.setDetallePedido(detalle);
@@ -198,7 +211,7 @@ public class PedidoService {
         Promocion promocion = null;
         if (request.getCodigoPromocion() != null && !request.getCodigoPromocion().isBlank()) {
             promocion = promocionRepository.findByCodigoAndActivaTrue(request.getCodigoPromocion())
-                    .orElseThrow(() -> new RuntimeException("Promocion invalida o inactiva"));
+                    .orElseThrow(() -> new BusinessRuleException("Promoción inválida o inactiva"));
             pedido.setPromocion(promocion);
         }
 
@@ -209,18 +222,26 @@ public class PedidoService {
 
         for (PedidoRequest.DetalleRequest detReq : request.getDetalles()) {
             Producto producto = productoRepository.findById(detReq.getIdProducto())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detReq.getIdProducto()));
+                    .orElseThrow(() -> {
+                        log.error("Producto no encontrado al crear/editar pedido: {}", detReq.getIdProducto());
+                        return new ResourceNotFoundException("Producto no encontrado: " + detReq.getIdProducto());
+                    });
 
             if (producto.getStockEnvases() < detReq.getCantidad()) {
-                throw new RuntimeException("Stock insuficiente para: " + producto.getNombre());
+                log.error("Stock insuficiente para {}: disponible {}, solicitado {}",
+                        producto.getNombre(), producto.getStockEnvases(), detReq.getCantidad());
+                throw new BusinessRuleException("Stock insuficiente para: " + producto.getNombre());
             }
 
             if (producto.getCategoria().getRequiereSabores() &&
                     (detReq.getIdsSabor() == null || detReq.getIdsSabor().isEmpty())) {
-                throw new RuntimeException("El producto " + producto.getNombre() + " requiere al menos un sabor");
+                log.error("Producto {} requiere sabores pero no se enviaron", producto.getNombre());
+                throw new BusinessRuleException("El producto " + producto.getNombre() + " requiere al menos un sabor");
             }
             if (detReq.getIdsSabor() != null && detReq.getIdsSabor().size() > producto.getMaxSabores()) {
-                throw new RuntimeException("Maximo " + producto.getMaxSabores() + " sabores para " + producto.getNombre());
+                log.error("Producto {} excede maximo de sabores: {} > {}", producto.getNombre(),
+                        detReq.getIdsSabor().size(), producto.getMaxSabores());
+                throw new BusinessRuleException("Máximo " + producto.getMaxSabores() + " sabores para " + producto.getNombre());
             }
 
             DetallePedido detalle = new DetallePedido();
@@ -233,7 +254,7 @@ public class PedidoService {
             if (detReq.getIdsSabor() != null) {
                 for (Long idSabor : detReq.getIdsSabor()) {
                     Sabor sabor = saborRepository.findById(idSabor)
-                            .orElseThrow(() -> new RuntimeException("Sabor no encontrado: " + idSabor));
+                            .orElseThrow(() -> new ResourceNotFoundException("Sabor no encontrado: " + idSabor));
                     DetallePedidoSabor dps = new DetallePedidoSabor();
                     dps.setId(new DetallePedidoSaborId(null, idSabor));
                     dps.setDetallePedido(detalle);
@@ -247,7 +268,7 @@ public class PedidoService {
             if (detReq.getIdsAdicional() != null) {
                 for (Long idAdicional : detReq.getIdsAdicional()) {
                     Adicional adic = adicionalRepository.findById(idAdicional)
-                            .orElseThrow(() -> new RuntimeException("Adicional no encontrado: " + idAdicional));
+                            .orElseThrow(() -> new ResourceNotFoundException("Adicional no encontrado: " + idAdicional));
                     DetallePedidoAdicional dpa = new DetallePedidoAdicional();
                     dpa.setId(new DetallePedidoAdicionalId(null, idAdicional));
                     dpa.setDetallePedido(detalle);

@@ -43,8 +43,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair-display), ui-serif, Georgia, serif;
 
   --shadow-soft: 0 1px 2px #4a2e1f0a, 0 8px 24px -12px #4a2e1f1f;
   --shadow-card: 0 1px 3px #4a2e1f0d, 0 12px 32px -16px #4a2e1f29;

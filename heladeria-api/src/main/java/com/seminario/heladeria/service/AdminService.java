@@ -5,6 +5,8 @@ import com.seminario.heladeria.dto.response.*;
 import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
 import com.seminario.heladeria.service.PedidoService;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class AdminService {
 
@@ -126,7 +129,7 @@ public class AdminService {
     @Transactional
     public SaborResponse actualizarSabor(Long id, SaborRequest request) {
         Sabor sabor = saborRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sabor no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sabor no encontrado"));
         sabor.setNombre(request.getNombre());
         sabor.setStockBaldes(request.getStockBaldes());
         sabor.setDisponible(request.getDisponible());
@@ -158,7 +161,7 @@ public class AdminService {
     @Transactional
     public AdicionalResponse actualizarAdicional(Long id, AdicionalRequest request) {
         Adicional adicional = adicionalRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Adicional no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Adicional no encontrado"));
         adicional.setNombre(request.getNombre());
         adicional.setPrecioExtra(request.getPrecioExtra());
         adicional.setDisponible(request.getDisponible());
@@ -188,7 +191,7 @@ public class AdminService {
     @Transactional
     public CategoriaResponse actualizarCategoria(Long id, CategoriaRequest request) {
         Categoria categoria = categoriaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada"));
         categoria.setNombre(request.getNombre());
         categoria.setRequiereSabores(request.getRequiereSabores());
         return CategoriaResponse.from(categoriaRepository.save(categoria));
@@ -217,7 +220,7 @@ public class AdminService {
     @Transactional
     public ZonaEnvioResponse actualizarZona(Long id, ZonaRequest request) {
         ZonaEnvio zona = zonaEnvioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Zona no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Zona no encontrada"));
         zona.setNombreZona(request.getNombreZona());
         zona.setCostoEnvio(request.getCostoEnvio());
         return ZonaEnvioResponse.from(zonaEnvioRepository.save(zona));

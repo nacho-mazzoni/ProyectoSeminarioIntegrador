@@ -86,8 +86,8 @@ class DireccionServiceTest {
 
     @Test
     void eliminar_shouldRemoveDireccion() {
-        direccionService.eliminar(1L);
+        direccionService.eliminar(2L, 2L);
 
-        assertThat(direccionRepository.findById(1L)).isEmpty();
+        assertThat(direccionRepository.findById(2L)).isEmpty();
     }
 }

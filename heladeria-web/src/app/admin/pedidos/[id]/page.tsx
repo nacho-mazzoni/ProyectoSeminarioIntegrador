@@ -33,7 +33,7 @@ export default function AdminOrderDetailPage() {
       toast.success(`Estado actualizado a "${updated.historial[updated.historial.length - 1].estado}"`);
       setNuevoEstado("");
     },
-    onError: () => toast.error("No se pudo actualizar el estado"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo actualizar el estado"),
   });
 
   if (isLoading) {

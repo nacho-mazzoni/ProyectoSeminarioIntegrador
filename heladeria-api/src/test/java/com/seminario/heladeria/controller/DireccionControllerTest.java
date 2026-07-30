@@ -90,6 +90,10 @@ class DireccionControllerTest {
 
     @Test
     void eliminar_shouldReturnNoContent() throws Exception {
+        var cliente = new Cliente();
+        cliente.setIdUsuario(1L);
+        when(clienteService.findById(eq(1L))).thenReturn(cliente);
+
         mockMvc.perform(delete("/api/direcciones/1").with(authentication(auth()))
                         .with(csrf()))
                 .andExpect(status().isNoContent());

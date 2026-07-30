@@ -22,8 +22,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/products", label: "Productos", icon: IceCream },
-  { href: "/admin/orders", label: "Pedidos", icon: Package },
+  { href: "/admin/productos", label: "Productos", icon: IceCream },
+  { href: "/admin/pedidos", label: "Pedidos", icon: Package },
   { href: "/admin/sabores", label: "Sabores", icon: Droplets },
   { href: "/admin/adicionales", label: "Adicionales", icon: Sparkles },
   { href: "/admin/categorias", label: "Categorías", icon: Tags },

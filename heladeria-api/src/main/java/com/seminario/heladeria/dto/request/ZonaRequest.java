@@ -6,10 +6,10 @@ import java.math.BigDecimal;
 
 public class ZonaRequest {
 
-    @NotBlank
+    @NotBlank(message = "El nombre de la zona es obligatorio")
     private String nombreZona;
 
-    @NotNull
+    @NotNull(message = "El costo de envío es obligatorio")
     private BigDecimal costoEnvio;
 
     public String getNombreZona() { return nombreZona; }

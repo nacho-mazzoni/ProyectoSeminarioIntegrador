@@ -94,7 +94,7 @@ class CarritoControllerTest {
         mockMvc.perform(post("/api/carrito/checkout").with(authentication(auth()))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"metodoEntrega\":\"delivery\",\"idDireccion\":1}"))
+                        .content("{\"metodoEntrega\":\"delivery\",\"idDireccion\":1,\"metodoPago\":\"efectivo\"}"))
                 .andExpect(status().isOk());
     }
 }

@@ -5,12 +5,14 @@ import com.seminario.heladeria.entity.Pedido;
 import com.seminario.heladeria.repository.HistorialEstadoRepository;
 import com.seminario.heladeria.service.PagoService;
 import com.seminario.heladeria.service.PedidoService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/pagos")
 public class PagoWebhookController {
@@ -64,6 +66,7 @@ public class PagoWebhookController {
                     }
                 }
             } catch (Exception e) {
+                log.error("Error procesando notificación de Mercado Pago: {}", e.getMessage(), e);
                 return ResponseEntity.ok("OK");
             }
         }

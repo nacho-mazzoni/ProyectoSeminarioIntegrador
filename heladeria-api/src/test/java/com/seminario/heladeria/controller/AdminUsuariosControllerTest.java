@@ -39,15 +39,6 @@ class AdminUsuariosControllerTest {
     private CustomJwtAuthenticationConverter jwtConverter;
 
     @Test
-    void listarUsuarios_shouldReturnList() throws Exception {
-        when(usuarioRepository.findAll()).thenReturn(List.of());
-
-        mockMvc.perform(get("/api/admin/usuarios").with(user("admin@test.com")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(0));
-    }
-
-    @Test
     void actualizarRol_shouldReturnUsuario() throws Exception {
         var usuario = new Usuario();
         usuario.setIdUsuario(1L);

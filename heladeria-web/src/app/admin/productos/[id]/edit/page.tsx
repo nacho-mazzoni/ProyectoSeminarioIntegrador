@@ -55,12 +55,14 @@ export default function EditProductPage() {
     mutationFn: (data: FormData) => api.admin.productos.actualizar(productId, data),
     onSuccess: () => {
       toast.success("Producto actualizado");
-      router.push("/admin/products");
+      router.push("/admin/productos");
     },
-    onError: () => toast.error("No se pudo actualizar el producto"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo actualizar el producto"),
   });
 
   const onSubmit = (data: FormData) => mutation.mutate(data);
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const idCategoria = form.watch("idCategoria");
 
   if (prodLoading || catLoading) {
     return (
@@ -94,7 +96,7 @@ export default function EditProductPage() {
         <div className="space-y-2">
           <Label htmlFor="categoria">Categoría</Label>
           <Select
-            value={String(form.watch("idCategoria"))}
+            value={String(idCategoria)}
             onValueChange={(v) => form.setValue("idCategoria", Number(v))}
           >
             <SelectTrigger id="categoria" className="h-11">

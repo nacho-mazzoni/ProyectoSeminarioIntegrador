@@ -3,14 +3,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
-import { ArrowLeft, ShoppingBag } from "lucide-react";
+import { ArrowLeft, LogIn, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
 import type { SaborResponse, AdicionalResponse } from "@/lib/types";
 import { computeUnitPrice, formatPrice } from "@/lib/cart-utils";
 import { getProductImage } from "@/lib/product-images";
 import { useCart } from "@/context/cart-context";
+import { useAuth } from "@/context/auth-context";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { QuantitySelector } from "@/components/shared/QuantitySelector";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,7 @@ import { cn } from "@/lib/utils";
 export default function ProductDetailPage() {
   const { productId } = useParams<{ productId: string }>();
   const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
   const [sabores, setSabores] = useState<SaborResponse[]>([]);
   const [adicionales, setAdicionales] = useState<AdicionalResponse[]>([]);
   const [qty, setQty] = useState(1);
@@ -107,7 +110,7 @@ export default function ProductDetailPage() {
 
       <div className="grid gap-10 lg:grid-cols-2">
         <div className="overflow-hidden rounded-4xl border border-border shadow-card">
-          <img
+          <Image
             src={getProductImage(product.nombre)}
             alt={product.nombre}
             width={800}
@@ -184,16 +187,30 @@ export default function ProductDetailPage() {
             </fieldset>
           )}
 
-          <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-soft sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <QuantitySelector value={qty} onChange={setQty} />
-              <span className="text-2xl font-semibold">{formatPrice(unitPrice * qty)}</span>
+          {isAuthenticated ? (
+            <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-soft sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <QuantitySelector value={qty} onChange={setQty} />
+                <span className="text-2xl font-semibold">{formatPrice(unitPrice * qty)}</span>
+              </div>
+              <Button size="lg" className="rounded-full sm:w-auto" onClick={handleAdd}>
+                <ShoppingBag className="size-4" />
+                Agregar al carrito
+              </Button>
             </div>
-            <Button size="lg" className="rounded-full sm:w-auto" onClick={handleAdd}>
-              <ShoppingBag className="size-4" />
-              Agregar al carrito
-            </Button>
-          </div>
+          ) : (
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-soft text-center">
+              <p className="text-sm text-muted-foreground">
+                Iniciá sesión para agregar productos al carrito
+              </p>
+              <Button asChild size="lg" className="mt-4 rounded-full">
+                <Link href="/login">
+                  <LogIn className="size-4" />
+                  Iniciar sesión
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </PageContainer>

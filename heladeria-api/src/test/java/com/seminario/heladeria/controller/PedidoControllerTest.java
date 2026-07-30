@@ -8,6 +8,7 @@ import com.seminario.heladeria.entity.Rol;
 import com.seminario.heladeria.entity.Usuario;
 import com.seminario.heladeria.security.CustomJwtAuthenticationConverter;
 import com.seminario.heladeria.service.ClienteService;
+import com.seminario.heladeria.service.PagoService;
 import com.seminario.heladeria.service.PedidoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ class PedidoControllerTest {
     private ClienteService clienteService;
 
     @MockitoBean
+    private PagoService pagoService;
+
+    @MockitoBean
     private CustomJwtAuthenticationConverter jwtConverter;
 
     private UsernamePasswordAuthenticationToken auth(Long id) {
@@ -69,7 +73,12 @@ class PedidoControllerTest {
 
     @Test
     void obtener_shouldReturnPedido() throws Exception {
+        var usuario = (Usuario) auth(1L).getPrincipal();
+        var cliente = new Cliente();
+        cliente.setIdUsuario(1L);
+        cliente.setUsuario(usuario);
         var pedido = new Pedido();
+        pedido.setCliente(cliente);
         var response = new PedidoResponse();
         when(pedidoService.findById(eq(1L))).thenReturn(pedido);
         when(pedidoService.buildResponse(pedido)).thenReturn(response);
@@ -97,9 +106,11 @@ class PedidoControllerTest {
 
     @Test
     void cancelar_shouldReturnPedido() throws Exception {
+        var usuario = (Usuario) auth(1L).getPrincipal();
         var pedido = new Pedido();
         var pedidoCliente = new Cliente();
         pedidoCliente.setIdUsuario(1L);
+        pedidoCliente.setUsuario(usuario);
         pedido.setCliente(pedidoCliente);
         var response = new PedidoResponse();
         when(pedidoService.findById(eq(1L))).thenReturn(pedido);
@@ -113,9 +124,17 @@ class PedidoControllerTest {
 
     @Test
     void cancelar_whenNotOwner_shouldReturn403() throws Exception {
+        var otroRol = new Rol();
+        otroRol.setNombreRol("CLIENTE");
+        var otroUsuario = new Usuario();
+        otroUsuario.setIdUsuario(2L);
+        otroUsuario.setEmail("otro@test.com");
+        otroUsuario.setActivo(true);
+        otroUsuario.setRol(otroRol);
         var pedido = new Pedido();
         var pedidoCliente = new Cliente();
         pedidoCliente.setIdUsuario(2L);
+        pedidoCliente.setUsuario(otroUsuario);
         pedido.setCliente(pedidoCliente);
         when(pedidoService.findById(eq(1L))).thenReturn(pedido);
 

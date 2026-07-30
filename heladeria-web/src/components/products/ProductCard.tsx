@@ -1,16 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Plus } from "lucide-react";
 import type { ProductoResponse } from "@/lib/types";
 import { formatPrice } from "@/lib/cart-utils";
 import { getProductImage } from "@/lib/product-images";
 import { useCart } from "@/context/cart-context";
+import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function ProductCard({ product }: { product: ProductoResponse }) {
   const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -29,10 +33,9 @@ export function ProductCard({ product }: { product: ProductoResponse }) {
       className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div className="relative aspect-square overflow-hidden bg-secondary">
-        <img
+        <Image
           src={getProductImage(product.nombre)}
           alt={product.nombre}
-          loading="lazy"
           width={800}
           height={800}
           className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -55,8 +58,12 @@ export function ProductCard({ product }: { product: ProductoResponse }) {
           <Button
             size="icon"
             onClick={handleAdd}
+            disabled={!isAuthenticated}
             aria-label={`Agregar ${product.nombre} al carrito`}
-            className="size-10 rounded-full"
+            className={cn(
+              "size-10 rounded-full",
+              !isAuthenticated && "pointer-events-auto opacity-30 grayscale hover:bg-primary",
+            )}
           >
             <Plus className="size-5" />
           </Button>

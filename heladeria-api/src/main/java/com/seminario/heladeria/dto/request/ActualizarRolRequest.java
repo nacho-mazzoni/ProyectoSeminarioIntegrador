@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class ActualizarRolRequest {
 
-    @NotNull
+    @NotNull(message = "El rol es obligatorio")
     private Long idRol;
 
     public Long getIdRol() { return idRol; }

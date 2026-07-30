@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
+import { api } from "@/services/api"
 import type { Promocion } from "@/lib/types"
 
 export default function AdminPromocionesPage() {
@@ -45,7 +45,7 @@ export default function AdminPromocionesPage() {
     if (editing !== null) {
       await api.admin.promociones.actualizar(editing, data)
     } else {
-      await api.admin.promociones.crear(data as any)
+      await api.admin.promociones.crear(data)
     }
     setShowModal(false)
     await load()

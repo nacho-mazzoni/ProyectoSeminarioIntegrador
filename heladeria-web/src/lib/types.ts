@@ -77,6 +77,8 @@ export interface PedidoResponse {
   idPedido: number
   fecha: string
   metodoEntrega: string
+  metodoPago?: string
+  estadoPago?: string
   total: number
   cliente: string
   direccion: string

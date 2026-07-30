@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ShoppingBag, Trash2 } from "lucide-react";
+import { ArrowRight, LogIn, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/context/cart-context";
+import { useAuth } from "@/context/auth-context";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { CartItemRow } from "@/components/cart/CartItemRow";
 import { OrderSummary } from "@/components/cart/OrderSummary";
@@ -12,6 +13,24 @@ import { Separator } from "@/components/ui/separator";
 
 export default function CartPage() {
   const { items, clear } = useCart();
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return (
+      <PageContainer className="py-16">
+        <EmptyState
+          icon={LogIn}
+          title="Iniciá sesión"
+          description="Necesitás estar logueado para ver tu carrito."
+          action={
+            <Button asChild size="lg" className="rounded-full">
+              <Link href="/login">Iniciar sesión</Link>
+            </Button>
+          }
+        />
+      </PageContainer>
+    );
+  }
 
   if (items.length === 0) {
     return (

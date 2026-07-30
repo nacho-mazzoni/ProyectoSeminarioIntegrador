@@ -26,8 +26,10 @@ export default function RegisterPage() {
       await register(email, password, telefono || undefined);
       toast.success("¡Cuenta creada! Disfrutá tus helados.");
       router.push("/account");
-    } catch {
-      toast.error("No pudimos crear la cuenta. Intentalo de nuevo.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "No pudimos crear la cuenta. Intentalo de nuevo.";
+      console.error("Error al registrarse:", msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

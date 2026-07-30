@@ -6,6 +6,8 @@ import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class ProductoService {
 
@@ -58,14 +61,14 @@ public class ProductoService {
     @Transactional(readOnly = true)
     public ProductoResponse findProductoResponseById(Long id) {
         Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
         return ProductoResponse.from(producto);
     }
 
     @Transactional
     public ProductoResponse crearProducto(ProductoRequest request) {
         Categoria categoria = categoriaRepository.findById(request.getIdCategoria())
-                .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada"));
 
         Producto producto = new Producto();
         producto.setNombre(request.getNombre());
@@ -80,9 +83,9 @@ public class ProductoService {
     @Transactional
     public ProductoResponse actualizarProducto(Long id, ProductoRequest request) {
         Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
         Categoria categoria = categoriaRepository.findById(request.getIdCategoria())
-                .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada"));
 
         producto.setNombre(request.getNombre());
         producto.setStockEnvases(request.getStockEnvases());
@@ -116,7 +119,7 @@ public class ProductoService {
     @Transactional
     public CategoriaResponse actualizarCategoria(Long id, CategoriaRequest request) {
         Categoria categoria = categoriaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada"));
         categoria.setNombre(request.getNombre());
         categoria.setRequiereSabores(request.getRequiereSabores());
         return CategoriaResponse.from(categoriaRepository.save(categoria));
@@ -154,7 +157,7 @@ public class ProductoService {
     @Transactional
     public SaborResponse actualizarSabor(Long id, SaborRequest request) {
         Sabor sabor = saborRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sabor no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sabor no encontrado"));
         sabor.setNombre(request.getNombre());
         sabor.setStockBaldes(request.getStockBaldes());
         sabor.setDisponible(request.getDisponible());
@@ -193,7 +196,7 @@ public class ProductoService {
     @Transactional
     public AdicionalResponse actualizarAdicional(Long id, AdicionalRequest request) {
         Adicional adicional = adicionalRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Adicional no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Adicional no encontrado"));
         adicional.setNombre(request.getNombre());
         adicional.setPrecioExtra(request.getPrecioExtra());
         adicional.setDisponible(request.getDisponible());

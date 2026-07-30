@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public class ClienteRequest {
 
-    @Email @NotBlank
+    @Email(message = "El email no es válido") @NotBlank(message = "El email es obligatorio")
     private String email;
 
     private String telefono;

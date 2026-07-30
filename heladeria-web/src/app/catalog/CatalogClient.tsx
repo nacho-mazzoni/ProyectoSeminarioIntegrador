@@ -3,8 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { IceCreamCone, Search, X } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, IceCreamCone, Search, X } from "lucide-react";
 import { api } from "@/services/api";
+import { useAuth } from "@/context/auth-context";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -15,6 +17,7 @@ import { cn } from "@/lib/utils";
 export function CatalogClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const categoriaParam = searchParams.get("categoria");
   const [term, setTerm] = useState("");
 
@@ -50,6 +53,16 @@ export function CatalogClient() {
 
   return (
     <PageContainer className="py-10">
+      {!isAuthenticated && (
+        <div className="mb-6 flex items-center justify-center gap-2 rounded-2xl border border-yellow-300 bg-yellow-50 px-4 py-3 text-center text-sm font-medium text-yellow-800">
+          <AlertTriangle className="size-4 shrink-0" />
+          <span>
+            Iniciá sesión para poder agregar productos al carrito.{" "}
+            <Link href="/login" className="underline underline-offset-2 hover:text-yellow-900">Iniciar sesión</Link>
+          </span>
+        </div>
+      )}
+
       <div className="max-w-2xl space-y-2">
         <h1 className="text-3xl font-semibold sm:text-4xl">Nuestro menú</h1>
         <p className="text-muted-foreground">Cada sabor es elaborado fresco, en pequeños lotes.</p>

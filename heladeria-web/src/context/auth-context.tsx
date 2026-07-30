@@ -23,12 +23,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    const stored = localStorage.getItem(USER_KEY);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (stored) { try { setUser(JSON.parse(stored)); } catch { /* ignore */ } }
     const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
-      const stored = localStorage.getItem(USER_KEY);
-      if (stored) {
-        try { setUser(JSON.parse(stored)); } catch { /* ignore */ }
-      }
       api.auth.me()
         .then((u) => {
           setUser(u);
@@ -79,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(
     () => ({ user, isAuthenticated: !!user, isReady, login, register, logout, refreshUser }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, isReady],
   );
 

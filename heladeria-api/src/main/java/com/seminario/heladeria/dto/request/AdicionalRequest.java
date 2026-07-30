@@ -6,13 +6,13 @@ import java.math.BigDecimal;
 
 public class AdicionalRequest {
 
-    @NotBlank
+    @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @NotNull
+    @NotNull(message = "El precio es obligatorio")
     private BigDecimal precioExtra;
 
-    @NotNull
+    @NotNull(message = "Indicá si está disponible")
     private Boolean disponible;
 
     public String getNombre() { return nombre; }

@@ -10,11 +10,15 @@ import com.seminario.heladeria.repository.DireccionRepository;
 import com.seminario.heladeria.repository.HistorialEstadoRepository;
 import com.seminario.heladeria.repository.PedidoRepository;
 import com.seminario.heladeria.repository.ZonaEnvioRepository;
+import com.seminario.heladeria.exception.BusinessRuleException;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class DireccionService {
 
@@ -42,14 +46,20 @@ public class DireccionService {
 
     public Direccion findById(Long id) {
         return direccionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Direccion no encontrada"));
+                .orElseThrow(() -> {
+                    log.error("Dirección no encontrada: {}", id);
+                    return new ResourceNotFoundException("Dirección no encontrada");
+                });
     }
 
     @Transactional
     public Direccion crear(Long idCliente, DireccionRequest request) {
         Cliente cliente = clienteService.findById(idCliente);
         ZonaEnvio zona = zonaEnvioRepository.findById(request.getIdZona())
-                .orElseThrow(() -> new RuntimeException("Zona de envio no encontrada"));
+                .orElseThrow(() -> {
+                    log.error("Zona de envío no encontrada: {}", request.getIdZona());
+                    return new ResourceNotFoundException("Zona de envío no encontrada");
+                });
 
         Direccion direccion = new Direccion();
         direccion.setCalle(request.getCalle());
@@ -66,13 +76,15 @@ public class DireccionService {
     public void eliminar(Long id, Long idCliente) {
         Direccion direccion = findById(id);
         if (!direccion.getCliente().getIdUsuario().equals(idCliente)) {
-            throw new RuntimeException("No tienes permiso para eliminar esta direccion");
+            log.error("Intento de eliminar dirección {} por usuario no propietario {}", id, idCliente);
+            throw new BusinessRuleException("No tenés permiso para eliminar esta dirección");
         }
         List<Pedido> pedidos = pedidoRepository.findByDireccionIdDireccion(id);
         for (Pedido pedido : pedidos) {
             String ultimoEstado = getUltimoEstado(pedido.getIdPedido());
             if (!"CANCELADO".equals(ultimoEstado) && !"ENTREGADO".equals(ultimoEstado)) {
-                throw new RuntimeException("No se puede eliminar la direccion porque tiene pedidos activos asociados");
+                log.error("No se puede eliminar dirección {} porque tiene pedidos activos", id);
+                throw new BusinessRuleException("No se puede eliminar la dirección porque tiene pedidos activos asociados");
             }
         }
         for (Pedido pedido : pedidos) {

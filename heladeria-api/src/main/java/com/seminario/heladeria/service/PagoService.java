@@ -3,6 +3,8 @@ package com.seminario.heladeria.service;
 import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
@@ -17,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @Service
 public class PagoService {
 
@@ -72,6 +75,7 @@ public class PagoService {
             Preference preference = client.create(preferenceRequest);
             return preference.getInitPoint();
         } catch (MPException | MPApiException e) {
+            log.error("Error al crear preferencia de pago en Mercado Pago", e);
             throw new RuntimeException("Error al crear preferencia de pago en Mercado Pago: " + e.getMessage());
         }
     }
@@ -80,7 +84,10 @@ public class PagoService {
     public void actualizarEstadoPago(String externalReference, String estadoMP) {
         Long idPedido = Long.parseLong(externalReference);
         Pago pago = pagoRepository.findByPedidoIdPedido(idPedido)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado para pedido " + idPedido));
+                .orElseThrow(() -> {
+                    log.error("Pago no encontrado para pedido {}", idPedido);
+                    return new ResourceNotFoundException("Pago no encontrado para pedido " + idPedido);
+                });
 
         switch (estadoMP) {
             case "approved" -> pago.setEstadoPago("aprobado");

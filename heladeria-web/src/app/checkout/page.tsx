@@ -7,6 +7,7 @@ import { CreditCard, Loader2, MapPin, MapPinPlus, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
 import { useCart } from "@/context/cart-context";
+import { useAuth } from "@/context/auth-context";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { OrderSummary } from "@/components/cart/OrderSummary";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,14 @@ import { cn } from "@/lib/utils";
 export default function CheckoutPage() {
   const qc = useQueryClient();
   const navigate = useRouter();
-  const { items, subtotal, deliveryFee, total, clear } = useCart();
+  const { items, clear } = useCart();
+  const { isAuthenticated, isReady } = useAuth();
+
+  useEffect(() => {
+    if (isReady && !isAuthenticated) {
+      navigate.push("/login");
+    }
+  }, [isReady, isAuthenticated, navigate]);
   const [addressId, setAddressId] = useState<number>();
   const [metodoEntrega, setMetodoEntrega] = useState("retiro");
   const [metodoPago, setMetodoPago] = useState("efectivo");
@@ -60,16 +68,15 @@ export default function CheckoutPage() {
       setAddrCalle(""); setAddrNumero(""); setAddrCiudad(""); setAddrReferencia(""); setAddrIdZona("");
       setAddrOpen(false);
     },
-    onError: () => toast.error("No se pudo guardar la dirección"),
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : "No se pudo guardar la dirección";
+      console.error("Error al guardar dirección en checkout:", msg);
+      toast.error(msg);
+    },
   });
 
-  useEffect(() => {
-    if (!addressId && addresses.length) {
-      setAddressId(addresses[0].idDireccion);
-    }
-  }, [addresses, addressId]);
-
-  const selectedAddress = addresses.find((a) => a.idDireccion === addressId);
+  const selectedAddress = addresses.find((a) => a.idDireccion === addressId) ?? addresses[0];
+  const selectedAddressId = selectedAddress?.idDireccion;
   const selectedZone = zonas.find((z) => z.idZona === (selectedAddress?.idZona ?? 0));
 
   if (items.length === 0) {
@@ -88,7 +95,7 @@ export default function CheckoutPage() {
     try {
       const res = await api.pedidos.crear({
         metodoEntrega,
-        ...(metodoEntrega === "delivery" ? { idDireccion: Number(addressId) } : {}),
+        ...(metodoEntrega === "delivery" && selectedAddressId ? { idDireccion: selectedAddressId } : {}),
         metodoPago,
         detalles: items.map((i) => ({
           idProducto: i.product.idProducto,
@@ -104,8 +111,10 @@ export default function CheckoutPage() {
         toast.success("¡Pedido realizado! Estamos preparando tus helados.");
         navigate.push("/orders");
       }
-    } catch {
-      toast.error("Algo salió mal. Intentalo de nuevo.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Algo salió mal. Intentalo de nuevo.";
+      console.error("Error al crear pedido:", msg);
+      toast.error(msg);
     } finally {
       setPlacing(false);
     }
@@ -155,7 +164,7 @@ export default function CheckoutPage() {
                 ) : addresses.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No tenés direcciones guardadas.</p>
                 ) : (
-                  <RadioGroup value={String(addressId)} onValueChange={(v) => setAddressId(Number(v))} className="gap-3">
+                  <RadioGroup value={String(selectedAddressId ?? "")} onValueChange={(v) => setAddressId(Number(v))} className="gap-3">
                     {addresses.map((a) => {
                       const z = zonas.find((z) => z.idZona === a.idZona);
                       return (
@@ -164,7 +173,7 @@ export default function CheckoutPage() {
                           htmlFor={`addr-${a.idDireccion}`}
                           className={cn(
                             "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors",
-                            addressId === a.idDireccion ? "border-primary bg-secondary" : "border-border hover:bg-secondary/60",
+                            selectedAddressId === a.idDireccion ? "border-primary bg-secondary" : "border-border hover:bg-secondary/60",
                           )}
                         >
                           <RadioGroupItem id={`addr-${a.idDireccion}`} value={String(a.idDireccion)} className="mt-1" />
@@ -291,7 +300,7 @@ export default function CheckoutPage() {
               size="lg"
               className="w-full rounded-full"
               onClick={placeOrder}
-              disabled={placing || (metodoEntrega === "delivery" && (!addressId || !selectedZone))}
+              disabled={placing || (metodoEntrega === "delivery" && (!selectedAddressId || !selectedZone))}
             >
               {placing && <Loader2 className="size-4 animate-spin" />}
               {placing ? "Realizando pedido..." : "Confirmar pedido"}

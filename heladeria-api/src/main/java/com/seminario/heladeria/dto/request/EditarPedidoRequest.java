@@ -10,7 +10,7 @@ public class EditarPedidoRequest {
 
     private String codigoPromocion;
 
-    @NotEmpty @Valid
+    @NotEmpty(message = "El pedido debe tener al menos un producto") @Valid
     private List<PedidoRequest.DetalleRequest> detalles;
 
     public Long getIdDireccion() { return idDireccion; }
