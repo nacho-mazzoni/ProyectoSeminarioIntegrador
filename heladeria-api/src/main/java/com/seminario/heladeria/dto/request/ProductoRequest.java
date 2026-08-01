@@ -8,19 +8,19 @@ import java.math.BigDecimal;
 
 public class ProductoRequest {
 
-    @NotBlank
+    @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @PositiveOrZero
+    @PositiveOrZero(message = "No puede ser negativo")
     private Integer stockEnvases;
 
-    @NotNull @Positive
+    @NotNull(message = "El precio es obligatorio") @Positive(message = "Debe ser un valor positivo")
     private BigDecimal precioBase;
 
-    @PositiveOrZero
+    @PositiveOrZero(message = "No puede ser negativo")
     private Integer maxSabores;
 
-    @NotNull
+    @NotNull(message = "Seleccioná una categoría")
     private Long idCategoria;
 
     public String getNombre() { return nombre; }

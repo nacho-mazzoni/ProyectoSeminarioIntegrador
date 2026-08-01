@@ -1,65 +1,84 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-
-const API = process.env.NEXT_PUBLIC_API_URL!
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/context/auth-context";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const { login } = useAuth();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-
+    e.preventDefault();
+    setLoading(true);
     try {
-      const res = await fetch(`${API}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      })
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Error al iniciar sesión" }))
-        setError(err.error ?? "Error al iniciar sesión")
-        return
-      }
-
-      const data = await res.json()
-      localStorage.setItem("token", data.token)
-      router.push("/")
-      router.refresh()
-    } catch {
-      setError("Error de conexión")
+      const u = await login(email, password);
+      toast.success("¡Bienvenido de vuelta!");
+      router.push(u.rol === "ADMINISTRADOR" ? "/admin" : "/account");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "No pudimos iniciar sesión. Verificá tus datos.";
+      console.error("Error al iniciar sesión:", msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="max-w-md mx-auto mt-16 px-4">
-      <h1 className="text-2xl font-bold mb-6">Iniciar Sesión</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input type="email" placeholder="Email" value={email}
-          onChange={(e) => setEmail(e.target.value)} required
-          className="border rounded px-3 py-2"/>
-        <input type="password" placeholder="Contraseña" value={password}
-          onChange={(e) => setPassword(e.target.value)} required
-          className="border rounded px-3 py-2"/>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        <button type="submit"
-          className="bg-amber-500 text-white py-2 rounded hover:bg-amber-600">
-          Ingresar
-        </button>
+    <AuthShell
+      title="Bienvenido de vuelta"
+      subtitle="Iniciá sesión para ver tus pedidos y reordenar tus favoritos."
+      footer={
+        <>
+          ¿No tenés cuenta?{" "}
+          <Link href="/register" className="font-semibold text-primary hover:underline">
+            Crear una
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="tu@email.com"
+            className="h-11"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Contraseña</Label>
+          <Input
+            id="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            className="h-11"
+          />
+        </div>
+        <Button type="submit" size="lg" className="w-full rounded-full" disabled={loading}>
+          {loading && <Loader2 className="size-4 animate-spin" />}
+          Iniciar sesión
+        </Button>
       </form>
-
-      <p className="mt-4 text-sm text-center">
-        ¿No tenés cuenta?{" "}
-        <Link href="/registro" className="text-amber-600 underline">Registrate</Link>
-      </p>
-    </div>
-  )
+    </AuthShell>
+  );
 }

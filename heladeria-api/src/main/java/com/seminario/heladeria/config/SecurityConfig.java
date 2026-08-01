@@ -1,5 +1,6 @@
 package com.seminario.heladeria.config;
 
+import com.seminario.heladeria.exception.SecurityErrorHandler;
 import com.seminario.heladeria.security.CustomJwtAuthenticationConverter;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,13 +24,16 @@ import javax.crypto.SecretKey;
 public class SecurityConfig {
 
     private final CustomJwtAuthenticationConverter jwtConverter;
+    private final SecurityErrorHandler securityErrorHandler;
     private final SecretKey secretKey;
     private final CorsConfigurationSource corsConfigurationSource;
 
     public SecurityConfig(CustomJwtAuthenticationConverter jwtConverter,
+                          SecurityErrorHandler securityErrorHandler,
                           @Value("${app.jwt.secret}") String jwtSecret,
                           CorsConfigurationSource corsConfigurationSource) {
         this.jwtConverter = jwtConverter;
+        this.securityErrorHandler = securityErrorHandler;
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         this.corsConfigurationSource = corsConfigurationSource;
     }
@@ -47,11 +51,17 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/sabores/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/adicionales/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/zonas-envio/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/promociones/**").permitAll()
+                .requestMatchers("/api/pagos/notificacion").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter))
+            )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(securityErrorHandler)
+                .accessDeniedHandler(securityErrorHandler)
             );
 
         return http.build();

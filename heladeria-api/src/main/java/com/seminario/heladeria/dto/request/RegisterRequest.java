@@ -6,10 +6,10 @@ import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
 
-    @Email @NotBlank
+    @Email(message = "El email no es válido") @NotBlank(message = "El email es obligatorio")
     private String email;
 
-    @NotBlank @Size(min = 6)
+    @NotBlank(message = "La contraseña es obligatoria") @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String password;
 
     private String telefono;

@@ -5,18 +5,18 @@ import jakarta.validation.constraints.NotNull;
 
 public class DireccionRequest {
 
-    @NotBlank
+    @NotBlank(message = "La calle es obligatoria")
     private String calle;
 
-    @NotBlank
+    @NotBlank(message = "El número es obligatorio")
     private String numero;
 
-    @NotBlank
+    @NotBlank(message = "La ciudad es obligatoria")
     private String ciudad;
 
     private String referencia;
 
-    @NotNull
+    @NotNull(message = "Seleccioná una zona de envío")
     private Long idZona;
 
     public String getCalle() { return calle; }

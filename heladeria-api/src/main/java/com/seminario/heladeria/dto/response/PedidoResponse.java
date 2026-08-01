@@ -15,6 +15,9 @@ public class PedidoResponse {
     private String cliente;
     private String direccion;
     private String promocion;
+    private String metodoPago;
+    private String estadoPago;
+    private String initPoint;
     private List<DetallePedidoResponse> detalles;
     private List<HistorialResponse> historial;
 
@@ -25,7 +28,9 @@ public class PedidoResponse {
         r.metodoEntrega = p.getMetodoEntrega();
         r.total = p.getTotal();
         r.cliente = p.getCliente().getUsuario().getEmail();
-        r.direccion = p.getDireccion().getCalle() + " " + p.getDireccion().getNumero();
+        r.direccion = p.getDireccion() != null
+                ? p.getDireccion().getCalle() + " " + p.getDireccion().getNumero()
+                : "Retiro en local";
         if (p.getPromocion() != null) {
             r.promocion = p.getPromocion().getCodigo();
         }
@@ -39,11 +44,17 @@ public class PedidoResponse {
     public String getCliente() { return cliente; }
     public String getDireccion() { return direccion; }
     public String getPromocion() { return promocion; }
+    public String getMetodoPago() { return metodoPago; }
+    public String getEstadoPago() { return estadoPago; }
+    public String getInitPoint() { return initPoint; }
     public List<DetallePedidoResponse> getDetalles() { return detalles; }
     public List<HistorialResponse> getHistorial() { return historial; }
 
     public void setDetalles(List<DetallePedidoResponse> detalles) { this.detalles = detalles; }
     public void setHistorial(List<HistorialResponse> historial) { this.historial = historial; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
+    public void setEstadoPago(String estadoPago) { this.estadoPago = estadoPago; }
+    public void setInitPoint(String initPoint) { this.initPoint = initPoint; }
 
     public static class DetallePedidoResponse {
         private Long idDetalle;

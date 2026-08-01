@@ -4,9 +4,12 @@ import com.seminario.heladeria.entity.Cliente;
 import com.seminario.heladeria.entity.Usuario;
 import com.seminario.heladeria.repository.ClienteRepository;
 import com.seminario.heladeria.repository.UsuarioRepository;
+import com.seminario.heladeria.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class ClienteService {
 
@@ -21,7 +24,7 @@ public class ClienteService {
 
     public Cliente findById(Long id) {
         return clienteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
     }
 
     @Transactional
@@ -38,7 +41,7 @@ public class ClienteService {
     @Transactional
     public Cliente actualizar(Long idUsuario, String telefono) {
         Cliente cliente = clienteRepository.findByIdUsuario(idUsuario)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
         cliente.setTelefono(telefono);
         return clienteRepository.save(cliente);
     }

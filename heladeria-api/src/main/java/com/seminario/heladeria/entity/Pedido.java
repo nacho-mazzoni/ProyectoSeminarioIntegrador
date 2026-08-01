@@ -27,7 +27,7 @@ public class Pedido {
     private Cliente cliente;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_direccion", nullable = false)
+    @JoinColumn(name = "id_direccion")
     private Direccion direccion;
 
     @ManyToOne(fetch = FetchType.LAZY)

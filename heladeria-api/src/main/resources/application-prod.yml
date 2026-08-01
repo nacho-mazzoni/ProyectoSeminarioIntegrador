@@ -1,8 +1,12 @@
+mercadopago:
+  access-token: ${MP_ACCESS_TOKEN}
+  notification-url: ${MP_NOTIFICATION_URL:}
+
 spring:
   datasource:
-    url: jdbc:postgresql://db.exzbmqqfafwmzznjyguj.supabase.co:5432/postgres
-    username: postgres
-    password: nachojoaco123
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10

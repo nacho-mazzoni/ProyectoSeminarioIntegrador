@@ -8,15 +8,16 @@ import java.util.List;
 
 public class PedidoRequest {
 
-    @NotBlank
+    @NotBlank(message = "Seleccioná un método de entrega")
     private String metodoEntrega;
 
-    @NotNull
     private Long idDireccion;
 
     private String codigoPromocion;
 
-    @NotEmpty @Valid
+    private String metodoPago;
+
+    @NotEmpty(message = "El pedido debe tener al menos un producto") @Valid
     private List<DetalleRequest> detalles;
 
     public String getMetodoEntrega() { return metodoEntrega; }
@@ -28,15 +29,18 @@ public class PedidoRequest {
     public String getCodigoPromocion() { return codigoPromocion; }
     public void setCodigoPromocion(String codigoPromocion) { this.codigoPromocion = codigoPromocion; }
 
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
+
     public List<DetalleRequest> getDetalles() { return detalles; }
     public void setDetalles(List<DetalleRequest> detalles) { this.detalles = detalles; }
 
     public static class DetalleRequest {
 
-        @NotNull
+        @NotNull(message = "El producto es obligatorio")
         private Long idProducto;
 
-        @NotNull
+        @NotNull(message = "La cantidad es obligatoria")
         private Integer cantidad;
 
         private List<Long> idsSabor;

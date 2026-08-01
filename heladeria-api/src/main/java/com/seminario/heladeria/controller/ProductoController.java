@@ -1,6 +1,6 @@
 package com.seminario.heladeria.controller;
 
-import com.seminario.heladeria.dto.request.ProductoRequest;
+import com.seminario.heladeria.dto.request.*;
 import com.seminario.heladeria.dto.response.*;
 import com.seminario.heladeria.service.ProductoService;
 import jakarta.validation.Valid;
@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -20,19 +21,43 @@ public class ProductoController {
         this.productoService = productoService;
     }
 
+    // ── Públicos ──
+
     @GetMapping("/categorias")
     public ResponseEntity<List<CategoriaResponse>> listarCategorias() {
         return ResponseEntity.ok(productoService.findAllCategoriaResponses());
     }
 
     @GetMapping("/productos")
-    public ResponseEntity<List<ProductoResponse>> listarProductos() {
-        return ResponseEntity.ok(productoService.findAllProductoResponses());
+    public ResponseEntity<List<ProductoResponse>> listarProductos(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) Long categoria,
+            @RequestParam(required = false) BigDecimal precioMin,
+            @RequestParam(required = false) BigDecimal precioMax) {
+        return ResponseEntity.ok(productoService.findAllProductoResponses(nombre, categoria, precioMin, precioMax));
     }
 
     @GetMapping("/productos/{id}")
     public ResponseEntity<ProductoResponse> obtenerProducto(@PathVariable Long id) {
         return ResponseEntity.ok(productoService.findProductoResponseById(id));
+    }
+
+    @GetMapping("/sabores")
+    public ResponseEntity<List<SaborResponse>> listarSabores() {
+        return ResponseEntity.ok(productoService.findSaborResponsesDisponibles());
+    }
+
+    @GetMapping("/adicionales")
+    public ResponseEntity<List<AdicionalResponse>> listarAdicionales() {
+        return ResponseEntity.ok(productoService.findAdicionalResponsesDisponibles());
+    }
+
+    // ── Admin: Productos ──
+
+    @GetMapping("/admin/productos")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<ProductoResponse>> listarProductosAdmin() {
+        return ResponseEntity.ok(productoService.findAllProductoResponses(null, null, null, null));
     }
 
     @PostMapping("/admin/productos")
@@ -48,13 +73,12 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.actualizarProducto(id, request));
     }
 
-    @GetMapping("/sabores")
-    public ResponseEntity<List<SaborResponse>> listarSabores() {
-        return ResponseEntity.ok(productoService.findSaborResponsesDisponibles());
+    @DeleteMapping("/admin/productos/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
+        productoService.eliminarProducto(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/adicionales")
-    public ResponseEntity<List<AdicionalResponse>> listarAdicionales() {
-        return ResponseEntity.ok(productoService.findAdicionalResponsesDisponibles());
-    }
+
 }

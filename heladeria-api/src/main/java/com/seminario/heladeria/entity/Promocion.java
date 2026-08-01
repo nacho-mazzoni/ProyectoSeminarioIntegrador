@@ -19,6 +19,15 @@ public class Promocion {
     @Column(name = "porc_desc", nullable = false, precision = 5, scale = 2)
     private BigDecimal porcDesc;
 
+    @Column(columnDefinition = "TEXT")
+    private String descripcion;
+
+    @Column(name = "fecha_inicio")
+    private Instant fechaInicio;
+
+    @Column(name = "fecha_fin")
+    private Instant fechaFin;
+
     @Column(nullable = false)
     private Boolean activa = true;
 
@@ -49,6 +58,15 @@ public class Promocion {
 
     public BigDecimal getPorcDesc() { return porcDesc; }
     public void setPorcDesc(BigDecimal porcDesc) { this.porcDesc = porcDesc; }
+
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+
+    public Instant getFechaInicio() { return fechaInicio; }
+    public void setFechaInicio(Instant fechaInicio) { this.fechaInicio = fechaInicio; }
+
+    public Instant getFechaFin() { return fechaFin; }
+    public void setFechaFin(Instant fechaFin) { this.fechaFin = fechaFin; }
 
     public Boolean getActiva() { return activa; }
     public void setActiva(Boolean activa) { this.activa = activa; }
