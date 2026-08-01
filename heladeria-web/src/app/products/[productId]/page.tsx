@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, LogIn, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import type { SaborResponse, AdicionalResponse } from "@/lib/types";
 import { computeUnitPrice, formatPrice } from "@/lib/cart-utils";
 import { getProductImage } from "@/lib/product-images";
@@ -27,7 +28,7 @@ export default function ProductDetailPage() {
   const [adicionales, setAdicionales] = useState<AdicionalResponse[]>([]);
   const [qty, setQty] = useState(1);
 
-  const { data: product, isLoading } = useQuery({
+  const { data: product, isLoading, error } = useQuery({
     queryKey: ["product", productId],
     queryFn: () => api.productos.obtener(Number(productId)),
   });
@@ -87,6 +88,18 @@ export default function ProductDetailPage() {
   };
 
   if (isLoading) return <DetailSkeleton />;
+
+  if (error) {
+    return (
+      <PageContainer className="py-20 text-center">
+        <h1 className="text-2xl font-semibold">No pudimos cargar el producto</h1>
+        <p className="mt-2 text-muted-foreground">{getErrorMessage(error, "Ocurrió un error inesperado. Intentá de nuevo.")}</p>
+        <Button asChild className="mt-6 rounded-full">
+          <Link href="/catalog">Volver al menú</Link>
+        </Button>
+      </PageContainer>
+    );
+  }
 
   if (!product) {
     return (

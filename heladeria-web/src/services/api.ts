@@ -17,6 +17,7 @@ import type {
   CambioEstadoRequest,
   Promocion,
 } from "@/lib/types";
+import { getErrorMessage } from "@/lib/error-messages";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -31,9 +32,11 @@ function authHeaders(): Record<string, string> {
 async function handleError(res: Response): Promise<never> {
   if (res.status === 401) {
     localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
   }
-  const err = await res.json().catch(() => ({ error: res.statusText }));
-  throw new Error(err.error ?? "Error de red");
+  const err = await res.json().catch(() => null);
+  const msg = err?.message ?? err?.error ?? res.statusText;
+  throw new Error(getErrorMessage(msg, "No se pudo conectar con el servidor. Verificá tu conexión e intentá de nuevo."));
 }
 
 async function getPublic<T>(path: string): Promise<T> {
@@ -137,7 +140,9 @@ export const api = {
     }) => postAuth<PedidoResponse & { initPoint?: string }>("/pedidos", data),
     cancelar: (id: number) =>
       fetch(`${API}/pedidos/${id}/cancelar`, { method: "PATCH", headers: authHeaders() }).then((r) => {
-        if (!r.ok) return r.json().then((e) => { throw new Error(e.error); });
+        if (!r.ok) return r.json().then((e) => {
+          throw new Error(getErrorMessage(e?.message ?? e?.error ?? r.statusText, "No se pudo cancelar el pedido"));
+        });
       }),
   },
   admin: {

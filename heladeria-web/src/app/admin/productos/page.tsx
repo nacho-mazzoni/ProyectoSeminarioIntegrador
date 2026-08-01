@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, Search, X, IceCreamCone } from "lucide-react";
+import { Plus, Search, X, IceCreamCone, AlertCircle } from "lucide-react";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { formatPrice } from "@/lib/cart-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 export default function AdminProductsPage() {
   const [term, setTerm] = useState("");
 
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading, error } = useQuery({
     queryKey: ["products"],
     queryFn: api.productos.listar,
   });
@@ -66,6 +67,14 @@ export default function AdminProductsPage() {
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-10 w-full" />
             ))}
+          </div>
+        ) : error ? (
+          <div className="py-12">
+            <EmptyState
+              icon={AlertCircle}
+              title="Error al cargar productos"
+              description={getErrorMessage(error, "No se pudieron cargar los productos")}
+            />
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-12">

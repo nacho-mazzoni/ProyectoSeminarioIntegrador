@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +28,7 @@ type FormData = z.infer<typeof schema>;
 export default function NewProductPage() {
   const router = useRouter();
 
-  const { data: categories = [], isLoading: catLoading } = useQuery({
+  const { data: categories = [], isLoading: catLoading, error: catError } = useQuery({
     queryKey: ["categories"],
     queryFn: api.categorias.listar,
   });
@@ -49,7 +50,7 @@ export default function NewProductPage() {
       toast.success("Producto creado");
       router.push("/admin/productos");
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo crear el producto"),
+    onError: (error) => toast.error(getErrorMessage(error, "No se pudo crear el producto")),
   });
 
   const onSubmit = (data: FormData) => mutation.mutate(data);
@@ -61,6 +62,22 @@ export default function NewProductPage() {
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-96 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (catError) {
+    return (
+      <div className="mx-auto max-w-lg space-y-6">
+        <h2 className="font-display text-xl font-semibold">Nuevo producto</h2>
+        <div className="rounded-2xl border border-border bg-card p-6 text-center">
+          <p className="text-sm text-destructive">
+            {getErrorMessage(catError, "No se pudieron cargar las categorías. Intentá de nuevo.")}
+          </p>
+          <Button variant="outline" className="mt-4 rounded-full" onClick={() => router.refresh()}>
+            Reintentar
+          </Button>
+        </div>
       </div>
     );
   }

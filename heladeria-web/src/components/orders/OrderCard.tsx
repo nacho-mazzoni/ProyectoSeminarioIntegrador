@@ -6,6 +6,7 @@ import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import type { PedidoResponse } from "@/lib/types";
 import { formatPrice } from "@/lib/cart-utils";
 import { OrderStatusBadge } from "./OrderStatusBadge";
@@ -24,7 +25,7 @@ export function OrderCard({ order }: { order: PedidoResponse }) {
       toast.success("Pedido cancelado");
       window.location.reload();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al cancelar";
+      const msg = getErrorMessage(err, "Error al cancelar");
       console.error("Error al cancelar pedido:", msg);
       toast.error(msg);
     } finally {

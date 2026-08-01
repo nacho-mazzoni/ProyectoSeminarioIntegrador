@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
+import { getErrorMessage } from "@/lib/error-messages";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ export default function LoginPage() {
       toast.success("¡Bienvenido de vuelta!");
       router.push(u.rol === "ADMINISTRADOR" ? "/admin" : "/account");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "No pudimos iniciar sesión. Verificá tus datos.";
+      const msg = getErrorMessage(err, "No pudimos iniciar sesión. Verificá tus datos.");
       console.error("Error al iniciar sesión:", msg);
       toast.error(msg);
     } finally {

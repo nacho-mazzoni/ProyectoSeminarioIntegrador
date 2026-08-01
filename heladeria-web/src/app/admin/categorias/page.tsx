@@ -5,9 +5,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Pencil, Trash2, Tags } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Tags, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import type { CategoriaResponse } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +58,7 @@ function CategoriaFormDialog({
         ? api.admin.categorias.actualizar(categoria.idCategoria, data)
         : api.admin.categorias.crear(data),
     onSuccess: () => { toast.success(categoria ? "Categoría actualizada" : "Categoría creada"); onSuccess(); onOpenChange(false); },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo guardar"),
+    onError: (error) => toast.error(getErrorMessage(error, "No se pudo guardar")),
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -100,7 +101,7 @@ export default function AdminCategoriasPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<CategoriaResponse | undefined>(undefined);
 
-  const { data: categorias = [], isLoading } = useQuery({
+  const { data: categorias = [], isLoading, error } = useQuery({
     queryKey: ["admin-categorias"],
     queryFn: api.admin.categorias.listar,
   });
@@ -108,7 +109,7 @@ export default function AdminCategoriasPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.admin.categorias.eliminar(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-categorias"] }); toast.success("Categoría eliminada"); },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo eliminar"),
+    onError: (error) => toast.error(getErrorMessage(error, "No se pudo eliminar")),
   });
 
   const openCreate = () => { setEditing(undefined); setDialogOpen(true); };
@@ -131,6 +132,8 @@ export default function AdminCategoriasPage() {
           <div className="p-6 space-y-4">
             {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
           </div>
+        ) : error ? (
+          <div className="py-12"><EmptyState icon={AlertCircle} title="Error al cargar" description={getErrorMessage(error, "No se pudieron cargar las categorías")} /></div>
         ) : categorias.length === 0 ? (
           <div className="py-12"><EmptyState icon={Tags} title="Sin categorías" description="Agregá tu primera categoría." /></div>
         ) : (

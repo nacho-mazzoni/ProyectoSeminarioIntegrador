@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,13 +30,13 @@ export default function EditProductPage() {
   const router = useRouter();
   const productId = Number(id);
 
-  const { data: product, isLoading: prodLoading } = useQuery({
+  const { data: product, isLoading: prodLoading, error: prodError } = useQuery({
     queryKey: ["product", productId],
     queryFn: () => api.productos.obtener(productId),
     enabled: !isNaN(productId),
   });
 
-  const { data: categories = [], isLoading: catLoading } = useQuery({
+  const { data: categories = [], isLoading: catLoading, error: catError } = useQuery({
     queryKey: ["categories"],
     queryFn: api.categorias.listar,
   });
@@ -57,7 +58,7 @@ export default function EditProductPage() {
       toast.success("Producto actualizado");
       router.push("/admin/productos");
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo actualizar el producto"),
+    onError: (error) => toast.error(getErrorMessage(error, "No se pudo actualizar el producto")),
   });
 
   const onSubmit = (data: FormData) => mutation.mutate(data);
@@ -69,6 +70,38 @@ export default function EditProductPage() {
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-96 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (prodError) {
+    return (
+      <div className="mx-auto max-w-lg space-y-6">
+        <h2 className="font-display text-xl font-semibold">Editar producto</h2>
+        <div className="rounded-2xl border border-border bg-card p-6 text-center">
+          <p className="text-sm text-destructive">
+            {getErrorMessage(prodError, "No se pudo cargar el producto. Intentá de nuevo.")}
+          </p>
+          <Button variant="outline" className="mt-4 rounded-full" onClick={() => router.refresh()}>
+            Reintentar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (catError) {
+    return (
+      <div className="mx-auto max-w-lg space-y-6">
+        <h2 className="font-display text-xl font-semibold">Editar producto</h2>
+        <div className="rounded-2xl border border-border bg-card p-6 text-center">
+          <p className="text-sm text-destructive">
+            {getErrorMessage(catError, "No se pudieron cargar las categorías. Intentá de nuevo.")}
+          </p>
+          <Button variant="outline" className="mt-4 rounded-full" onClick={() => router.refresh()}>
+            Reintentar
+          </Button>
+        </div>
       </div>
     );
   }

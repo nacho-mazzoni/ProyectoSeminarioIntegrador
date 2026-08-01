@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, IceCreamCone, Search, X } from "lucide-react";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { useAuth } from "@/context/auth-context";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { ProductGrid } from "@/components/products/ProductGrid";
@@ -26,7 +27,7 @@ export function CatalogClient() {
     queryFn: api.categorias.listar,
   });
 
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading, error } = useQuery({
     queryKey: ["products"],
     queryFn: api.productos.listar,
   });
@@ -103,7 +104,18 @@ export function CatalogClient() {
       </div>
 
       <div className="mt-8">
-        {!isLoading && filtered.length === 0 ? (
+        {error ? (
+          <EmptyState
+            icon={IceCreamCone}
+            title="Error al cargar el menú"
+            description={getErrorMessage(error, "No se pudo cargar el menú. Intentá de nuevo.")}
+            action={
+              <Button variant="outline" onClick={() => router.refresh()}>
+                Reintentar
+              </Button>
+            }
+          />
+        ) : !isLoading && filtered.length === 0 ? (
           <EmptyState
             icon={IceCreamCone}
             title="No se encontraron sabores"

@@ -5,9 +5,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Pencil, Trash2, Sparkles } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Sparkles, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { formatPrice } from "@/lib/cart-utils";
 import type { AdicionalResponse } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ function AdicionalFormDialog({
         ? api.admin.adicionales.actualizar(adicional.idAdicional, data)
         : api.admin.adicionales.crear(data),
     onSuccess: () => { toast.success(adicional ? "Adicional actualizado" : "Adicional creado"); onSuccess(); onOpenChange(false); },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo guardar"),
+    onError: (error) => toast.error(getErrorMessage(error, "No se pudo guardar")),
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -107,7 +108,7 @@ export default function AdminAdicionalesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<AdicionalResponse | undefined>(undefined);
 
-  const { data: adicionales = [], isLoading } = useQuery({
+  const { data: adicionales = [], isLoading, error } = useQuery({
     queryKey: ["admin-adicionales"],
     queryFn: api.admin.adicionales.listar,
   });
@@ -115,7 +116,7 @@ export default function AdminAdicionalesPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.admin.adicionales.eliminar(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-adicionales"] }); toast.success("Adicional eliminado"); },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo eliminar"),
+    onError: (error) => toast.error(getErrorMessage(error, "No se pudo eliminar")),
   });
 
   const openCreate = () => { setEditing(undefined); setDialogOpen(true); };
@@ -138,6 +139,8 @@ export default function AdminAdicionalesPage() {
           <div className="p-6 space-y-4">
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
           </div>
+        ) : error ? (
+          <div className="py-12"><EmptyState icon={AlertCircle} title="Error al cargar" description={getErrorMessage(error, "No se pudieron cargar los adicionales")} /></div>
         ) : adicionales.length === 0 ? (
           <div className="py-12"><EmptyState icon={Sparkles} title="Sin adicionales" description="Agregá tu primer adicional." /></div>
         ) : (

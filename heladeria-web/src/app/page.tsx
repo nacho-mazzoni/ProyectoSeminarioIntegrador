@@ -1,9 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { Hero } from "@/components/home/Hero";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { SectionHeader } from "@/components/shared/SectionHeader";
@@ -17,7 +18,7 @@ export default function HomePage() {
     queryFn: api.categorias.listar,
   });
 
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading, error } = useQuery({
     queryKey: ["products"],
     queryFn: api.productos.listar,
   });
@@ -54,7 +55,14 @@ export default function HomePage() {
               </Button>
             }
           />
-          <ProductGrid products={featured} loading={isLoading} skeletonCount={4} />
+          {error ? (
+            <div className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">
+              <AlertTriangle className="size-4 shrink-0" />
+              <span>{getErrorMessage(error, "No se pudieron cargar los productos. Intentá de nuevo.")}</span>
+            </div>
+          ) : (
+            <ProductGrid products={featured} loading={isLoading} skeletonCount={4} />
+          )}
         </PageContainer>
       </section>
 

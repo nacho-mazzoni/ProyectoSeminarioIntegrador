@@ -155,7 +155,7 @@ class PedidoServiceTest {
 
         assertThatThrownBy(() -> pedidoService.crear(cliente, request))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Promocion");
+                .hasMessageContaining("Promoción");
     }
 
     @Test
@@ -168,7 +168,7 @@ class PedidoServiceTest {
 
         assertThatThrownBy(() -> pedidoService.crear(cliente, request))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Promocion");
+                .hasMessageContaining("Promoción");
     }
 
     @Test
@@ -180,7 +180,7 @@ class PedidoServiceTest {
 
         assertThatThrownBy(() -> pedidoService.crear(cliente, request))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Direccion");
+                .hasMessageContaining("Dirección");
     }
 
     @Test

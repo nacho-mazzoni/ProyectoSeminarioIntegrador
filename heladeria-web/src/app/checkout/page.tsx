@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { CreditCard, Loader2, MapPin, MapPinPlus, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
 import { PageContainer } from "@/components/shared/PageContainer";
@@ -49,7 +50,7 @@ export default function CheckoutPage() {
   const [addrReferencia, setAddrReferencia] = useState("");
   const [addrIdZona, setAddrIdZona] = useState<string>("");
 
-  const { data: addresses = [], isLoading } = useQuery({
+  const { data: addresses = [], isLoading, error: addressError } = useQuery({
     queryKey: ["addresses"],
     queryFn: api.direcciones.listar,
   });
@@ -69,7 +70,7 @@ export default function CheckoutPage() {
       setAddrOpen(false);
     },
     onError: (err) => {
-      const msg = err instanceof Error ? err.message : "No se pudo guardar la dirección";
+      const msg = getErrorMessage(err, "No se pudo guardar la dirección");
       console.error("Error al guardar dirección en checkout:", msg);
       toast.error(msg);
     },
@@ -112,7 +113,7 @@ export default function CheckoutPage() {
         navigate.push("/orders");
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Algo salió mal. Intentalo de nuevo.";
+      const msg = getErrorMessage(err, "Algo salió mal. Intentalo de nuevo.");
       console.error("Error al crear pedido:", msg);
       toast.error(msg);
     } finally {
@@ -161,6 +162,10 @@ export default function CheckoutPage() {
                     <Skeleton className="h-20 w-full rounded-2xl" />
                     <Skeleton className="h-20 w-full rounded-2xl" />
                   </div>
+                ) : addressError ? (
+                  <p className="text-sm text-destructive">
+                    {getErrorMessage(addressError, "No se pudieron cargar tus direcciones. Intentá de nuevo.")}
+                  </p>
                 ) : addresses.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No tenés direcciones guardadas.</p>
                 ) : (

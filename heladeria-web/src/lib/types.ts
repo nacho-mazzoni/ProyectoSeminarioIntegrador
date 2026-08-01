@@ -264,6 +264,8 @@ export interface Promocion {
   descripcion?: string
   porcDesc: number
   activa: boolean
+  fechaInicio?: string
+  fechaFin?: string
   createdAt: string
 }
 

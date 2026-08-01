@@ -3,6 +3,7 @@ package com.seminario.heladeria.service;
 import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
+import com.seminario.heladeria.exception.BusinessRuleException;
 import com.seminario.heladeria.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import com.mercadopago.exceptions.MPApiException;
@@ -75,8 +76,8 @@ public class PagoService {
             Preference preference = client.create(preferenceRequest);
             return preference.getInitPoint();
         } catch (MPException | MPApiException e) {
-            log.error("Error al crear preferencia de pago en Mercado Pago", e);
-            throw new RuntimeException("Error al crear preferencia de pago en Mercado Pago: " + e.getMessage());
+            log.error("Error al crear preferencia de pago en Mercado Pago: {}", e.getMessage(), e);
+            throw new BusinessRuleException("No se pudo iniciar el pago en Mercado Pago. Intentá de nuevo más tarde.");
         }
     }
 

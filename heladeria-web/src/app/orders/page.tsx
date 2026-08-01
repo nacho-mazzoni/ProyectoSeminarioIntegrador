@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Package } from "lucide-react";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { OrderCard } from "@/components/orders/OrderCard";
@@ -12,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OrdersPage() {
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isLoading, error } = useQuery({
     queryKey: ["orders"],
     queryFn: api.pedidos.listar,
   });
@@ -28,6 +29,19 @@ export default function OrdersPage() {
             Array.from({ length: 2 }).map((_, i) => (
               <Skeleton key={i} className="h-52 w-full rounded-3xl" />
             ))
+          ) : error ? (
+            <div className="md:col-span-2">
+              <EmptyState
+                icon={Package}
+                title="Error al cargar tus pedidos"
+                description={getErrorMessage(error, "No se pudieron cargar tus pedidos. Intentá de nuevo.")}
+                action={
+                  <Button variant="outline" className="rounded-full" onClick={() => window.location.reload()}>
+                    Reintentar
+                  </Button>
+                }
+              />
+            </div>
           ) : orders.length === 0 ? (
             <div className="md:col-span-2">
               <EmptyState

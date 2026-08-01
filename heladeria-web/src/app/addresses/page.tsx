@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Loader2, MapPinPlus } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { AddressCard } from "@/components/profile/AddressCard";
@@ -33,7 +34,7 @@ export default function AddressesPage() {
   const [referencia, setReferencia] = useState("");
   const [idZona, setIdZona] = useState<string>("");
 
-  const { data: addresses = [], isLoading } = useQuery({
+  const { data: addresses = [], isLoading, error } = useQuery({
     queryKey: ["addresses"],
     queryFn: api.direcciones.listar,
   });
@@ -52,7 +53,7 @@ export default function AddressesPage() {
       setOpen(false);
     },
     onError: (err) => {
-      const msg = err instanceof Error ? err.message : "No se pudo guardar la dirección";
+      const msg = getErrorMessage(err, "No se pudo guardar la dirección");
       console.error("Error al crear dirección:", msg);
       toast.error(msg);
     },
@@ -65,7 +66,7 @@ export default function AddressesPage() {
       toast.success("Dirección eliminada");
     },
     onError: (err: Error) => {
-      const msg = err.message || "No se pudo eliminar la dirección";
+      const msg = getErrorMessage(err, "No se pudo eliminar la dirección");
       console.error("Error al eliminar dirección:", msg);
       toast.error(msg);
     },
@@ -157,6 +158,19 @@ export default function AddressesPage() {
             Array.from({ length: 2 }).map((_, i) => (
               <Skeleton key={i} className="h-28 w-full rounded-3xl" />
             ))
+          ) : error ? (
+            <div className="md:col-span-2">
+              <EmptyState
+                icon={MapPinPlus}
+                title="Error al cargar direcciones"
+                description={getErrorMessage(error, "No se pudieron cargar tus direcciones. Intentá de nuevo.")}
+                action={
+                  <Button variant="outline" className="rounded-full" onClick={() => window.location.reload()}>
+                    Reintentar
+                  </Button>
+                }
+              />
+            </div>
           ) : addresses.length === 0 ? (
             <div className="md:col-span-2">
               <EmptyState

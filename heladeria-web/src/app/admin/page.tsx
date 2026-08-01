@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Package, IceCreamCone, Users, DollarSign, AlertCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { formatPrice } from "@/lib/cart-utils";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,7 +43,7 @@ export default function AdminDashboard() {
       <EmptyState
         icon={AlertCircle}
         title="Error al cargar estadísticas"
-        description={error.message}
+        description={getErrorMessage(error, "No se pudieron cargar las estadísticas")}
       />
     );
   }

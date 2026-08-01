@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Users, AlertCircle } from "lucide-react";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -29,7 +30,7 @@ export default function AdminUsuariosPage() {
           </div>
         ) : error ? (
           <div className="py-12">
-            <EmptyState icon={AlertCircle} title="Error al cargar" description={error.message} />
+            <EmptyState icon={AlertCircle} title="Error al cargar" description={getErrorMessage(error, "No se pudieron cargar los usuarios")} />
           </div>
         ) : usuarios.length === 0 ? (
           <div className="py-12">

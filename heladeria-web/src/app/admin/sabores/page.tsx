@@ -5,9 +5,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Pencil, Trash2, Droplets } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Droplets, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import type { SaborResponse } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,7 +62,7 @@ function SaborFormDialog({
         ? api.admin.sabores.actualizar(sabor.idSabor, data)
         : api.admin.sabores.crear(data),
     onSuccess: () => { toast.success(sabor ? "Sabor actualizado" : "Sabor creado"); onSuccess(); onOpenChange(false); },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo guardar"),
+    onError: (error) => toast.error(getErrorMessage(error, "No se pudo guardar")),
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -114,7 +115,7 @@ export default function AdminSaboresPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SaborResponse | undefined>(undefined);
 
-  const { data: sabores = [], isLoading } = useQuery({
+  const { data: sabores = [], isLoading, error } = useQuery({
     queryKey: ["admin-sabores"],
     queryFn: api.admin.sabores.listar,
   });
@@ -122,7 +123,7 @@ export default function AdminSaboresPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.admin.sabores.eliminar(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-sabores"] }); toast.success("Sabor eliminado"); },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo eliminar"),
+    onError: (error) => toast.error(getErrorMessage(error, "No se pudo eliminar")),
   });
 
   const openCreate = () => { setEditing(undefined); setDialogOpen(true); };
@@ -145,6 +146,8 @@ export default function AdminSaboresPage() {
           <div className="p-6 space-y-4">
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
           </div>
+        ) : error ? (
+          <div className="py-12"><EmptyState icon={AlertCircle} title="Error al cargar" description={getErrorMessage(error, "No se pudieron cargar los sabores")} /></div>
         ) : sabores.length === 0 ? (
           <div className="py-12"><EmptyState icon={Droplets} title="Sin sabores" description="Agregá tu primer sabor." /></div>
         ) : (

@@ -28,3 +28,7 @@ app:
   jwt:
     secret: test-jwt-secret-1234567890abcdef1234567890abcdef
     expiration: 86400000
+
+mercadopago:
+  access-token: test-access-token
+  notification-url:

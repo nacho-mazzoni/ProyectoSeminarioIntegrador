@@ -11,6 +11,8 @@ public class PromocionResponse {
     private String descripcion;
     private BigDecimal porcDesc;
     private Boolean activa;
+    private Instant fechaInicio;
+    private Instant fechaFin;
     private Instant createdAt;
 
     public static PromocionResponse from(Promocion p) {
@@ -20,6 +22,8 @@ public class PromocionResponse {
         r.descripcion = p.getDescripcion();
         r.porcDesc = p.getPorcDesc();
         r.activa = p.getActiva();
+        r.fechaInicio = p.getFechaInicio();
+        r.fechaFin = p.getFechaFin();
         r.createdAt = p.getCreatedAt();
         return r;
     }
@@ -29,5 +33,7 @@ public class PromocionResponse {
     public String getDescripcion() { return descripcion; }
     public BigDecimal getPorcDesc() { return porcDesc; }
     public Boolean getActiva() { return activa; }
+    public Instant getFechaInicio() { return fechaInicio; }
+    public Instant getFechaFin() { return fechaFin; }
     public Instant getCreatedAt() { return createdAt; }
 }

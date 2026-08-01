@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Package, AlertCircle } from "lucide-react";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { formatPrice } from "@/lib/cart-utils";
 import { OrderStatusBadge } from "@/components/orders/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ export default function AdminOrdersPage() {
           </div>
         ) : error ? (
           <div className="py-12">
-            <EmptyState icon={AlertCircle} title="Error al cargar" description={error.message} />
+            <EmptyState icon={AlertCircle} title="Error al cargar" description={getErrorMessage(error, "No se pudieron cargar los pedidos")} />
           </div>
         ) : orders.length === 0 ? (
           <div className="py-12">

@@ -31,7 +31,7 @@ public class PromocionService {
 
     public PromocionResponse findById(Long id) {
         Promocion p = promocionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Promocion no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
         return PromocionResponse.from(p);
     }
 
@@ -52,7 +52,7 @@ public class PromocionService {
     @Transactional
     public PromocionResponse crear(PromocionRequest request) {
         if (promocionRepository.existsByCodigo(request.getCodigo())) {
-            throw new BusinessRuleException("Ya existe una promocion con ese codigo");
+            throw new BusinessRuleException("Ya existe una promoción con ese código");
         }
         Promocion p = new Promocion();
         p.setCodigo(request.getCodigo());
@@ -67,9 +67,9 @@ public class PromocionService {
     @Transactional
     public PromocionResponse actualizar(Long id, PromocionRequest request) {
         Promocion p = promocionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Promocion no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
         if (!p.getCodigo().equals(request.getCodigo()) && promocionRepository.existsByCodigo(request.getCodigo())) {
-            throw new BusinessRuleException("Ya existe otra promocion con ese codigo");
+            throw new BusinessRuleException("Ya existe otra promoción con ese código");
         }
         p.setCodigo(request.getCodigo());
         p.setDescripcion(request.getDescripcion());
@@ -83,7 +83,7 @@ public class PromocionService {
     @Transactional
     public void eliminar(Long id) {
         if (!promocionRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Promocion no encontrada");
+            throw new ResourceNotFoundException("Promoción no encontrada");
         }
         promocionRepository.deleteById(id);
     }

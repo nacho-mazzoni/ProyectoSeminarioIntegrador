@@ -2,6 +2,7 @@ package com.seminario.heladeria.controller;
 
 import com.seminario.heladeria.dto.request.EditarPedidoRequest;
 import com.seminario.heladeria.dto.request.PedidoRequest;
+import com.seminario.heladeria.dto.response.ErrorResponse;
 import com.seminario.heladeria.dto.response.PedidoResponse;
 import com.seminario.heladeria.entity.Pedido;
 import com.seminario.heladeria.entity.Usuario;
@@ -9,6 +10,7 @@ import com.seminario.heladeria.service.ClienteService;
 import com.seminario.heladeria.service.PagoService;
 import com.seminario.heladeria.service.PedidoService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -44,12 +46,13 @@ public class PedidoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PedidoResponse> obtener(
+    public ResponseEntity<?> obtener(
             @AuthenticationPrincipal Usuario usuario,
             @PathVariable Long id) {
         Pedido pedido = pedidoService.findById(id);
         if (!pedido.getCliente().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
-            return ResponseEntity.status(403).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse(403, "Forbidden", "No podés ver este pedido"));
         }
         return ResponseEntity.ok(pedidoService.buildResponse(pedido));
     }
@@ -73,25 +76,27 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PedidoResponse> editar(
+    public ResponseEntity<?> editar(
             @AuthenticationPrincipal Usuario usuario,
             @PathVariable Long id,
             @Valid @RequestBody EditarPedidoRequest request) {
         Pedido pedido = pedidoService.findById(id);
         if (!pedido.getCliente().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
-            return ResponseEntity.status(403).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse(403, "Forbidden", "No podés editar este pedido"));
         }
         pedido = pedidoService.editar(pedido, request);
         return ResponseEntity.ok(pedidoService.buildResponse(pedido));
     }
 
     @PatchMapping("/{id}/cancelar")
-    public ResponseEntity<PedidoResponse> cancelar(
+    public ResponseEntity<?> cancelar(
             @AuthenticationPrincipal Usuario usuario,
             @PathVariable Long id) {
         Pedido pedido = pedidoService.findById(id);
         if (!pedido.getCliente().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
-            return ResponseEntity.status(403).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse(403, "Forbidden", "No podés cancelar este pedido"));
         }
         pedido = pedidoService.cancelar(pedido);
         return ResponseEntity.ok(pedidoService.buildResponse(pedido));

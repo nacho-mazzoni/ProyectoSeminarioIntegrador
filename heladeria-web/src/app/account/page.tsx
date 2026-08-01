@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Loader2, MapPin, Package, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { useAuth } from "@/context/auth-context";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PageContainer } from "@/components/shared/PageContainer";
@@ -38,7 +39,7 @@ export default function AccountPage() {
       await refresh();
       toast.success("Datos actualizados");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al guardar";
+      const msg = getErrorMessage(err, "Error al guardar");
       console.error("Error al actualizar perfil:", msg);
       toast.error(msg);
     } finally {
@@ -55,7 +56,7 @@ export default function AccountPage() {
       setPassActual("");
       setPassNueva("");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al cambiar contraseña";
+      const msg = getErrorMessage(err, "Error al cambiar contraseña");
       console.error("Error al cambiar contraseña:", msg);
       toast.error(msg);
     } finally {
@@ -71,7 +72,7 @@ export default function AccountPage() {
       logout();
       router.push("/");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al eliminar cuenta";
+      const msg = getErrorMessage(err, "Error al eliminar cuenta");
       console.error("Error al eliminar cuenta:", msg);
       toast.error(msg);
       setDeleting(false);

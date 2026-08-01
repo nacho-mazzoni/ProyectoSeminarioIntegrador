@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ArrowLeft, Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { getErrorMessage } from "@/lib/error-messages";
 import { formatPrice } from "@/lib/cart-utils";
 import { OrderStatusBadge } from "@/components/orders/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ export default function AdminOrderDetailPage() {
   const orderId = Number(id);
   const [nuevoEstado, setNuevoEstado] = useState("");
 
-  const { data: order, isLoading } = useQuery({
+  const { data: order, isLoading, error } = useQuery({
     queryKey: ["admin-order", orderId],
     queryFn: () => api.admin.pedidos.obtener(orderId),
     enabled: !isNaN(orderId),
@@ -33,7 +34,7 @@ export default function AdminOrderDetailPage() {
       toast.success(`Estado actualizado a "${updated.historial[updated.historial.length - 1].estado}"`);
       setNuevoEstado("");
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo actualizar el estado"),
+    onError: (error) => toast.error(getErrorMessage(error, "No se pudo actualizar el estado")),
   });
 
   if (isLoading) {
@@ -41,6 +42,22 @@ export default function AdminOrderDetailPage() {
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-96 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <h2 className="font-display text-xl font-semibold">Detalle del pedido</h2>
+        <div className="rounded-2xl border border-border bg-card p-6 text-center">
+          <p className="text-sm text-destructive">
+            {getErrorMessage(error, "No se pudo cargar el pedido. Intentá de nuevo.")}
+          </p>
+          <Button variant="outline" className="mt-4 rounded-full" onClick={() => router.refresh()}>
+            Reintentar
+          </Button>
+        </div>
       </div>
     );
   }

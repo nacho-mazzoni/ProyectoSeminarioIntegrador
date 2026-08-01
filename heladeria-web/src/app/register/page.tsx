@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
+import { getErrorMessage } from "@/lib/error-messages";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,7 @@ export default function RegisterPage() {
       toast.success("¡Cuenta creada! Disfrutá tus helados.");
       router.push("/account");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "No pudimos crear la cuenta. Intentalo de nuevo.";
+      const msg = getErrorMessage(err, "No pudimos crear la cuenta. Intentalo de nuevo.");
       console.error("Error al registrarse:", msg);
       toast.error(msg);
     } finally {
