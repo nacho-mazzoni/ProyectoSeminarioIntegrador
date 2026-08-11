@@ -5,12 +5,16 @@ import com.seminario.heladeria.dto.response.*;
 import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
 import com.seminario.heladeria.service.PedidoService;
+import com.seminario.heladeria.exception.BusinessRuleException;
 import com.seminario.heladeria.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -100,6 +104,16 @@ public class AdminService {
     public PedidoResponse cambiarEstadoPedido(Long id, CambioEstadoRequest request) {
         Pedido pedido = pedidoService.findById(id);
 
+        String estadoActual = historialEstadoRepository
+                .findByPedidoIdPedidoOrderByFechaHoraAsc(id)
+                .stream()
+                .reduce((first, second) -> second)
+                .map(HistorialEstado::getEstado)
+                .orElse("PENDIENTE");
+        if ("ENTREGADO".equals(estadoActual) || "CANCELADO".equals(estadoActual)) {
+            throw new BusinessRuleException("No se puede cambiar el estado de un pedido " + estadoActual);
+        }
+
         HistorialEstado historial = new HistorialEstado();
         historial.setFechaHora(Instant.now());
         historial.setEstado(request.getEstado());
@@ -107,6 +121,26 @@ public class AdminService {
         historialEstadoRepository.save(historial);
 
         return pedidoService.buildResponse(pedido);
+    }
+
+    @Transactional(readOnly = true)
+    public List<IngresoMensualResponse> getIngresosMensuales(int meses) {
+        int clamped = Math.max(3, Math.min(12, meses));
+        LocalDate to = LocalDate.now();
+        LocalDate from = to.minusMonths(clamped - 1).withDayOfMonth(1);
+        Instant desde = from.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Instant hasta = to.withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        List<Object[]> rows = pedidoRepository.sumIngresosPorMes(desde, hasta);
+        List<IngresoMensualResponse> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            result.add(new IngresoMensualResponse(
+                    (String) row[0],
+                    (BigDecimal) row[1],
+                    ((Number) row[2]).longValue()
+            ));
+        }
+        return result;
     }
 
     // --- SABORES ---

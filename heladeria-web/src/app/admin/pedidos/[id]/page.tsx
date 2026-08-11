@@ -139,27 +139,33 @@ export default function AdminOrderDetailPage() {
 
             <Separator className="my-4" />
 
-            <h4 className="mb-3 text-sm font-semibold">Cambiar estado</h4>
-            <div className="flex gap-2">
-              <Select value={nuevoEstado} onValueChange={setNuevoEstado}>
-                <SelectTrigger className="h-10 flex-1 rounded-full">
-                  <SelectValue placeholder="Seleccionar..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {ESTADOS_DISPONIBLES.filter((e) => e !== ultimoEstado).map((e) => (
-                    <SelectItem key={e} value={e}>{e.replace("_", " ")}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                className="rounded-full shrink-0"
-                onClick={() => nuevoEstado && mutation.mutate(nuevoEstado)}
-                disabled={!nuevoEstado || mutation.isPending}
-              >
-                {mutation.isPending && <Loader2 className="size-4 animate-spin" />}
-                Actualizar
-              </Button>
-            </div>
+            {ultimoEstado === "ENTREGADO" || ultimoEstado === "CANCELADO" ? (
+              <p className="text-sm text-muted-foreground">Este pedido está finalizado y no se puede modificar.</p>
+            ) : (
+              <>
+                <h4 className="mb-3 text-sm font-semibold">Cambiar estado</h4>
+                <div className="flex gap-2">
+                  <Select value={nuevoEstado} onValueChange={setNuevoEstado}>
+                    <SelectTrigger className="h-10 flex-1 rounded-full">
+                      <SelectValue placeholder="Seleccionar..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ESTADOS_DISPONIBLES.filter((e) => e !== ultimoEstado).map((e) => (
+                        <SelectItem key={e} value={e}>{e.replace("_", " ")}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    className="rounded-full shrink-0"
+                    onClick={() => nuevoEstado && mutation.mutate(nuevoEstado)}
+                    disabled={!nuevoEstado || mutation.isPending}
+                  >
+                    {mutation.isPending && <Loader2 className="size-4 animate-spin" />}
+                    Actualizar
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
@@ -176,9 +182,9 @@ export default function AdminOrderDetailPage() {
                     }`} />
                   </div>
                   <div className="min-w-0 flex-1 pb-4">
-                    <p className="text-sm font-medium">
+                    <div className="text-sm font-medium">
                       <OrderStatusBadge status={h.estado} />
-                    </p>
+                    </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {new Date(h.fechaHora).toLocaleDateString("es-AR", {
                         day: "2-digit", month: "short", year: "numeric",

@@ -199,6 +199,12 @@ export interface DashboardStatsResponse {
   productosMasVendidos: { producto: string; cantidad: number }[]
 }
 
+export interface IngresoMensual {
+  mes: string
+  total: number
+  cantidad: number
+}
+
 export interface ProductoRequest {
   nombre: string
   stockEnvases: number

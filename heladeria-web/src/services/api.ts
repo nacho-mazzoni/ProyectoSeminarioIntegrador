@@ -9,6 +9,7 @@ import type {
   DireccionResponse,
   PedidoResponse,
   DashboardStatsResponse,
+  IngresoMensual,
   ProductoRequest,
   SaborRequest,
   AdicionalRequest,
@@ -198,6 +199,8 @@ export const api = {
     },
     dashboard: {
       stats: () => getAuth<DashboardStatsResponse>("/admin/dashboard/stats"),
+      ingresosMensuales: (meses = 6) =>
+        getAuth<IngresoMensual[]>(`/admin/dashboard/ingresos-mensuales?meses=${meses}`),
     },
   },
 };

@@ -26,6 +26,13 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getDashboardStats());
     }
 
+    @GetMapping("/dashboard/ingresos-mensuales")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<IngresoMensualResponse>> getIngresosMensuales(
+            @RequestParam(defaultValue = "6") int meses) {
+        return ResponseEntity.ok(adminService.getIngresosMensuales(meses));
+    }
+
     @GetMapping("/pedidos")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<List<PedidoResponse>> listarPedidos() {
