@@ -13,6 +13,9 @@ public class Pedido {
     @Column(name = "id_pedido")
     private Long idPedido;
 
+    @Column(name = "numero_seguimiento", nullable = false, unique = true, length = 40)
+    private String numeroSeguimiento;
+
     @Column(nullable = false)
     private Instant fecha;
 
@@ -55,6 +58,9 @@ public class Pedido {
 
     public Long getIdPedido() { return idPedido; }
     public void setIdPedido(Long idPedido) { this.idPedido = idPedido; }
+
+    public String getNumeroSeguimiento() { return numeroSeguimiento; }
+    public void setNumeroSeguimiento(String numeroSeguimiento) { this.numeroSeguimiento = numeroSeguimiento; }
 
     public Instant getFecha() { return fecha; }
     public void setFecha(Instant fecha) { this.fecha = fecha; }

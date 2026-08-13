@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Loader2, MapPinPlus } from "lucide-react";
+import { AlertCircle, Loader2, MapPinPlus } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -33,7 +33,7 @@ export default function AddressesPage() {
   const [referencia, setReferencia] = useState("");
   const [idZona, setIdZona] = useState<string>("");
 
-  const { data: addresses = [], isLoading } = useQuery({
+  const { data: addresses = [], isLoading, error } = useQuery({
     queryKey: ["addresses"],
     queryFn: api.direcciones.listar,
   });
@@ -157,7 +157,9 @@ export default function AddressesPage() {
             Array.from({ length: 2 }).map((_, i) => (
               <Skeleton key={i} className="h-28 w-full rounded-3xl" />
             ))
-          ) : addresses.length === 0 ? (
+           ) : error ? (
+             <div className="md:col-span-2"><EmptyState icon={AlertCircle} title="No pudimos cargar tus direcciones" description={error.message} /></div>
+           ) : addresses.length === 0 ? (
             <div className="md:col-span-2">
               <EmptyState
                 icon={MapPinPlus}

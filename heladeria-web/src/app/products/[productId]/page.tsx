@@ -27,7 +27,7 @@ export default function ProductDetailPage() {
   const [adicionales, setAdicionales] = useState<AdicionalResponse[]>([]);
   const [qty, setQty] = useState(1);
 
-  const { data: product, isLoading } = useQuery({
+  const { data: product, isLoading, error } = useQuery({
     queryKey: ["product", productId],
     queryFn: () => api.productos.obtener(Number(productId)),
   });
@@ -88,10 +88,11 @@ export default function ProductDetailPage() {
 
   if (isLoading) return <DetailSkeleton />;
 
-  if (!product) {
+  if (error || !product) {
     return (
       <PageContainer className="py-20 text-center">
-        <h1 className="text-2xl font-semibold">Producto no encontrado</h1>
+        <h1 className="text-2xl font-semibold">{error ? "No pudimos cargar el producto" : "Producto no encontrado"}</h1>
+        {error && <p className="mt-2 text-sm text-destructive">{error.message}</p>}
         <Button asChild className="mt-6">
           <Link href="/catalog">Volver al menú</Link>
         </Button>
@@ -190,10 +191,10 @@ export default function ProductDetailPage() {
           {isAuthenticated ? (
             <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-soft sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
-                <QuantitySelector value={qty} onChange={setQty} />
+                <QuantitySelector value={qty} max={product.stockEnvases} onChange={setQty} />
                 <span className="text-2xl font-semibold">{formatPrice(unitPrice * qty)}</span>
               </div>
-              <Button size="lg" className="rounded-full sm:w-auto" onClick={handleAdd}>
+              <Button size="lg" className="rounded-full sm:w-auto" onClick={handleAdd} disabled={product.stockEnvases <= 0}>
                 <ShoppingBag className="size-4" />
                 Agregar al carrito
               </Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ArrowLeft, Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
@@ -12,26 +12,51 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/auth-context";
 
-const ESTADOS_DISPONIBLES = ["PENDIENTE", "EN_PREPARACION", "EN_CAMINO", "ENTREGADO", "CANCELADO"];
+const TRANSICIONES: Record<string, (metodoEntrega: string) => string[]> = {
+  PENDIENTE: () => ["PAGADO", "RECHAZADO", "CANCELADO"],
+  PAGADO: () => ["EN_PREPARACION"],
+  EN_PREPARACION: (metodoEntrega) => [metodoEntrega === "retiro" ? "LISTO_PARA_RETIRO" : "EN_CAMINO", "CANCELADO"],
+  EN_CAMINO: () => ["ENTREGADO"],
+  LISTO_PARA_RETIRO: () => ["ENTREGADO"],
+};
+
+const ESTADO_LABELS: Record<string, string> = {
+  PAGADO: "Pagado",
+  RECHAZADO: "Rechazado",
+  EN_PREPARACION: "En preparación",
+  EN_CAMINO: "En camino",
+  LISTO_PARA_RETIRO: "Listo para retiro",
+  CANCELADO: "Cancelado",
+  ENTREGADO: "Entregado",
+};
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const orderId = Number(id);
+  const qc = useQueryClient();
+  const { isReady, isAuthenticated } = useAuth();
   const [nuevoEstado, setNuevoEstado] = useState("");
+  const [motivo, setMotivo] = useState("");
 
   const { data: order, isLoading } = useQuery({
     queryKey: ["admin-order", orderId],
     queryFn: () => api.admin.pedidos.obtener(orderId),
-    enabled: !isNaN(orderId),
+    enabled: isReady && isAuthenticated && !isNaN(orderId),
   });
 
   const mutation = useMutation({
-    mutationFn: (estado: string) => api.admin.pedidos.cambiarEstado(orderId, { estado }),
+    mutationFn: ({ estado, motivo }: { estado: string; motivo?: string }) => api.admin.pedidos.cambiarEstado(orderId, { estado, motivo }),
     onSuccess: (updated) => {
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      qc.invalidateQueries({ queryKey: ["admin-order", orderId] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
       toast.success(`Estado actualizado a "${updated.historial[updated.historial.length - 1].estado}"`);
       setNuevoEstado("");
+      setMotivo("");
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo actualizar el estado"),
   });
@@ -52,6 +77,7 @@ export default function AdminOrderDetailPage() {
   const ultimoEstado = order.historial.length > 0
     ? order.historial[order.historial.length - 1].estado
     : "";
+  const transiciones = TRANSICIONES[ultimoEstado]?.(order.metodoEntrega) ?? [];
 
   return (
     <div className="space-y-6">
@@ -68,6 +94,10 @@ export default function AdminOrderDetailPage() {
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Pedido #</dt>
                 <dd className="font-medium">{order.idPedido}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Seguimiento</dt>
+                <dd className="font-medium">{order.numeroSeguimiento ?? `RH-${order.idPedido}`}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Cliente</dt>
@@ -95,6 +125,18 @@ export default function AdminOrderDetailPage() {
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Promoción</dt>
                   <dd className="font-medium">{order.promocion}</dd>
+                </div>
+              )}
+              {order.metodoPago && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Método de pago</dt>
+                  <dd className="font-medium">{order.metodoPago === "mercado_pago" ? "Mercado Pago" : "Efectivo"}</dd>
+                </div>
+              )}
+              {order.estadoPago && (
+                <div className="flex items-center justify-between">
+                  <dt className="text-muted-foreground">Estado del pago</dt>
+                  <dd><OrderStatusBadge status={order.estadoPago.toUpperCase() === "APROBADO" ? "PAGADO" : order.estadoPago.toUpperCase() === "RECHAZADO" ? "RECHAZADO" : order.estadoPago} /></dd>
                 </div>
               )}
               <Separator />
@@ -139,7 +181,7 @@ export default function AdminOrderDetailPage() {
 
             <Separator className="my-4" />
 
-            {ultimoEstado === "ENTREGADO" || ultimoEstado === "CANCELADO" ? (
+            {transiciones.length === 0 ? (
               <p className="text-sm text-muted-foreground">Este pedido está finalizado y no se puede modificar.</p>
             ) : (
               <>
@@ -150,14 +192,25 @@ export default function AdminOrderDetailPage() {
                       <SelectValue placeholder="Seleccionar..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {ESTADOS_DISPONIBLES.filter((e) => e !== ultimoEstado).map((e) => (
-                        <SelectItem key={e} value={e}>{e.replace("_", " ")}</SelectItem>
+                      {transiciones.map((e) => (
+                         <SelectItem key={e} value={e}>{ESTADO_LABELS[e] ?? e}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {nuevoEstado === "CANCELADO" && (
+                    <input value={motivo} onChange={(event) => setMotivo(event.target.value)} placeholder="Motivo" className="h-10 min-w-0 flex-1 rounded-full border border-input bg-background px-3 text-sm" required />
+                  )}
                   <Button
                     className="rounded-full shrink-0"
-                    onClick={() => nuevoEstado && mutation.mutate(nuevoEstado)}
+                     onClick={() => {
+                       if (!nuevoEstado) return;
+                       if (!confirm(`¿Confirmás cambiar el estado a ${ESTADO_LABELS[nuevoEstado] ?? nuevoEstado}?`)) return;
+                        if (nuevoEstado === "CANCELADO" && !motivo.trim()) {
+                          toast.error("Ingresá un motivo de cancelación");
+                          return;
+                        }
+                        mutation.mutate({ estado: nuevoEstado, motivo: motivo.trim() || undefined });
+                     }}
                     disabled={!nuevoEstado || mutation.isPending}
                   >
                     {mutation.isPending && <Loader2 className="size-4 animate-spin" />}

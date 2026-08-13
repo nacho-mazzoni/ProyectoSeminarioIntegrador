@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
@@ -10,19 +11,33 @@ import type { PedidoResponse } from "@/lib/types";
 import { formatPrice } from "@/lib/cart-utils";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function OrderCard({ order }: { order: PedidoResponse }) {
+  const queryClient = useQueryClient();
   const [cancelling, setCancelling] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
   const ultimoEstado = order.historial?.[order.historial.length - 1];
-  const esCancelable = ultimoEstado?.estado === "PENDIENTE";
+  const esCancelable = ultimoEstado?.estado === "PENDIENTE" || ultimoEstado?.estado === "EN_PREPARACION";
+  const estadoPago = order.estadoPago?.toLowerCase();
+  const estadoPagoLabel = estadoPago === "aprobado" ? "Pagado"
+    : estadoPago === "rechazado" ? "Rechazado"
+      : estadoPago === "en_proceso" ? "En proceso"
+        : estadoPago === "pendiente" ? "Pendiente" : order.estadoPago;
 
   const handleCancel = async () => {
     if (!confirm("¿Estás seguro de cancelar este pedido?")) return;
     setCancelling(true);
     try {
       await api.pedidos.cancelar(order.idPedido);
+      setCancelled(true);
       toast.success("Pedido cancelado");
-      window.location.reload();
+      await queryClient.invalidateQueries({ queryKey: ["orders"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin-orders"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-order", order.idPedido] }),
+        queryClient.invalidateQueries({ queryKey: ["products"] }),
+      ]);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Error al cancelar";
       console.error("Error al cancelar pedido:", msg);
@@ -37,6 +52,7 @@ export function OrderCard({ order }: { order: PedidoResponse }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-semibold">Pedido #{order.idPedido}</h3>
+          <p className="text-xs font-medium text-primary">Seguimiento: {order.numeroSeguimiento ?? `RH-${order.idPedido}`}</p>
           <p className="text-sm text-muted-foreground">
             {format(new Date(order.fecha), "d MMM yyyy · HH:mm", { locale: es })}
           </p>
@@ -60,7 +76,7 @@ export function OrderCard({ order }: { order: PedidoResponse }) {
           {order.metodoPago && (
             <span className="text-xs text-muted-foreground">
               {order.metodoPago === "mercado_pago" ? "Mercado Pago" : "Efectivo"}
-              {order.estadoPago && ` · ${order.estadoPago}`}
+              {estadoPagoLabel && ` · ${estadoPagoLabel}`}
             </span>
           )}
         </div>
@@ -98,14 +114,19 @@ export function OrderCard({ order }: { order: PedidoResponse }) {
         </details>
       )}
 
-      {esCancelable && (
+      {(esCancelable && !cancelled) ? (
         <div className="mt-4 flex justify-end">
           <Button variant="outline" size="sm" className="rounded-full text-destructive border-destructive/50 hover:bg-destructive/10" onClick={handleCancel} disabled={cancelling}>
             {cancelling && <Loader2 className="size-3.5 animate-spin" />}
             Cancelar pedido
           </Button>
         </div>
-      )}
+      ) : cancelled ? (
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-secondary/40 p-3 text-sm">
+          <span>Podés iniciar un nuevo pedido cuando quieras.</span>
+          <Button asChild size="sm" className="rounded-full"><Link href="/catalog">Ir al catálogo</Link></Button>
+        </div>
+      ) : null}
     </article>
   );
 }

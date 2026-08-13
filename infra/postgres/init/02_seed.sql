@@ -44,6 +44,7 @@ COPY public.adicional (id_adicional, nombre, precio_extra, disponible, created_a
 COPY public.rol (id_rol, nombre_rol, created_at, updated_at) FROM stdin;
 1	Administrador	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
 2	Cliente	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
+3	Cajero	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
 \.
 
 
@@ -201,11 +202,11 @@ COPY public.promocion (id_promocion, codigo, porc_desc, activa, created_at, upda
 -- Data for Name: pedido; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.pedido (id_pedido, fecha, total, metodo_entrega, id_cliente, id_direccion, id_promocion, created_at, updated_at) FROM stdin;
-1	2026-07-06 18:01:46.798577-03	5000.00	delivery	2	1	1	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
-2	2026-07-03 18:01:46.798577-03	2400.00	retiro	2	1	\N	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
-3	2026-07-26 18:08:35.775371-03	7000.00	retiro	3	3	\N	2026-07-26 18:08:35.779892-03	2026-07-26 18:08:35.776359-03
-4	2026-07-26 18:35:41.858237-03	1900.00	delivery	3	3	\N	2026-07-26 18:35:41.870198-03	2026-07-26 18:35:41.859836-03
+COPY public.pedido (id_pedido, numero_seguimiento, fecha, total, metodo_entrega, id_cliente, id_direccion, id_promocion, created_at, updated_at) FROM stdin;
+1	RH-20260706-0001	2026-07-06 18:01:46.798577-03	5000.00	delivery	2	1	1	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
+2	RH-20260703-0002	2026-07-03 18:01:46.798577-03	2400.00	retiro	2	1	\N	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
+3	RH-20260726-0003	2026-07-26 18:08:35.775371-03	7000.00	retiro	3	3	\N	2026-07-26 18:08:35.779892-03	2026-07-26 18:08:35.776359-03
+4	RH-20260726-0004	2026-07-26 18:35:41.858237-03	1900.00	delivery	3	3	\N	2026-07-26 18:35:41.870198-03	2026-07-26 18:35:41.859836-03
 \.
 
 
@@ -261,7 +262,7 @@ COPY public.detalle_pedido_sabor (id_detalle, id_sabor, created_at) FROM stdin;
 COPY public.historial_estado (id_hist, fecha_hora, estado, notas, id_pedido, created_at) FROM stdin;
 1	2026-07-06 18:01:46.798577-03	PENDIENTE	Pedido creado	1	2026-07-08 18:01:46.798577-03
 2	2026-07-03 18:01:46.798577-03	PENDIENTE	Pedido creado	2	2026-07-08 18:01:46.798577-03
-3	2026-07-04 18:01:46.798577-03	CONFIRMADO	Pago confirmado	2	2026-07-08 18:01:46.798577-03
+3	2026-07-04 18:01:46.798577-03	PAGADO	Pago confirmado	2	2026-07-08 18:01:46.798577-03
 4	2026-07-05 18:01:46.798577-03	ENTREGADO	Entregado al cliente	2	2026-07-08 18:01:46.798577-03
 5	2026-07-26 18:08:35.946636-03	PENDIENTE	\N	3	2026-07-26 18:08:35.949643-03
 6	2026-07-26 18:35:42.001197-03	PENDIENTE	\N	4	2026-07-26 18:35:42.002304-03
@@ -384,7 +385,7 @@ SELECT pg_catalog.setval('public.promocion_id_promocion_seq', 3, true);
 -- Name: rol_id_rol_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.rol_id_rol_seq', 2, true);
+SELECT pg_catalog.setval('public.rol_id_rol_seq', 3, true);
 
 
 --
@@ -421,4 +422,3 @@ SELECT pg_catalog.setval('public.zona_envio_id_zona_seq', 2, true);
 --
 
 \unrestrict rxLMJ5B4Zu1eXsXzoxJNOyJwdvI9OtIiYzHrJrxfb2AOiNujkY3x9BwL2RCAPBj
-

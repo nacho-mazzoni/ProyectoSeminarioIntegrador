@@ -9,6 +9,7 @@ import java.util.List;
 public class PedidoResponse {
 
     private Long idPedido;
+    private String numeroSeguimiento;
     private Instant fecha;
     private String metodoEntrega;
     private BigDecimal total;
@@ -24,6 +25,7 @@ public class PedidoResponse {
     public static PedidoResponse from(Pedido p) {
         PedidoResponse r = new PedidoResponse();
         r.idPedido = p.getIdPedido();
+        r.numeroSeguimiento = p.getNumeroSeguimiento();
         r.fecha = p.getFecha();
         r.metodoEntrega = p.getMetodoEntrega();
         r.total = p.getTotal();
@@ -38,6 +40,7 @@ public class PedidoResponse {
     }
 
     public Long getIdPedido() { return idPedido; }
+    public String getNumeroSeguimiento() { return numeroSeguimiento; }
     public Instant getFecha() { return fecha; }
     public String getMetodoEntrega() { return metodoEntrega; }
     public BigDecimal getTotal() { return total; }

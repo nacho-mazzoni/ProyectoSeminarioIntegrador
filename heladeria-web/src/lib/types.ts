@@ -23,6 +23,7 @@ export interface ProductoResponse {
   stockEnvases: number
   precioBase: number
   maxSabores: number
+  activo: boolean
   categoria: CategoriaResponse
 }
 
@@ -75,6 +76,7 @@ export interface HistorialResponse {
 
 export interface PedidoResponse {
   idPedido: number
+  numeroSeguimiento?: string
   fecha: string
   metodoEntrega: string
   metodoPago?: string
@@ -123,6 +125,7 @@ export interface Producto {
   stockEnvases: number
   precioBase: number
   maxSabores: number
+  activo: boolean
   categoria: Categoria
 }
 
@@ -175,6 +178,7 @@ export interface HistorialEstado {
 
 export interface Pedido {
   idPedido: number
+  numeroSeguimiento?: string
   fecha: string
   metodoEntrega: string
   total: number
@@ -238,6 +242,7 @@ export interface ZonaRequest {
 
 export interface CambioEstadoRequest {
   estado: string
+  motivo?: string
 }
 
 // --- Otros tipos ---
@@ -259,9 +264,24 @@ export interface Carrito {
 }
 
 export interface CheckoutResponse {
-  pedido: Pedido
+  idPedido: number
+  numeroSeguimiento?: string
+  fecha: string
+  metodoEntrega: string
+  metodoPago?: string
+  estadoPago?: string
+  total: number
+  cliente: string
+  direccion: string
+  promocion?: string
+  detalles: DetallePedidoResponse[]
+  historial: HistorialResponse[]
   initPoint?: string
-  pagoId?: number
+}
+
+export interface ReporteRankingItem {
+  nombre: string
+  cantidadVendida: number
 }
 
 export interface Promocion {
@@ -271,6 +291,29 @@ export interface Promocion {
   porcDesc: number
   activa: boolean
   createdAt: string
+  fechaInicio?: string
+  fechaFin?: string
+}
+
+export interface RolResponse {
+  idRol: number
+  nombreRol: string
+}
+
+export interface ReporteDashboardResponse {
+  totalUsuarios: number
+  totalProductos: number
+  totalPedidos: number
+  ingresosTotales: number
+  topProductos: ReporteRankingItem[]
+  topSabores: ReporteRankingItem[]
+}
+
+export interface ReporteIngresosResponse {
+  totalIngresos: number
+  cantidadPedidos: number
+  promedio: number
+  porDia: { fecha: string; total: number; cantidad: number }[]
 }
 
 export interface DashboardResponse {
@@ -281,15 +324,14 @@ export interface DashboardResponse {
   topProductos: { nombre: string; cantidadVendida: number }[]
 }
 
-export interface ReporteIngresosResponse {
-  totalIngresos: number
-  cantidadPedidos: number
-  promedio: number
-  porDia: { fecha: string; total: number; cantidad: number }[]
-}
-
 export interface ReportePedidosResponse {
   pedidos: Pedido[]
   totalPages: number
   totalElements: number
+}
+
+export interface UsuarioRequest {
+  email: string
+  password?: string
+  idRol: number
 }

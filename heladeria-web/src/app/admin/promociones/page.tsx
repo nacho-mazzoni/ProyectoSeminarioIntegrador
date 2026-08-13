@@ -1,133 +1,44 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { api } from "@/services/api"
-import type { Promocion } from "@/lib/types"
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import { AlertCircle, BadgePercent, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/context/auth-context";
+import { api } from "@/services/api";
+import type { Promocion } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+
+const schema = z.object({ codigo: z.string().trim().min(1, "El código es obligatorio"), descripcion: z.string().optional(), porcDesc: z.coerce.number().gt(0, "Debe ser mayor que 0").lte(100, "No puede superar el 100%"), activa: z.boolean(), fechaInicio: z.string().min(1, "Indicá el inicio"), fechaFin: z.string().min(1, "Indicá el fin") }).refine((data) => new Date(data.fechaFin) > new Date(data.fechaInicio), { path: ["fechaFin"], message: "La fecha de fin debe ser posterior al inicio" });
+type FormData = z.infer<typeof schema>;
+const emptyForm: FormData = { codigo: "", descripcion: "", porcDesc: 10, activa: true, fechaInicio: new Date().toISOString().slice(0, 16), fechaFin: new Date(Date.now() + 86400000).toISOString().slice(0, 16) };
+const fallbackEndDate = "2999-01-01T00:00:00.000Z";
+
+function status(p: Promocion) { const now = Date.now(); const start = p.fechaInicio ? new Date(p.fechaInicio).getTime() : 0; const end = p.fechaFin ? new Date(p.fechaFin).getTime() : Infinity; return !p.activa ? "Desactivada" : now < start ? "Programada" : now > end ? "Finalizada" : "Activa"; }
 
 export default function AdminPromocionesPage() {
-  const [promociones, setPromociones] = useState<Promocion[]>([])
-  const [form, setForm] = useState({ codigo: "", descripcion: "", porcDesc: 0, activa: true, fechaInicio: "", fechaFin: "" })
-  const [editing, setEditing] = useState<number | null>(null)
-  const [showModal, setShowModal] = useState(false)
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState<Promocion | null>(null);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState<FormData>(emptyForm);
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const { isReady, isAuthenticated } = useAuth();
+  const { data: promociones = [], isLoading, error } = useQuery({ queryKey: ["admin-promociones"], queryFn: api.admin.promociones.listar, enabled: isReady && isAuthenticated });
+  const mutation = useMutation({ mutationFn: (data: FormData) => { const payload = { ...data, fechaInicio: new Date(data.fechaInicio).toISOString(), fechaFin: new Date(data.fechaFin).toISOString() }; return editing ? api.admin.promociones.actualizar(editing.idPromocion, payload) : api.admin.promociones.crear(payload); }, onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-promociones"] }); qc.invalidateQueries({ queryKey: ["promociones"] }); setOpen(false); toast.success(editing ? "Promoción actualizada" : "Promoción creada"); }, onError: (err) => toast.error(err instanceof Error ? err.message : "No se pudo guardar la promoción") });
+  const deleteMutation = useMutation({ mutationFn: api.admin.promociones.eliminar, onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-promociones"] }); qc.invalidateQueries({ queryKey: ["promociones"] }); toast.success("Promoción desactivada"); }, onError: (err) => toast.error(err instanceof Error ? err.message : "No se pudo desactivar") });
+  const sorted = useMemo(() => [...promociones].sort((a, b) => status(a).localeCompare(status(b))), [promociones]);
+  const openNew = () => { setEditing(null); setForm(emptyForm); setErrors({}); setOpen(true); };
+  const openEdit = (p: Promocion) => { setEditing(p); setForm({ codigo: p.codigo, descripcion: p.descripcion ?? "", porcDesc: Number(p.porcDesc), activa: p.activa, fechaInicio: (p.fechaInicio ?? p.createdAt).slice(0, 16), fechaFin: (p.fechaFin ?? fallbackEndDate).slice(0, 16) }); setErrors({}); setOpen(true); };
+  const submit = () => { const result = schema.safeParse(form); if (!result.success) { setErrors(Object.fromEntries(result.error.issues.map((issue) => [issue.path[0], issue.message]))); return; } setErrors({}); mutation.mutate(result.data); };
 
-  const load = () => api.admin.promociones.listar().then(setPromociones)
-
-  useEffect(() => { load() }, [])
-
-  const openNew = () => {
-    setForm({ codigo: "", descripcion: "", porcDesc: 0, activa: true, fechaInicio: "", fechaFin: "" })
-    setEditing(null)
-    setShowModal(true)
-  }
-
-  const openEdit = (p: Promocion) => {
-    setForm({
-      codigo: p.codigo,
-      descripcion: p.descripcion || "",
-      porcDesc: p.porcDesc,
-      activa: p.activa,
-      fechaInicio: p.createdAt,
-      fechaFin: "",
-    })
-    setEditing(p.idPromocion)
-    setShowModal(true)
-  }
-
-  const save = async () => {
-    const data = {
-      codigo: form.codigo,
-      descripcion: form.descripcion,
-      porcDesc: form.porcDesc,
-      activa: form.activa,
-      fechaInicio: form.fechaInicio ? new Date(form.fechaInicio).toISOString() : undefined,
-      fechaFin: form.fechaFin ? new Date(form.fechaFin).toISOString() : undefined,
-    }
-    if (editing !== null) {
-      await api.admin.promociones.actualizar(editing, data)
-    } else {
-      await api.admin.promociones.crear(data)
-    }
-    setShowModal(false)
-    await load()
-  }
-
-  const eliminar = async (id: number) => {
-    if (confirm("Eliminar promocion?")) {
-      await api.admin.promociones.eliminar(id)
-      await load()
-    }
-  }
-
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Promociones</h1>
-        <button onClick={openNew} className="bg-amber-500 text-white px-4 py-2 rounded text-sm hover:bg-amber-600">
-          Nueva Promocion
-        </button>
-      </div>
-
-      <div className="bg-white border rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-stone-50">
-            <tr>
-              <th className="text-left px-4 py-3">Codigo</th>
-              <th className="text-left px-4 py-3">Descripcion</th>
-              <th className="text-left px-4 py-3">% Desc</th>
-              <th className="text-left px-4 py-3">Activa</th>
-              <th className="text-left px-4 py-3">Creada</th>
-              <th className="text-left px-4 py-3">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {promociones.map((p) => (
-              <tr key={p.idPromocion} className="border-t">
-                <td className="px-4 py-3 font-medium">{p.codigo}</td>
-                <td className="px-4 py-3 text-stone-500">{p.descripcion || "-"}</td>
-                <td className="px-4 py-3">{p.porcDesc}%</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded text-xs ${p.activa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                    {p.activa ? "Si" : "No"}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-stone-500 text-xs">{new Date(p.createdAt).toLocaleDateString()}</td>
-                <td className="px-4 py-3 flex gap-2">
-                  <button onClick={() => openEdit(p)} className="text-amber-600 hover:underline text-xs">Editar</button>
-                  <button onClick={() => eliminar(p.idPromocion)} className="text-red-500 hover:underline text-xs">Eliminar</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {showModal && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md space-y-4">
-            <h2 className="font-bold text-lg">{editing !== null ? "Editar" : "Nueva"} Promocion</h2>
-            <div>
-              <label className="text-sm text-stone-500">Codigo</label>
-              <input value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} className="border rounded px-3 py-2 w-full text-sm" />
-            </div>
-            <div>
-              <label className="text-sm text-stone-500">Descripcion</label>
-              <input value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} className="border rounded px-3 py-2 w-full text-sm" />
-            </div>
-            <div>
-              <label className="text-sm text-stone-500">% Descuento</label>
-              <input type="number" value={form.porcDesc} onChange={(e) => setForm({ ...form, porcDesc: Number(e.target.value) })} className="border rounded px-3 py-2 w-full text-sm" />
-            </div>
-            <div className="flex items-center gap-2">
-              <input type="checkbox" checked={form.activa} onChange={(e) => setForm({ ...form, activa: e.target.checked })} />
-              <label className="text-sm">Activa</label>
-            </div>
-            <div className="flex gap-2 justify-end pt-2">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded text-sm">Cancelar</button>
-              <button onClick={save} className="px-4 py-2 bg-amber-500 text-white rounded text-sm hover:bg-amber-600">Guardar</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
+  return <div className="space-y-6"><div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-display text-xl font-semibold">Promociones</h2><p className="text-sm text-muted-foreground">Códigos porcentuales y su vigencia.</p></div><Button onClick={openNew} className="rounded-full"><Plus className="size-4" /> Nueva promoción</Button></div><div className="rounded-2xl border border-border bg-card shadow-soft">{isLoading ? <div className="space-y-4 p-6">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div> : error ? <div className="py-12"><EmptyState icon={AlertCircle} title="Error al cargar promociones" description={error.message} /></div> : sorted.length === 0 ? <div className="py-12"><EmptyState icon={BadgePercent} title="Sin promociones" description="Creá el primer código promocional." /></div> : <div className="divide-y divide-border">{sorted.map((p) => <div key={p.idPromocion} className="flex flex-wrap items-center justify-between gap-4 p-4"><div><div className="flex items-center gap-2"><strong>{p.codigo}</strong><Badge variant={status(p) === "Activa" ? "secondary" : "outline"}>{status(p)}</Badge></div><p className="text-sm text-muted-foreground">{p.descripcion || "Sin descripción"} · {p.porcDesc}%</p><p className="text-xs text-muted-foreground">Inicio: {p.fechaInicio ? new Date(p.fechaInicio).toLocaleString("es-AR") : "No informado"} · Fin: {p.fechaFin ? new Date(p.fechaFin).toLocaleString("es-AR") : "No informado"}</p></div><div className="flex gap-2"><Button variant="outline" size="sm" className="rounded-full" onClick={() => openEdit(p)}><Pencil className="size-3.5" /> Editar</Button><AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="rounded-full text-destructive"><Trash2 className="size-4" /></Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Desactivar promoción</AlertDialogTitle><AlertDialogDescription>El código dejará de estar disponible para nuevas compras.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate(p.idPromocion)}>Desactivar</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></div>)}</div>}</div>
+    <Dialog open={open} onOpenChange={setOpen}><DialogContent><DialogHeader><DialogTitle>{editing ? "Editar promoción" : "Nueva promoción"}</DialogTitle><DialogDescription>Usá un porcentaje entre 1 y 100 y definí su vigencia.</DialogDescription></DialogHeader><div className="space-y-4"><div><Label htmlFor="promo-codigo">Código</Label><Input id="promo-codigo" value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value.toUpperCase() })} />{errors.codigo && <p className="text-xs text-destructive">{errors.codigo}</p>}</div><div><Label htmlFor="promo-desc">Descripción</Label><Input id="promo-desc" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} /></div><div><Label htmlFor="promo-percent">Descuento (%)</Label><Input id="promo-percent" type="number" min="1" max="100" value={form.porcDesc} onChange={(e) => setForm({ ...form, porcDesc: Number(e.target.value) })} />{errors.porcDesc && <p className="text-xs text-destructive">{errors.porcDesc}</p>}</div><div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="promo-start">Inicio</Label><Input id="promo-start" type="datetime-local" value={form.fechaInicio} onChange={(e) => setForm({ ...form, fechaInicio: e.target.value })} />{errors.fechaInicio && <p className="text-xs text-destructive">{errors.fechaInicio}</p>}</div><div><Label htmlFor="promo-end">Fin</Label><Input id="promo-end" type="datetime-local" value={form.fechaFin} onChange={(e) => setForm({ ...form, fechaFin: e.target.value })} />{errors.fechaFin && <p className="text-xs text-destructive">{errors.fechaFin}</p>}</div></div><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.activa} onChange={(e) => setForm({ ...form, activa: e.target.checked })} /> Activa</label></div><DialogFooter><Button onClick={submit} disabled={mutation.isPending} className="rounded-full">{mutation.isPending && <Loader2 className="size-4 animate-spin" />} Guardar promoción</Button></DialogFooter></DialogContent></Dialog></div>;
 }

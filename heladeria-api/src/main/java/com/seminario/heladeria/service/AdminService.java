@@ -4,7 +4,6 @@ import com.seminario.heladeria.dto.request.*;
 import com.seminario.heladeria.dto.response.*;
 import com.seminario.heladeria.entity.*;
 import com.seminario.heladeria.repository.*;
-import com.seminario.heladeria.service.PedidoService;
 import com.seminario.heladeria.exception.BusinessRuleException;
 import com.seminario.heladeria.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +60,7 @@ public class AdminService {
         DashboardStatsResponse stats = new DashboardStatsResponse();
 
         stats.setTotalProductos(productoRepository.count());
-        stats.setTotalPedidos(pedidoRepository.count());
+        stats.setTotalPedidos(pedidoRepository.countPedidosEntregados());
         stats.setPedidosPendientes(historialEstadoRepository.countByUltimoEstado("PENDIENTE"));
         stats.setTotalUsuarios(usuarioRepository.count());
         stats.setIngresosMes(pedidoRepository.sumIngresosMesActual());
@@ -88,8 +87,12 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> listarPedidos() {
-        return pedidoRepository.findAllByOrderByFechaDesc().stream()
+    public List<PedidoResponse> listarPedidos(String estado) {
+        LocalDate hoy = LocalDate.now();
+        Instant desde = hoy.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Instant hasta = hoy.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        String filtro = estado == null || estado.isBlank() ? null : EstadoPedido.parse(estado).name();
+        return pedidoRepository.findAdminPedidos(desde, hasta, filtro).stream()
                 .map(pedidoService::buildResponse)
                 .toList();
     }
@@ -101,7 +104,7 @@ public class AdminService {
     }
 
     @Transactional
-    public PedidoResponse cambiarEstadoPedido(Long id, CambioEstadoRequest request) {
+    public PedidoResponse cambiarEstadoPedido(Long id, CambioEstadoRequest request, Usuario operador) {
         Pedido pedido = pedidoService.findById(id);
 
         String estadoActual = historialEstadoRepository
@@ -110,17 +113,51 @@ public class AdminService {
                 .reduce((first, second) -> second)
                 .map(HistorialEstado::getEstado)
                 .orElse("PENDIENTE");
-        if ("ENTREGADO".equals(estadoActual) || "CANCELADO".equals(estadoActual)) {
-            throw new BusinessRuleException("No se puede cambiar el estado de un pedido " + estadoActual);
+        EstadoPedido actual = EstadoPedido.parse(estadoActual);
+        EstadoPedido nuevo = EstadoPedido.parse(request.getEstado());
+        validarTransicion(pedido, actual, nuevo);
+
+        if (nuevo == EstadoPedido.CANCELADO) {
+            if (request.getMotivo() == null || request.getMotivo().isBlank()) {
+                throw new BusinessRuleException("El motivo de cancelación es obligatorio");
+            }
+            pedidoService.cancelar(pedido, request.getMotivo().trim(), operador);
+            return pedidoService.buildResponse(pedido);
         }
 
         HistorialEstado historial = new HistorialEstado();
         historial.setFechaHora(Instant.now());
-        historial.setEstado(request.getEstado());
+        historial.setEstado(nuevo.name());
+        historial.setNotas(request.getMotivo());
         historial.setPedido(pedido);
+        historial.setOperador(operador);
         historialEstadoRepository.save(historial);
 
         return pedidoService.buildResponse(pedido);
+    }
+
+    private void validarTransicion(Pedido pedido, EstadoPedido actual, EstadoPedido nuevo) {
+        boolean valida = switch (actual) {
+            case PENDIENTE -> nuevo == EstadoPedido.PAGADO || nuevo == EstadoPedido.RECHAZADO
+                    || nuevo == EstadoPedido.CANCELADO;
+            case PAGADO -> nuevo == EstadoPedido.EN_PREPARACION;
+            case EN_PREPARACION -> nuevo == EstadoPedido.CANCELADO
+                    || (esRetiro(pedido) ? nuevo == EstadoPedido.LISTO_PARA_RETIRO
+                    : esDelivery(pedido) && nuevo == EstadoPedido.EN_CAMINO);
+            case LISTO_PARA_RETIRO, EN_CAMINO -> nuevo == EstadoPedido.ENTREGADO;
+            case RECHAZADO, ENTREGADO, CANCELADO -> false;
+        };
+        if (!valida) {
+            throw new BusinessRuleException("Transición de estado no permitida: " + actual + " -> " + nuevo);
+        }
+    }
+
+    private boolean esRetiro(Pedido pedido) {
+        return "retiro".equalsIgnoreCase(pedido.getMetodoEntrega());
+    }
+
+    private boolean esDelivery(Pedido pedido) {
+        return "delivery".equalsIgnoreCase(pedido.getMetodoEntrega());
     }
 
     @Transactional(readOnly = true)
@@ -173,7 +210,10 @@ public class AdminService {
 
     @Transactional
     public void eliminarSabor(Long id) {
-        saborRepository.deleteById(id);
+        Sabor sabor = saborRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sabor no encontrado"));
+        sabor.setDisponible(false);
+        saborRepository.save(sabor);
     }
 
     // --- ADICIONALES ---
@@ -204,7 +244,10 @@ public class AdminService {
 
     @Transactional
     public void eliminarAdicional(Long id) {
-        adicionalRepository.deleteById(id);
+        Adicional adicional = adicionalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Adicional no encontrado"));
+        adicional.setDisponible(false);
+        adicionalRepository.save(adicional);
     }
 
     // --- CATEGORIAS ---

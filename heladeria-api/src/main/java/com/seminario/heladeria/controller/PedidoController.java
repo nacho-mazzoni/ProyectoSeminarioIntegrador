@@ -1,16 +1,17 @@
 package com.seminario.heladeria.controller;
 
-import com.seminario.heladeria.dto.request.EditarPedidoRequest;
 import com.seminario.heladeria.dto.request.PedidoRequest;
 import com.seminario.heladeria.dto.response.PedidoResponse;
 import com.seminario.heladeria.entity.Pedido;
 import com.seminario.heladeria.entity.Usuario;
+import com.seminario.heladeria.exception.BusinessRuleException;
 import com.seminario.heladeria.service.ClienteService;
 import com.seminario.heladeria.service.PagoService;
 import com.seminario.heladeria.service.PedidoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pedidos")
+@PreAuthorize("hasRole('CLIENTE')")
 public class PedidoController {
 
     private final PedidoService pedidoService;
@@ -65,24 +67,13 @@ public class PedidoController {
         }
         Pedido pedido = pedidoService.crear(cliente, request);
         PedidoResponse response = pedidoService.buildResponse(pedido);
-        if ("mercado_pago".equals(request.getMetodoPago())) {
-            String initPoint = pagoService.crearPreferenciaMP(pedido);
-            response.setInitPoint(initPoint);
-        }
+        response.setInitPoint(pagoService.getInitPoint(pedido.getIdPedido()));
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PedidoResponse> editar(
-            @AuthenticationPrincipal Usuario usuario,
-            @PathVariable Long id,
-            @Valid @RequestBody EditarPedidoRequest request) {
-        Pedido pedido = pedidoService.findById(id);
-        if (!pedido.getCliente().getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
-            return ResponseEntity.status(403).build();
-        }
-        pedido = pedidoService.editar(pedido, request);
-        return ResponseEntity.ok(pedidoService.buildResponse(pedido));
+    public ResponseEntity<?> editar() {
+        throw new BusinessRuleException("Los pedidos no se pueden editar; cancelá el pedido y creá otro");
     }
 
     @PatchMapping("/{id}/cancelar")

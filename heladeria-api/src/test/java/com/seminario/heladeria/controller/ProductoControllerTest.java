@@ -94,7 +94,7 @@ class ProductoControllerTest {
         mockMvc.perform(post("/api/admin/productos").with(user("admin@test.com"))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nombre\":\"Prod\",\"precioBase\":10.0,\"idCategoria\":1}"))
+                        .content("{\"nombre\":\"Prod\",\"precioBase\":10.0,\"stockEnvases\":10,\"maxSabores\":1,\"idCategoria\":1}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idProducto").value(1));
     }

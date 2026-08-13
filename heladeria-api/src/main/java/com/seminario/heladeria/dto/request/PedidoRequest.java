@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 
 public class PedidoRequest {
@@ -15,6 +16,7 @@ public class PedidoRequest {
 
     private String codigoPromocion;
 
+    @NotBlank(message = "Seleccioná un método de pago")
     private String metodoPago;
 
     @NotEmpty(message = "El pedido debe tener al menos un producto") @Valid
@@ -41,6 +43,7 @@ public class PedidoRequest {
         private Long idProducto;
 
         @NotNull(message = "La cantidad es obligatoria")
+        @Positive(message = "La cantidad debe ser positiva")
         private Integer cantidad;
 
         private List<Long> idsSabor;

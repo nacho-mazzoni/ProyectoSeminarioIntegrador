@@ -25,6 +25,9 @@ public class Producto {
     @Column(name = "max_sabores", nullable = false)
     private Integer maxSabores = 0;
 
+    @Column(nullable = false)
+    private Boolean activo = true;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
@@ -62,6 +65,8 @@ public class Producto {
 
     public Integer getMaxSabores() { return maxSabores; }
     public void setMaxSabores(Integer maxSabores) { this.maxSabores = maxSabores; }
+    public Boolean getActivo() { return activo; }
+    public void setActivo(Boolean activo) { this.activo = activo; }
 
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }

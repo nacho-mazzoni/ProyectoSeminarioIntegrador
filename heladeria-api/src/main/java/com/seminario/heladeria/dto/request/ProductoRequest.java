@@ -11,13 +11,13 @@ public class ProductoRequest {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @PositiveOrZero(message = "No puede ser negativo")
+    @NotNull(message = "El stock es obligatorio") @PositiveOrZero(message = "No puede ser negativo")
     private Integer stockEnvases;
 
     @NotNull(message = "El precio es obligatorio") @Positive(message = "Debe ser un valor positivo")
     private BigDecimal precioBase;
 
-    @PositiveOrZero(message = "No puede ser negativo")
+    @NotNull(message = "El límite de sabores es obligatorio") @PositiveOrZero(message = "No puede ser negativo")
     private Integer maxSabores;
 
     @NotNull(message = "Seleccioná una categoría")

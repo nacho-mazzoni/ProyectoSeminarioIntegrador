@@ -2,6 +2,8 @@ package com.seminario.heladeria.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.DecimalMax;
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -13,6 +15,8 @@ public class PromocionRequest {
     private String descripcion;
 
     @NotNull(message = "El porcentaje de descuento es obligatorio")
+    @DecimalMin(value = "0.01", message = "El porcentaje debe ser mayor que cero")
+    @DecimalMax(value = "100", message = "El porcentaje no puede superar 100")
     private BigDecimal porcDesc;
 
     private Boolean activa = true;

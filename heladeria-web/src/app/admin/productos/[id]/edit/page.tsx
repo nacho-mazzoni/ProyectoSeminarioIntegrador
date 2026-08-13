@@ -1,18 +1,20 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
+import { ApiError } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/auth-context";
 
 const schema = z.object({
   nombre: z.string().min(1, "El nombre es requerido"),
@@ -28,16 +30,19 @@ export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const productId = Number(id);
+  const qc = useQueryClient();
+  const { isReady, isAuthenticated } = useAuth();
 
   const { data: product, isLoading: prodLoading } = useQuery({
     queryKey: ["product", productId],
     queryFn: () => api.productos.obtener(productId),
-    enabled: !isNaN(productId),
+    enabled: isReady && isAuthenticated && !isNaN(productId),
   });
 
   const { data: categories = [], isLoading: catLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: api.categorias.listar,
+    enabled: isReady && isAuthenticated,
   });
 
   const form = useForm<FormData>({
@@ -54,10 +59,18 @@ export default function EditProductPage() {
   const mutation = useMutation({
     mutationFn: (data: FormData) => api.admin.productos.actualizar(productId, data),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+      qc.invalidateQueries({ queryKey: ["product", productId] });
       toast.success("Producto actualizado");
       router.push("/admin/productos");
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo actualizar el producto"),
+    onError: (error) => {
+      if (error instanceof ApiError) {
+        Object.entries(error.fieldErrors).forEach(([field, message]) => form.setError(field as keyof FormData, { message }));
+      }
+      toast.error(error instanceof Error ? error.message : "No se pudo actualizar el producto");
+    },
   });
 
   const onSubmit = (data: FormData) => mutation.mutate(data);

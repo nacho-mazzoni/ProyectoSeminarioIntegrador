@@ -9,10 +9,12 @@ import com.seminario.heladeria.service.CarritoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/carrito")
+@PreAuthorize("hasRole('CLIENTE')")
 public class CarritoController {
 
     private final CarritoService carritoService;

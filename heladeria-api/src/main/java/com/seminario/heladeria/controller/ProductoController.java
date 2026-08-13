@@ -55,29 +55,36 @@ public class ProductoController {
     // ── Admin: Productos ──
 
     @GetMapping("/admin/productos")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<List<ProductoResponse>> listarProductosAdmin() {
-        return ResponseEntity.ok(productoService.findAllProductoResponses(null, null, null, null));
+        return ResponseEntity.ok(productoService.findAllProductoAdminResponses());
     }
 
     @PostMapping("/admin/productos")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<ProductoResponse> crearProducto(@Valid @RequestBody ProductoRequest request) {
         return ResponseEntity.ok(productoService.crearProducto(request));
     }
 
     @PutMapping("/admin/productos/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<ProductoResponse> actualizarProducto(
             @PathVariable Long id, @Valid @RequestBody ProductoRequest request) {
         return ResponseEntity.ok(productoService.actualizarProducto(id, request));
     }
 
     @DeleteMapping("/admin/productos/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
         productoService.eliminarProducto(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/admin/productos/{id}/disponibilidad")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
+    public ResponseEntity<ProductoResponse> cambiarDisponibilidad(
+            @PathVariable Long id, @RequestParam boolean activo) {
+        return ResponseEntity.ok(productoService.cambiarDisponibilidad(id, activo));
     }
 
 

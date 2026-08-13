@@ -25,11 +25,12 @@ public class CustomJwtAuthenticationConverter implements Converter<Jwt, Username
         if (email == null) return null;
 
         Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
-        if (usuario == null || !usuario.getActivo()) return null;
+        if (usuario == null || !Boolean.TRUE.equals(usuario.getActivo())) return null;
 
-        String roleName = usuario.getRol().getNombreRol();
+        String roleName = usuario.getRol().getNombreRol().trim().toUpperCase();
+        if (!List.of("CLIENTE", "CAJERO", "ADMINISTRADOR").contains(roleName)) return null;
         List<SimpleGrantedAuthority> authorities =
-                List.of(new SimpleGrantedAuthority("ROLE_" + roleName.toUpperCase()));
+                List.of(new SimpleGrantedAuthority("ROLE_" + roleName));
 
         return new UsernamePasswordAuthenticationToken(usuario, jwt, authorities);
     }

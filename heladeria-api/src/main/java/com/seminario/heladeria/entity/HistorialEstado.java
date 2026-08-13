@@ -25,6 +25,10 @@ public class HistorialEstado {
     @JoinColumn(name = "id_pedido", nullable = false)
     private Pedido pedido;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario")
+    private Usuario operador;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -49,6 +53,9 @@ public class HistorialEstado {
 
     public Pedido getPedido() { return pedido; }
     public void setPedido(Pedido pedido) { this.pedido = pedido; }
+
+    public Usuario getOperador() { return operador; }
+    public void setOperador(Usuario operador) { this.operador = operador; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

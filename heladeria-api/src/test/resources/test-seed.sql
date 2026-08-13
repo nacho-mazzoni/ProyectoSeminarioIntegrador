@@ -20,7 +20,7 @@ TRUNCATE TABLE cliente CASCADE;
 TRUNCATE TABLE usuario CASCADE;
 TRUNCATE TABLE rol CASCADE;
 
-INSERT INTO rol (id_rol, nombre_rol) VALUES (1, 'Administrador'), (2, 'Cliente');
+INSERT INTO rol (id_rol, nombre_rol) VALUES (1, 'Administrador'), (2, 'Cliente'), (3, 'Cajero');
 
 INSERT INTO usuario (id_usuario, email, clave, activo, id_rol) VALUES
     (1, 'admin@heladeria.com', '$2a$10$N9mGcVJ5eX1Y1Y1Y1Y1Y1u1Y1Y1Y1Y1Y1Y1Y1Y1Y1Y1Y1Y1Y1e', true, 1),
@@ -66,9 +66,9 @@ INSERT INTO direccion (id_direccion, calle, numero, ciudad, referencia, id_usuar
     (1, 'Av. Siempre Viva', '123', 'Springfield', 'Cerca de la plaza', 2, 1),
     (2, 'Calle Falsa', '456', 'Springfield', NULL, 2, 2);
 
-INSERT INTO pedido (id_pedido, fecha, total, metodo_entrega, id_cliente, id_direccion, id_promocion) VALUES
-    (1, now() - interval '2 days', 5000.00, 'delivery', 2, 1, 1),
-    (2, now() - interval '5 days', 2400.00, 'retiro', 2, 1, NULL);
+INSERT INTO pedido (id_pedido, numero_seguimiento, fecha, total, metodo_entrega, id_cliente, id_direccion, id_promocion) VALUES
+    (1, 'RH-TEST-0001', now() - interval '2 days', 5000.00, 'delivery', 2, 1, 1),
+    (2, 'RH-TEST-0002', now() - interval '5 days', 2400.00, 'retiro', 2, 1, NULL);
 
 INSERT INTO detalle_pedido (id_detalle, cantidad, precio_unit_hist, id_pedido, id_producto) VALUES
     (1, 2, 2500.00, 1, 1),
@@ -79,7 +79,7 @@ INSERT INTO detalle_pedido_sabor (id_detalle, id_sabor) VALUES (1, 1), (1, 2);
 INSERT INTO historial_estado (id_hist, fecha_hora, estado, notas, id_pedido) VALUES
     (1, now() - interval '2 days', 'PENDIENTE', 'Pedido creado', 1),
     (2, now() - interval '5 days', 'PENDIENTE', 'Pedido creado', 2),
-    (3, now() - interval '4 days', 'CONFIRMADO', 'Pago confirmado', 2),
+    (3, now() - interval '4 days', 'PAGADO', 'Pago confirmado', 2),
     (4, now() - interval '3 days', 'ENTREGADO', 'Entregado al cliente', 2);
 
 INSERT INTO carrito (id_carrito, id_cliente) VALUES (1, 2);

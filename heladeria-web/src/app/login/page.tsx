@@ -24,7 +24,9 @@ export default function LoginPage() {
     try {
       const u = await login(email, password);
       toast.success("¡Bienvenido de vuelta!");
-      router.push(u.rol === "ADMINISTRADOR" ? "/admin" : "/account");
+      router.push(
+        u.rol === "ADMINISTRADOR" ? "/admin" : u.rol === "CAJERO" ? "/admin/pedidos" : "/account",
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "No pudimos iniciar sesión. Verificá tus datos.";
       console.error("Error al iniciar sesión:", msg);

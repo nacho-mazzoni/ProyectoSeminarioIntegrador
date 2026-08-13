@@ -14,19 +14,24 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { useAuth } from "@/context/auth-context";
 
-const ESTADOS = ["", "PENDIENTE", "EN_PREPARACION", "EN_CAMINO", "ENTREGADO", "CANCELADO"];
+const ESTADOS = ["PENDIENTE", "PAGADO", "RECHAZADO", "EN_PREPARACION", "EN_CAMINO", "LISTO_PARA_RETIRO", "ENTREGADO", "CANCELADO"];
+const ESTADO_LABELS: Record<string, string> = { PENDIENTE: "Pendiente", PAGADO: "Pagado", RECHAZADO: "Rechazado", EN_PREPARACION: "En preparación", EN_CAMINO: "En camino", LISTO_PARA_RETIRO: "Listo para retiro", ENTREGADO: "Entregado", CANCELADO: "Cancelado" };
 
 function getUltimoEstado(historial: { estado: string }[]): string {
   return historial.length > 0 ? historial[historial.length - 1].estado : "";
 }
 
 export default function AdminOrdersPage() {
-  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("TODOS");
+  const { isReady, isAuthenticated } = useAuth();
 
   const { data: orders = [], isLoading, error } = useQuery({
     queryKey: ["admin-orders", filtroEstado],
-    queryFn: () => api.admin.pedidos.listar(filtroEstado || undefined),
+    queryFn: () => api.admin.pedidos.listar(filtroEstado === "TODOS" ? undefined : filtroEstado),
+    refetchInterval: 30_000,
+    enabled: isReady && isAuthenticated,
   });
 
   return (
@@ -37,14 +42,14 @@ export default function AdminOrdersPage() {
       </div>
 
       <div className="flex items-center gap-3">
-        <Select value={filtroEstado} onValueChange={setFiltroEstado}>
+           <Select value={filtroEstado} onValueChange={setFiltroEstado}>
           <SelectTrigger className="w-48 h-10 rounded-full">
             <SelectValue placeholder="Todos los estados" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value=" ">Todos los estados</SelectItem>
-            {ESTADOS.filter(Boolean).map((e) => (
-              <SelectItem key={e} value={e}>{e.replace("_", " ")}</SelectItem>
+             <SelectItem value="TODOS">Todos los estados</SelectItem>
+             {ESTADOS.map((e) => (
+               <SelectItem key={e} value={e}>{ESTADO_LABELS[e]}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -63,7 +68,7 @@ export default function AdminOrdersPage() {
           </div>
         ) : orders.length === 0 ? (
           <div className="py-12">
-            <EmptyState icon={Package} title="Sin pedidos" description={filtroEstado ? "No hay pedidos con ese estado." : "Todavía no hay pedidos."} />
+             <EmptyState icon={Package} title="Sin pedidos" description={filtroEstado !== "TODOS" ? "No hay pedidos con ese estado." : "Todavía no hay pedidos."} />
           </div>
         ) : (
           <Table>
@@ -71,7 +76,7 @@ export default function AdminOrdersPage() {
               <TableRow>
                 <TableHead className="w-16">ID</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Fecha</TableHead>
+                 <TableHead>Seguimiento</TableHead><TableHead>Fecha</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Entrega</TableHead>
                 <TableHead>Estado</TableHead>
@@ -79,10 +84,11 @@ export default function AdminOrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((o) => (
+                {orders.map((o) => (
                 <TableRow key={o.idPedido}>
-                  <TableCell className="text-muted-foreground">#{o.idPedido}</TableCell>
-                  <TableCell className="font-medium">{o.cliente}</TableCell>
+                   <TableCell className="text-muted-foreground">#{o.idPedido}</TableCell>
+                   <TableCell className="font-medium">{o.cliente}</TableCell>
+                   <TableCell className="text-sm text-muted-foreground">{o.numeroSeguimiento ?? `RH-${o.idPedido}`}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {new Date(o.fecha).toLocaleDateString("es-AR", {
                       day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",

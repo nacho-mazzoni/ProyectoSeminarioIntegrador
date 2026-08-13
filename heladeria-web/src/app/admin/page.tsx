@@ -10,13 +10,18 @@ import { StatsCard } from "@/components/admin/StatsCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/auth-context";
 
 const ESTADO_COLORS: Record<string, string> = {
-  PENDIENTE: "#D8C3A5",
-  EN_PREPARACION: "#8B7355",
-  EN_CAMINO: "#6F5443",
-  ENTREGADO: "#7A9E6D",
-  CANCELADO: "#8B3A2A",
+  PENDIENTE: "var(--color-secondary)",
+  EN_PREPARACION: "var(--color-muted-foreground)",
+  EN_CAMINO: "var(--color-muted-foreground)",
+  LISTO_PARA_RETIRO: "var(--color-muted-foreground)",
+  ENTREGADO: "var(--color-success)",
+  CANCELADO: "var(--color-destructive)",
+  PAGADO: "var(--color-success)",
+  RECHAZADO: "var(--color-destructive)",
 };
 
 const MESES_OPCIONES = [
@@ -38,16 +43,35 @@ function formatMesLabel(mes: string): string {
 }
 
 export default function AdminDashboard() {
+  const { isReady, isAuthenticated } = useAuth();
   const [meses, setMeses] = useState(6);
+  const [desde, setDesde] = useState(() => new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10));
+  const [hasta, setHasta] = useState(() => new Date().toISOString().slice(0, 10));
+  const setRange = (days: number) => {
+    setHasta(new Date().toISOString().slice(0, 10));
+    setDesde(new Date(Date.now() - days * 86400000).toISOString().slice(0, 10));
+  };
 
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ["admin-dashboard-stats"],
     queryFn: api.admin.dashboard.stats,
+    enabled: isReady && isAuthenticated,
   });
 
   const { data: ingresosMensuales, isLoading: loadingIngresos } = useQuery({
     queryKey: ["admin-ingresos-mensuales", meses],
     queryFn: () => api.admin.dashboard.ingresosMensuales(meses),
+    enabled: isReady && isAuthenticated,
+  });
+  const reporteQuery = useQuery({
+    queryKey: ["admin-reporte-ingresos", desde, hasta],
+    queryFn: () => api.reportes.ingresos(new Date(`${desde}T00:00:00`).toISOString(), new Date(`${hasta}T23:59:59`).toISOString()),
+    enabled: isReady && isAuthenticated && !!desde && !!hasta && desde <= hasta,
+  });
+  const rankingQuery = useQuery({
+    queryKey: ["admin-reporte-dashboard"],
+    queryFn: api.reportes.dashboard,
+    enabled: isReady && isAuthenticated,
   });
 
   if (isLoading) {
@@ -111,20 +135,20 @@ export default function AdminDashboard() {
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.pedidosPorEstado} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#C9B29540" />
-                  <XAxis dataKey="estado" tick={{ fontSize: 12, fill: "#6F5443" }} />
-                  <YAxis tick={{ fontSize: 12, fill: "#6F5443" }} allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="estado" tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }} />
+                  <YAxis tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{
-                      background: "#FBF7F2",
-                      border: "1px solid #C9B295",
+                      background: "var(--color-card)",
+                      border: "1px solid var(--color-border)",
                       borderRadius: "0.75rem",
                       fontSize: "0.875rem",
                     }}
                   />
                   <Bar dataKey="cantidad" radius={[8, 8, 0, 0]}>
                     {stats.pedidosPorEstado.map((entry) => (
-                      <rect key={entry.estado} fill={ESTADO_COLORS[entry.estado] ?? "#D8C3A5"} />
+                      <rect key={entry.estado} fill={ESTADO_COLORS[entry.estado] ?? "var(--color-secondary)"} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -151,7 +175,8 @@ export default function AdminDashboard() {
                         className="h-2 rounded-full bg-primary transition-all"
                         style={{
                           width: `${Math.min(
-                            (p.cantidad / Math.max(...stats.productosMasVendidos.map((x) => x.cantidad))) * 100,
+                           Math.max(...stats.productosMasVendidos.map((x) => x.cantidad), 0) === 0 ? 0 :
+                             (p.cantidad / Math.max(...stats.productosMasVendidos.map((x) => x.cantidad), 0)) * 100,
                             100,
                           )}%`,
                         }}
@@ -167,6 +192,19 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Ranking title="Sabores más vendidos" items={rankingQuery.data?.topSabores ?? []} loading={rankingQuery.isLoading} error={rankingQuery.error} empty="No hubo ventas de sabores." />
+        <Ranking title="Productos más vendidos (reporte)" items={rankingQuery.data?.topProductos ?? []} loading={rankingQuery.isLoading} error={rankingQuery.error} empty="No hubo ventas de productos." />
+      </div>
+
+      <section className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div><h2 className="font-display text-lg font-semibold">Reporte de ingresos</h2><p className="text-sm text-muted-foreground">Solo contabiliza pedidos entregados.</p></div>
+           <div className="flex flex-wrap items-end gap-3"><div className="flex gap-1"><Button type="button" variant="outline" size="sm" onClick={() => setRange(0)}>Hoy</Button><Button type="button" variant="outline" size="sm" onClick={() => setRange(7)}>7 días</Button><Button type="button" variant="outline" size="sm" onClick={() => setRange(30)}>30 días</Button></div><label className="text-xs text-muted-foreground">Desde<input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="mt-1 block h-9 rounded-lg border border-border bg-background px-2 text-sm text-foreground" /></label><label className="text-xs text-muted-foreground">Hasta<input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="mt-1 block h-9 rounded-lg border border-border bg-background px-2 text-sm text-foreground" /></label></div>
+        </div>
+        {desde > hasta ? <p className="mt-5 text-sm text-destructive">El inicio debe ser anterior al fin.</p> : reporteQuery.isLoading ? <Skeleton className="mt-5 h-24 w-full" /> : reporteQuery.error ? <p className="mt-5 text-sm text-destructive">No se pudo cargar el reporte: {reporteQuery.error.message}</p> : reporteQuery.data && reporteQuery.data.cantidadPedidos === 0 ? <p className="mt-5 text-sm text-muted-foreground">No hubo ventas entregadas en este período. Total: {formatPrice(0)}.</p> : reporteQuery.data ? <div className="mt-5 grid gap-3 sm:grid-cols-3"><StatsCard title="Ingresos" value={formatPrice(reporteQuery.data.totalIngresos)} icon={DollarSign} /><StatsCard title="Pedidos entregados" value={reporteQuery.data.cantidadPedidos} icon={Package} /><StatsCard title="Promedio por pedido" value={formatPrice(reporteQuery.data.promedio)} icon={DollarSign} /></div> : null}
+      </section>
 
       <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
         <div className="mb-4 flex items-center justify-between">
@@ -191,23 +229,23 @@ export default function AdminDashboard() {
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#C9B29540" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "#6F5443" }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }} />
                   <YAxis
-                    tick={{ fontSize: 12, fill: "#6F5443" }}
+                    tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }}
                     tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
                   />
                   <Tooltip
                     formatter={(value: number) => formatPrice(value)}
                     labelFormatter={(label) => `Mes: ${label}`}
                     contentStyle={{
-                      background: "#FBF7F2",
-                      border: "1px solid #C9B295",
+                      background: "var(--color-card)",
+                      border: "1px solid var(--color-border)",
                       borderRadius: "0.75rem",
                       fontSize: "0.875rem",
                     }}
                   />
-                  <Bar dataKey="total" fill="#4A2E1F" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="total" fill="var(--color-primary)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -227,4 +265,9 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
+}
+
+function Ranking({ title, items, loading, error, empty }: { title: string; items: { nombre: string; cantidadVendida: number }[]; loading: boolean; error: Error | null; empty: string }) {
+  const chartData = items.slice(0, 8).map((item) => ({ ...item, label: item.nombre.length > 16 ? `${item.nombre.slice(0, 16)}…` : item.nombre }));
+  return <section className="rounded-2xl border border-border bg-card p-6 shadow-soft"><h2 className="mb-4 font-display text-lg font-semibold">{title}</h2>{loading ? <Skeleton className="h-48 w-full" /> : error ? <p className="text-sm text-destructive">No se pudo cargar: {error.message}</p> : items.length === 0 ? <p className="text-sm text-muted-foreground">{empty}</p> : <div className="h-56"><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16 }}><CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" /><XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }} /><YAxis type="category" dataKey="label" width={110} tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} /><Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "0.75rem" }} /><Bar dataKey="cantidadVendida" name="Vendidos" fill="var(--color-primary)" radius={[0, 8, 8, 0]} /></BarChart></ResponsiveContainer></div>}</section>;
 }

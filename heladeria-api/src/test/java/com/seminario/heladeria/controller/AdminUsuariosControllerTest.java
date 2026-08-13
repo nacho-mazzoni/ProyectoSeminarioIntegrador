@@ -13,6 +13,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import com.seminario.heladeria.repository.ClienteRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,12 @@ class AdminUsuariosControllerTest {
 
     @MockitoBean
     private CustomJwtAuthenticationConverter jwtConverter;
+
+    @MockitoBean
+    private PasswordEncoder passwordEncoder;
+
+    @MockitoBean
+    private ClienteRepository clienteRepository;
 
     @Test
     void actualizarRol_shouldReturnUsuario() throws Exception {

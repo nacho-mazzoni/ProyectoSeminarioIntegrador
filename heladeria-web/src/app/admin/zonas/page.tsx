@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Plus, Pencil, Trash2, Truck } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/context/auth-context";
 import { api } from "@/services/api";
 import { formatPrice } from "@/lib/cart-utils";
 import type { ZonaEnvioResponse } from "@/lib/types";
@@ -92,10 +93,12 @@ export default function AdminZonasPage() {
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ZonaEnvioResponse | undefined>(undefined);
+  const { isReady, isAuthenticated } = useAuth();
 
   const { data: zonas = [], isLoading } = useQuery({
     queryKey: ["admin-zonas"],
     queryFn: api.admin.zonas.listar,
+    enabled: isReady && isAuthenticated,
   });
 
   const deleteMutation = useMutation({

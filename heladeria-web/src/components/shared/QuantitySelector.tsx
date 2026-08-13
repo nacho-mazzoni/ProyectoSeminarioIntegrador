@@ -16,7 +16,7 @@ export function QuantitySelector({
   min = 1,
   max = 99,
   size = "md",
-  label = "Quantity",
+  label = "Cantidad",
 }: QuantitySelectorProps) {
   const btn = size === "sm" ? "size-8" : "size-10";
   const box = size === "sm" ? "w-8 text-sm" : "w-10 text-base";

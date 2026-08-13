@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 export function ProductCard({ product }: { product: ProductoResponse }) {
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
+  const sinStock = product.stockEnvases <= 0;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -23,6 +24,7 @@ export function ProductCard({ product }: { product: ProductoResponse }) {
       toast.info("Seleccioná los sabores en la página del producto");
       return;
     }
+    if (sinStock) { toast.error("Este producto no tiene stock disponible"); return; }
     addItem(product, 1, [], []);
     toast.success(`${product.nombre} agregado al carrito`);
   };
@@ -58,11 +60,11 @@ export function ProductCard({ product }: { product: ProductoResponse }) {
           <Button
             size="icon"
             onClick={handleAdd}
-            disabled={!isAuthenticated}
+            disabled={!isAuthenticated || sinStock}
             aria-label={`Agregar ${product.nombre} al carrito`}
             className={cn(
               "size-10 rounded-full",
-              !isAuthenticated && "pointer-events-auto opacity-30 grayscale hover:bg-primary",
+              (!isAuthenticated || sinStock) && "pointer-events-auto opacity-30 grayscale hover:bg-primary",
             )}
           >
             <Plus className="size-5" />

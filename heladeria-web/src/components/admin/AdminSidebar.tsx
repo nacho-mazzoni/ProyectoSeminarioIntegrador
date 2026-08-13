@@ -9,6 +9,7 @@ import {
   Droplets,
   Sparkles,
   Tags,
+  BadgePercent,
   Truck,
   Users,
   LogOut,
@@ -29,17 +30,18 @@ const links = [
   { href: "/admin/categorias", label: "Categorías", icon: Tags },
   { href: "/admin/zonas", label: "Zonas de envío", icon: Truck },
   { href: "/admin/usuarios", label: "Usuarios", icon: Users },
+  { href: "/admin/promociones", label: "Promociones", icon: BadgePercent },
 ];
 
 export function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const router = useRouter();
 
   return (
     <aside className="flex h-full flex-col bg-primary text-primary-foreground">
       <div className="flex items-center justify-between px-4 py-5">
-        <Link href="/admin" className="flex items-center gap-2">
+          <Link href={user?.rol === "CAJERO" ? "/admin/pedidos" : "/admin"} className="flex items-center gap-2">
           <span className="grid size-9 place-items-center rounded-xl bg-primary-foreground/15">
             <IceCream className="size-5" />
           </span>
@@ -54,7 +56,7 @@ export function AdminSidebar({ onClose }: { onClose?: () => void }) {
 
       <ScrollArea className="flex-1 px-3 py-2">
         <nav className="flex flex-col gap-1">
-          {links.map((link) => {
+          {links.filter((link) => user?.rol === "ADMINISTRADOR" || ["/admin/productos", "/admin/pedidos", "/admin/promociones"].includes(link.href)).map((link) => {
             const isActive = link.href === "/admin" ? pathname === "/admin" : pathname.startsWith(link.href);
             return (
               <Link

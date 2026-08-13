@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long>, JpaSpecificationExecutor<Producto> {
     List<Producto> findByCategoriaIdCategoria(Long idCategoria);
+    List<Producto> findByActivoTrueAndStockEnvasesGreaterThan(int stock);
 }

@@ -71,6 +71,13 @@ public class CarritoService {
                     return new ResourceNotFoundException("Producto no encontrado");
                 });
 
+        if (request.getCantidad() == null || request.getCantidad() <= 0) {
+            throw new BusinessRuleException("La cantidad debe ser positiva");
+        }
+        if (!Boolean.TRUE.equals(producto.getActivo()) || producto.getStockEnvases() < request.getCantidad()) {
+            throw new BusinessRuleException("El producto no está disponible o no tiene stock suficiente");
+        }
+
         if (producto.getCategoria().getRequiereSabores() &&
             (request.getIdsSabor() == null || request.getIdsSabor().isEmpty())) {
             log.error("Producto {} requiere sabores pero no se enviaron", request.getIdProducto());
@@ -96,6 +103,9 @@ public class CarritoService {
             for (Long idSabor : request.getIdsSabor()) {
                 Sabor sabor = saborRepository.findById(idSabor)
                         .orElseThrow(() -> new ResourceNotFoundException("Sabor no encontrado: " + idSabor));
+                if (!Boolean.TRUE.equals(sabor.getDisponible()) || sabor.getStockBaldes() <= 0) {
+                    throw new BusinessRuleException("El sabor no está disponible");
+                }
                 CarritoItemSabor cis = new CarritoItemSabor();
                 cis.setId(new CarritoItemSaborId(null, idSabor));
                 cis.setCarritoItem(item);
@@ -108,6 +118,9 @@ public class CarritoService {
             for (Long idAdicional : request.getIdsAdicional()) {
                 Adicional adicional = adicionalRepository.findById(idAdicional)
                         .orElseThrow(() -> new ResourceNotFoundException("Adicional no encontrado: " + idAdicional));
+                if (!Boolean.TRUE.equals(adicional.getDisponible())) {
+                    throw new BusinessRuleException("El adicional no está disponible");
+                }
                 CarritoItemAdicional cia = new CarritoItemAdicional();
                 cia.setId(new CarritoItemAdicionalId(null, idAdicional));
                 cia.setCarritoItem(item);
@@ -232,14 +245,12 @@ public class CarritoService {
         Pedido pedido = pedidoService.crear(cliente, pedidoRequest);
         PedidoResponse pedidoResponse = pedidoService.buildResponse(pedido);
 
-        if ("mercado_pago".equals(request.getMetodoPago())) {
-            pagoService.crearPagoConMP(pedido);
+        if ("mercado_pago".equalsIgnoreCase(request.getMetodoPago())) {
             String initPoint = pagoService.crearPreferenciaMP(pedido);
             PedidoResponse finalResponse = pedidoService.buildResponse(pedido);
             carritoRepository.delete(carrito);
             return new CheckoutResponse(finalResponse, initPoint, null);
         } else {
-            pagoService.crearPagoEfectivo(pedido);
             PedidoResponse finalResponse = pedidoService.buildResponse(pedido);
             carritoRepository.delete(carrito);
             return new CheckoutResponse(finalResponse, null, null);

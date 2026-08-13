@@ -152,7 +152,7 @@ export default function AccountPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pass-nueva">Nueva contraseña</Label>
-                    <Input id="pass-nueva" type="password" value={passNueva} onChange={(e) => setPassNueva(e.target.value)} required minLength={6} />
+                   <Input id="pass-nueva" type="password" value={passNueva} onChange={(e) => setPassNueva(e.target.value)} required minLength={8} pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" />
                   </div>
                   <Button type="submit" className="rounded-full" disabled={changingPass}>
                     {changingPass && <Loader2 className="size-4 animate-spin" />}

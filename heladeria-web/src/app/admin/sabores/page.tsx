@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Plus, Pencil, Trash2, Droplets } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/context/auth-context";
 import { api } from "@/services/api";
 import type { SaborResponse } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -113,10 +114,12 @@ export default function AdminSaboresPage() {
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SaborResponse | undefined>(undefined);
+  const { isReady, isAuthenticated } = useAuth();
 
   const { data: sabores = [], isLoading } = useQuery({
     queryKey: ["admin-sabores"],
     queryFn: api.admin.sabores.listar,
+    enabled: isReady && isAuthenticated,
   });
 
   const deleteMutation = useMutation({

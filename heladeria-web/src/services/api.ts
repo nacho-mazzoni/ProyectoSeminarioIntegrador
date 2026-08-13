@@ -17,6 +17,11 @@ import type {
   ZonaRequest,
   CambioEstadoRequest,
   Promocion,
+  RolResponse,
+  UsuarioRequest,
+  CheckoutResponse,
+  ReporteDashboardResponse,
+  ReporteIngresosResponse,
 } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
@@ -29,12 +34,24 @@ function authHeaders(): Record<string, string> {
   };
 }
 
+export class ApiError extends Error {
+  fieldErrors: Record<string, string>
+
+  constructor(message: string, fieldErrors: Record<string, string> = {}) {
+    super(message)
+    this.name = "ApiError"
+    this.fieldErrors = fieldErrors
+  }
+}
+
 async function handleError(res: Response): Promise<never> {
   if (res.status === 401) {
     localStorage.removeItem("token");
   }
-  const err = await res.json().catch(() => ({ error: res.statusText }));
-  throw new Error(err.error ?? "Error de red");
+  const err = await res.json().catch(() => ({}));
+  const fieldErrors = err.errors && !Array.isArray(err.errors) && typeof err.errors === "object" ? err.errors : {};
+  const message = err.error ?? err.message ?? (Array.isArray(err.errors) ? err.errors.join(", ") : null) ?? res.statusText;
+  throw new ApiError(message || "Error de red", fieldErrors);
 }
 
 async function getPublic<T>(path: string): Promise<T> {
@@ -74,6 +91,12 @@ async function putAuth<T>(path: string, body: unknown): Promise<T> {
 async function delAuth(path: string): Promise<void> {
   const res = await fetch(`${API}${path}`, { method: "DELETE", headers: authHeaders() });
   if (!res.ok) await handleError(res);
+}
+
+async function patchAuth<T>(path: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${API}${path}`, { method: "PATCH", headers: authHeaders(), ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+  if (!res.ok) await handleError(res);
+  return res.status === 204 ? (undefined as T) : res.json();
 }
 
 export const api = {
@@ -135,17 +158,18 @@ export const api = {
         idsSabor?: number[]
         idsAdicional?: number[]
       }[]
-    }) => postAuth<PedidoResponse & { initPoint?: string }>("/pedidos", data),
-    cancelar: (id: number) =>
-      fetch(`${API}/pedidos/${id}/cancelar`, { method: "PATCH", headers: authHeaders() }).then((r) => {
-        if (!r.ok) return r.json().then((e) => { throw new Error(e.error); });
-      }),
+    }) => postAuth<CheckoutResponse>("/pedidos", data),
+      cancelar: (id: number) => patchAuth<PedidoResponse>(`/pedidos/${id}/cancelar`),
   },
   admin: {
     productos: {
+      listar: () => getAuth<ProductoResponse[]>("/admin/productos"),
       crear: (data: ProductoRequest) => postAuth<ProductoResponse>("/admin/productos", data),
       actualizar: (id: number, data: ProductoRequest) =>
         putAuth<ProductoResponse>(`/admin/productos/${id}`, data),
+      eliminar: (id: number) => delAuth(`/admin/productos/${id}`),
+      cambiarDisponibilidad: (id: number, activo: boolean) =>
+        patchAuth<ProductoResponse>(`/admin/productos/${id}/disponibilidad?activo=${activo}`),
     },
     pedidos: {
       listar: (estado?: string) =>
@@ -184,6 +208,13 @@ export const api = {
     },
     usuarios: {
       listar: () => getAuth<UsuarioResponse[]>("/admin/usuarios"),
+      roles: () => getAuth<RolResponse[]>("/admin/roles"),
+      crear: (data: UsuarioRequest) => postAuth<UsuarioResponse>("/admin/usuarios", data),
+      actualizar: (id: number, data: UsuarioRequest) => putAuth<UsuarioResponse>(`/admin/usuarios/${id}`, data),
+      actualizarRol: (id: number, idRol: number) =>
+        putAuth<UsuarioResponse>(`/admin/usuarios/${id}/rol`, { idRol }),
+      toggleActivo: (id: number) =>
+        putAuth<UsuarioResponse>(`/admin/usuarios/${id}/activo`, {}),
     },
     promociones: {
       listar: () => getAuth<Promocion[]>("/admin/promociones"),
@@ -201,6 +232,15 @@ export const api = {
       stats: () => getAuth<DashboardStatsResponse>("/admin/dashboard/stats"),
       ingresosMensuales: (meses = 6) =>
         getAuth<IngresoMensual[]>(`/admin/dashboard/ingresos-mensuales?meses=${meses}`),
+    },
+  },
+  reportes: {
+    dashboard: () => getAuth<ReporteDashboardResponse>("/admin/reportes/dashboard"),
+    ingresos: (desde?: string, hasta?: string) => {
+      const params = new URLSearchParams();
+      if (desde) params.set("desde", desde);
+      if (hasta) params.set("hasta", hasta);
+      return getAuth<ReporteIngresosResponse>(`/admin/reportes/ingresos${params.toString() ? `?${params}` : ""}`);
     },
   },
 };

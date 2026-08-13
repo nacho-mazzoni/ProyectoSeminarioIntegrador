@@ -389,6 +389,7 @@ CREATE TABLE public.historial_estado (
     estado character varying(50) NOT NULL,
     notas text,
     id_pedido bigint NOT NULL,
+    id_usuario bigint,
     created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -430,6 +431,7 @@ CREATE TABLE public.pago (
     fecha_pago timestamp with time zone DEFAULT now() NOT NULL,
     metodo_pago character varying(50) NOT NULL,
     estado_pago character varying(50) DEFAULT 'pendiente'::character varying NOT NULL,
+    init_point character varying(500),
     id_pedido bigint NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
@@ -469,6 +471,7 @@ ALTER SEQUENCE public.pago_id_pago_seq OWNED BY public.pago.id_pago;
 
 CREATE TABLE public.pedido (
     id_pedido bigint NOT NULL,
+    numero_seguimiento character varying(40) NOT NULL,
     fecha timestamp with time zone DEFAULT now() NOT NULL,
     total numeric(10,2) NOT NULL,
     metodo_entrega character varying(50) NOT NULL,
@@ -974,6 +977,9 @@ ALTER TABLE ONLY public.pago
 ALTER TABLE ONLY public.pedido
     ADD CONSTRAINT pedido_pkey PRIMARY KEY (id_pedido);
 
+ALTER TABLE ONLY public.pedido
+    ADD CONSTRAINT pedido_numero_seguimiento_key UNIQUE (numero_seguimiento);
+
 
 --
 -- TOC entry 5065 (class 2606 OID 21145)
@@ -1427,6 +1433,9 @@ ALTER TABLE ONLY public.detalle_pedido_sabor
 ALTER TABLE ONLY public.historial_estado
     ADD CONSTRAINT fk_historial_pedido FOREIGN KEY (id_pedido) REFERENCES public.pedido(id_pedido);
 
+ALTER TABLE ONLY public.historial_estado
+    ADD CONSTRAINT fk_historial_estado_usuario FOREIGN KEY (id_usuario) REFERENCES public.usuario(id_usuario);
+
 
 --
 -- TOC entry 5074 (class 2606 OID 20986)
@@ -1490,3 +1499,8 @@ ALTER TABLE ONLY public.usuario
 
 \unrestrict mNRzHN0bI2Udx8uILN1amaGMuD4lpdrT2Vyd5wwZdqMVbdN7aWanwRILFqFHGNc
 
+-- Invariantes de disponibilidad y estados oficiales.
+ALTER TABLE public.producto ADD COLUMN activo boolean DEFAULT true NOT NULL;
+ALTER TABLE public.historial_estado ADD CONSTRAINT historial_estado_estado_check
+    CHECK (estado IN ('PENDIENTE', 'PAGADO', 'RECHAZADO', 'EN_PREPARACION',
+                      'LISTO_PARA_RETIRO', 'EN_CAMINO', 'ENTREGADO', 'CANCELADO'));

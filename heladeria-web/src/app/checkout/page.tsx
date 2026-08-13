@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { CreditCard, Loader2, MapPin, MapPinPlus, Wallet } from "lucide-react";
+import { Check, CreditCard, Loader2, MapPin, MapPinPlus, ShieldAlert, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
 import { useCart } from "@/context/cart-context";
@@ -26,12 +26,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { formatPrice } from "@/lib/cart-utils";
 
 export default function CheckoutPage() {
   const qc = useQueryClient();
   const navigate = useRouter();
   const { items, clear } = useCart();
-  const { isAuthenticated, isReady } = useAuth();
+  const { isAuthenticated, isReady, user } = useAuth();
+  const isStaff = user?.rol === "ADMINISTRADOR" || user?.rol === "CAJERO";
 
   useEffect(() => {
     if (isReady && !isAuthenticated) {
@@ -48,15 +50,20 @@ export default function CheckoutPage() {
   const [addrCiudad, setAddrCiudad] = useState("");
   const [addrReferencia, setAddrReferencia] = useState("");
   const [addrIdZona, setAddrIdZona] = useState<string>("");
+  const [codigoPromocion, setCodigoPromocion] = useState("");
+  const [promocion, setPromocion] = useState<{ codigo: string; porcDesc: number } | null>(null);
+  const [promoError, setPromoError] = useState("");
 
   const { data: addresses = [], isLoading } = useQuery({
     queryKey: ["addresses"],
     queryFn: api.direcciones.listar,
+    enabled: isReady && isAuthenticated && !isStaff,
   });
 
   const { data: zonas = [] } = useQuery({
     queryKey: ["zonas"],
     queryFn: api.zonas.listar,
+    enabled: isReady && isAuthenticated && !isStaff,
   });
 
   const createAddress = useMutation({
@@ -78,6 +85,37 @@ export default function CheckoutPage() {
   const selectedAddress = addresses.find((a) => a.idDireccion === addressId) ?? addresses[0];
   const selectedAddressId = selectedAddress?.idDireccion;
   const selectedZone = zonas.find((z) => z.idZona === (selectedAddress?.idZona ?? 0));
+  const deliveryFee = metodoEntrega === "delivery" ? (selectedZone?.costoEnvio ?? 0) : 0;
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const discount = promocion ? (subtotal * promocion.porcDesc) / 100 : 0;
+
+  const applyPromotion = async () => {
+    const code = codigoPromocion.trim().toUpperCase();
+    if (!code) { setPromoError("Ingresá un código promocional"); return; }
+    try {
+      const found = await api.promociones.validar(code);
+      setPromocion({ codigo: found.codigo, porcDesc: Number(found.porcDesc) });
+      setCodigoPromocion(found.codigo);
+      setPromoError("");
+      toast.success(`Promoción aplicada: ${found.porcDesc}% de descuento`);
+    } catch (error) {
+      setPromocion(null);
+      setPromoError(error instanceof Error ? error.message : "El código no es válido o está vencido");
+    }
+  };
+
+  if (isStaff) {
+    return (
+      <PageContainer className="py-16">
+        <div className="mx-auto max-w-md space-y-4 text-center">
+          <ShieldAlert className="mx-auto size-12 text-muted-foreground" />
+          <h1 className="text-2xl font-semibold">Acceso denegado</h1>
+          <p className="text-muted-foreground">Los usuarios del panel no pueden finalizar pedidos.</p>
+          <Button className="rounded-full" onClick={() => navigate.push("/cart")}>Volver al carrito</Button>
+        </div>
+      </PageContainer>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -97,6 +135,7 @@ export default function CheckoutPage() {
         metodoEntrega,
         ...(metodoEntrega === "delivery" && selectedAddressId ? { idDireccion: selectedAddressId } : {}),
         metodoPago,
+        ...(promocion ? { codigoPromocion: promocion.codigo } : {}),
         detalles: items.map((i) => ({
           idProducto: i.product.idProducto,
           cantidad: i.quantity,
@@ -104,11 +143,16 @@ export default function CheckoutPage() {
           idsAdicional: i.adicionales.length > 0 ? i.adicionales.map((a) => a.idAdicional) : undefined,
         })),
       });
-      clear();
       if (res.initPoint) {
+        const estado = res.historial?.[res.historial.length - 1]?.estado ?? "PENDIENTE";
+        localStorage.setItem("rumba-habana-last-order", JSON.stringify({ order: res, paymentPending: true }));
+        toast.success(`Pedido #${res.idPedido} creado · ${estado}. Continuá el pago en Mercado Pago.`);
         window.location.href = res.initPoint;
       } else {
-        toast.success("¡Pedido realizado! Estamos preparando tus helados.");
+        clear();
+        const estado = res.historial?.[res.historial.length - 1]?.estado ?? "PENDIENTE";
+        localStorage.setItem("rumba-habana-last-order", JSON.stringify({ order: res, paymentPending: false }));
+        toast.success(`Pedido #${res.idPedido} confirmado · ${estado}`);
         navigate.push("/orders");
       }
     } catch (err) {
@@ -126,6 +170,19 @@ export default function CheckoutPage() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-8">
+          <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+            <h2 className="font-display text-xl font-semibold">Promoción</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Aplicá un código porcentual vigente.</p>
+            <div className="mt-4 flex gap-2">
+              <Input value={codigoPromocion} onChange={(e) => setCodigoPromocion(e.target.value.toUpperCase())} placeholder="CÓDIGO" disabled={!!promocion} aria-invalid={!!promoError} />
+              <Button type="button" variant={promocion ? "outline" : "default"} onClick={() => promocion ? (setPromocion(null), setPromoError("")) : applyPromotion()}>
+                {promocion ? <><Check className="size-4" /> Quitar</> : "Aplicar"}
+              </Button>
+            </div>
+            {promocion && <p className="mt-2 text-sm text-success">Descuento aplicado: {formatPrice(discount)}</p>}
+            {promoError && <p className="mt-2 text-sm text-destructive">{promoError}</p>}
+          </section>
+
           <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
             <div className="mb-4 flex items-center gap-2">
               <MapPin className="size-5 text-primary" />
@@ -295,7 +352,7 @@ export default function CheckoutPage() {
         </div>
 
         <div className="lg:sticky lg:top-24 lg:h-fit">
-          <OrderSummary>
+           <OrderSummary deliveryFeeOverride={deliveryFee} discount={discount}>
             <Button
               size="lg"
               className="w-full rounded-full"

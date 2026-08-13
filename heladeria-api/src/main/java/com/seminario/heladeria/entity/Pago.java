@@ -25,6 +25,9 @@ public class Pago {
     @Column(name = "estado_pago", nullable = false, length = 50)
     private String estadoPago = "pendiente";
 
+    @Column(name = "init_point", length = 500)
+    private String initPoint;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_pedido", nullable = false, unique = true)
     private Pedido pedido;
@@ -62,6 +65,9 @@ public class Pago {
 
     public String getEstadoPago() { return estadoPago; }
     public void setEstadoPago(String estadoPago) { this.estadoPago = estadoPago; }
+
+    public String getInitPoint() { return initPoint; }
+    public void setInitPoint(String initPoint) { this.initPoint = initPoint; }
 
     public Pedido getPedido() { return pedido; }
     public void setPedido(Pedido pedido) { this.pedido = pedido; }
