@@ -65,20 +65,22 @@ export function Navbar() {
           </nav>
 
           <div className="flex items-center gap-1.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative rounded-full"
-              aria-label={`Carrito, ${itemCount} items`}
-              onClick={() => setCartOpen(true)}
-            >
-              <ShoppingBag className="size-5" />
-              {itemCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-xs font-bold text-primary-foreground">
-                  {itemCount}
-                </span>
-              )}
-            </Button>
+            {user?.rol !== "ADMINISTRADOR" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative rounded-full"
+                aria-label={`Carrito, ${itemCount} items`}
+                onClick={() => setCartOpen(true)}
+              >
+                <ShoppingBag className="size-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-xs font-bold text-primary-foreground">
+                    {itemCount}
+                  </span>
+                )}
+              </Button>
+            )}
 
             {isAuthenticated ? (
               <DropdownMenu>
@@ -104,12 +106,16 @@ export function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link href="/account">Perfil</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/orders">Pedidos</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/addresses">Direcciones</Link>
-                  </DropdownMenuItem>
+                  {user?.rol !== "ADMINISTRADOR" && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/orders">Pedidos</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/addresses">Direcciones</Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => {

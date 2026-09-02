@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { UsuarioResponse } from "@/lib/types";
 import { api } from "@/services/api";
 
@@ -19,6 +20,7 @@ const TOKEN_KEY = "token";
 const USER_KEY = "usuario";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<UsuarioResponse | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -65,8 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persist(res.token, res.usuario);
   };
 
-  const logout = () => persist(null, null);
-
+  const logout = () => {
+    queryClient.clear();
+    persist(null, null);
+  };
   const refreshUser = async () => {
     try {
       const u = await api.auth.me();

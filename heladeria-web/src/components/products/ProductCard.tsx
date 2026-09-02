@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 export function ProductCard({ product }: { product: ProductoResponse }) {
   const { addItem } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -26,6 +26,8 @@ export function ProductCard({ product }: { product: ProductoResponse }) {
     addItem(product, 1, [], []);
     toast.success(`${product.nombre} agregado al carrito`);
   };
+
+  const canAdd = isAuthenticated && user?.rol !== "ADMINISTRADOR";
 
   return (
     <Link
@@ -58,11 +60,11 @@ export function ProductCard({ product }: { product: ProductoResponse }) {
           <Button
             size="icon"
             onClick={handleAdd}
-            disabled={!isAuthenticated}
+            disabled={!canAdd}
             aria-label={`Agregar ${product.nombre} al carrito`}
             className={cn(
               "size-10 rounded-full",
-              !isAuthenticated && "pointer-events-auto opacity-30 grayscale hover:bg-primary",
+              !canAdd && "pointer-events-auto opacity-30 grayscale hover:bg-primary",
             )}
           >
             <Plus className="size-5" />

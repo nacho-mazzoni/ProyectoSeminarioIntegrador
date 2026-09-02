@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 export default function ProductDetailPage() {
   const { productId } = useParams<{ productId: string }>();
   const { addItem } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [sabores, setSabores] = useState<SaborResponse[]>([]);
   const [adicionales, setAdicionales] = useState<AdicionalResponse[]>([]);
   const [qty, setQty] = useState(1);
@@ -187,7 +187,7 @@ export default function ProductDetailPage() {
             </fieldset>
           )}
 
-          {isAuthenticated ? (
+          {isAuthenticated && user?.rol !== "ADMINISTRADOR" ? (
             <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-soft sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <QuantitySelector value={qty} onChange={setQty} />
@@ -197,6 +197,12 @@ export default function ProductDetailPage() {
                 <ShoppingBag className="size-4" />
                 Agregar al carrito
               </Button>
+            </div>
+          ) : user?.rol === "ADMINISTRADOR" ? (
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-soft text-center">
+              <p className="text-sm text-muted-foreground">
+                Los administradores no pueden agregar productos al carrito.
+              </p>
             </div>
           ) : (
             <div className="rounded-3xl border border-border bg-card p-6 shadow-soft text-center">

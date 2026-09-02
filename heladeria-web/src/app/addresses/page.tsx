@@ -87,7 +87,7 @@ export default function AddressesPage() {
   };
 
   return (
-    <AuthGate>
+    <AuthGate customerOnly>
       <PageContainer className="py-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>

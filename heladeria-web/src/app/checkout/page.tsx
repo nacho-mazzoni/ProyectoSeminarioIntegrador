@@ -31,13 +31,17 @@ export default function CheckoutPage() {
   const qc = useQueryClient();
   const navigate = useRouter();
   const { items, clear } = useCart();
-  const { isAuthenticated, isReady } = useAuth();
+  const { user, isAuthenticated, isReady } = useAuth();
 
   useEffect(() => {
-    if (isReady && !isAuthenticated) {
-      navigate.push("/login");
+    if (isReady) {
+      if (!isAuthenticated) {
+        navigate.push("/login");
+      } else if (user?.rol === "ADMINISTRADOR") {
+        navigate.push("/admin");
+      }
     }
-  }, [isReady, isAuthenticated, navigate]);
+  }, [isReady, isAuthenticated, user, navigate]);
   const [addressId, setAddressId] = useState<number>();
   const [metodoEntrega, setMetodoEntrega] = useState("retiro");
   const [metodoPago, setMetodoPago] = useState("efectivo");

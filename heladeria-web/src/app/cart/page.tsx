@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, LogIn, ShoppingBag, Trash2 } from "lucide-react";
+import { ArrowRight, LogIn, ShieldAlert, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
 import { PageContainer } from "@/components/shared/PageContainer";
@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function CartPage() {
   const { items, clear } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
     return (
@@ -25,6 +25,23 @@ export default function CartPage() {
           action={
             <Button asChild size="lg" className="rounded-full">
               <Link href="/login">Iniciar sesión</Link>
+            </Button>
+          }
+        />
+      </PageContainer>
+    );
+  }
+
+  if (user?.rol === "ADMINISTRADOR") {
+    return (
+      <PageContainer className="py-16">
+        <EmptyState
+          icon={ShieldAlert}
+          title="Acceso restringido"
+          description="Los administradores no pueden usar el carrito de compras."
+          action={
+            <Button asChild size="lg" className="rounded-full">
+              <Link href="/admin">Ir al Panel de Control</Link>
             </Button>
           }
         />
