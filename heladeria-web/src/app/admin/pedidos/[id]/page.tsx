@@ -13,7 +13,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const ESTADOS_DISPONIBLES = ["PENDIENTE", "EN_PREPARACION", "EN_CAMINO", "ENTREGADO", "CANCELADO"];
+const LABELS_ESTADO: Record<string, string> = {
+  PENDIENTE: "Pendiente",
+  EN_PREPARACION: "En preparación",
+  LISTO_PARA_RETIRAR: "Listo para retirar",
+  LISTO_PARA_ENVIO: "Listo para envío",
+  EN_CAMINO: "En camino",
+  ENTREGADO: "Entregado",
+  FINALIZADO: "Finalizado",
+  CANCELADO: "Cancelado",
+};
+
+function getSiguientesEstados(estadoActual: string, metodoEntrega?: string): string[] {
+  const esDelivery = metodoEntrega?.toLowerCase() === "delivery";
+  switch (estadoActual) {
+    case "PENDIENTE":
+      return ["EN_PREPARACION", "CANCELADO"];
+    case "EN_PREPARACION":
+      return esDelivery
+        ? ["LISTO_PARA_ENVIO", "CANCELADO"]
+        : ["LISTO_PARA_RETIRAR", "CANCELADO"];
+    case "LISTO_PARA_RETIRAR":
+      return ["FINALIZADO"];
+    case "LISTO_PARA_ENVIO":
+      return ["EN_CAMINO"];
+    case "EN_CAMINO":
+      return ["ENTREGADO"];
+    default:
+      return [];
+  }
+}
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -139,33 +168,41 @@ export default function AdminOrderDetailPage() {
 
             <Separator className="my-4" />
 
-            {ultimoEstado === "ENTREGADO" || ultimoEstado === "CANCELADO" ? (
-              <p className="text-sm text-muted-foreground">Este pedido está finalizado y no se puede modificar.</p>
-            ) : (
-              <>
-                <h4 className="mb-3 text-sm font-semibold">Cambiar estado</h4>
-                <div className="flex gap-2">
-                  <Select value={nuevoEstado} onValueChange={setNuevoEstado}>
-                    <SelectTrigger className="h-10 flex-1 rounded-full">
-                      <SelectValue placeholder="Seleccionar..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ESTADOS_DISPONIBLES.filter((e) => e !== ultimoEstado).map((e) => (
-                        <SelectItem key={e} value={e}>{e.replace("_", " ")}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    className="rounded-full shrink-0"
-                    onClick={() => nuevoEstado && mutation.mutate(nuevoEstado)}
-                    disabled={!nuevoEstado || mutation.isPending}
-                  >
-                    {mutation.isPending && <Loader2 className="size-4 animate-spin" />}
-                    Actualizar
-                  </Button>
-                </div>
-              </>
-            )}
+            {(() => {
+              const siguientesEstados = getSiguientesEstados(ultimoEstado, order.metodoEntrega);
+              if (siguientesEstados.length === 0) {
+                return (
+                  <p className="text-sm text-muted-foreground">Este pedido está finalizado y no se puede modificar.</p>
+                );
+              }
+              return (
+                <>
+                  <h4 className="mb-3 text-sm font-semibold">Cambiar estado</h4>
+                  <div className="flex gap-2">
+                    <Select value={nuevoEstado} onValueChange={setNuevoEstado}>
+                      <SelectTrigger className="h-10 flex-1 rounded-full">
+                        <SelectValue placeholder="Seleccionar..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {siguientesEstados.map((e) => (
+                          <SelectItem key={e} value={e}>
+                            {LABELS_ESTADO[e] ?? e.replaceAll("_", " ")}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      className="rounded-full shrink-0"
+                      onClick={() => nuevoEstado && mutation.mutate(nuevoEstado)}
+                      disabled={!nuevoEstado || mutation.isPending}
+                    >
+                      {mutation.isPending && <Loader2 className="size-4 animate-spin" />}
+                      Actualizar
+                    </Button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">

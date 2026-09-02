@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { CartItem, ProductoResponse, SaborResponse, AdicionalResponse } from "@/lib/types";
-import { buildCartItem, DELIVERY_FEE, FREE_DELIVERY_THRESHOLD, lineTotal } from "@/lib/cart-utils";
+import { buildCartItem, lineTotal } from "@/lib/cart-utils";
 import { useAuth } from "@/context/auth-context";
 
 interface CartContextValue {
@@ -72,13 +72,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<CartContextValue>(() => {
     const subtotal = items.reduce((sum, i) => sum + lineTotal(i), 0);
-    const deliveryFee = subtotal === 0 || subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
     return {
       items,
       itemCount: items.reduce((sum, i) => sum + i.quantity, 0),
       subtotal,
-      deliveryFee,
-      total: subtotal + deliveryFee,
+      deliveryFee: 0,
+      total: subtotal,
       addItem,
       updateQuantity,
       removeItem,

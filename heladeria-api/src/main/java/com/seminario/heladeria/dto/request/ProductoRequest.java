@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
+import java.util.Set;
 
 public class ProductoRequest {
 
@@ -23,6 +24,8 @@ public class ProductoRequest {
     @NotNull(message = "Seleccioná una categoría")
     private Long idCategoria;
 
+    private Set<Long> idsSabor;
+
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 
@@ -37,4 +40,7 @@ public class ProductoRequest {
 
     public Long getIdCategoria() { return idCategoria; }
     public void setIdCategoria(Long idCategoria) { this.idCategoria = idCategoria; }
+
+    public Set<Long> getIdsSabor() { return idsSabor; }
+    public void setIdsSabor(Set<Long> idsSabor) { this.idsSabor = idsSabor; }
 }

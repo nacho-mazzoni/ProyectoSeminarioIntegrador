@@ -92,7 +92,7 @@ COPY public.carrito (id_carrito, id_cliente, created_at, updated_at) FROM stdin;
 
 COPY public.categoria (id_categoria, nombre, requiere_sabores, created_at, updated_at) FROM stdin;
 1	Helado Pote	t	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
-2	Helado Palito	f	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
+2	Helado Palito	t	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
 3	Postre	t	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
 \.
 
@@ -107,8 +107,8 @@ COPY public.producto (id_producto, nombre, stock_envases, precio_base, max_sabor
 5	Postre Especial	8	3200.00	2	3	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
 1	Pote 1/2 Kg	9	2500.00	2	1	2026-07-08 18:01:46.798577-03	2026-07-26 18:08:35.776359-03
 2	Pote 1 Kg	4	4500.00	3	1	2026-07-08 18:01:46.798577-03	2026-07-26 18:08:35.776359-03
-3	Palito de Crema	19	800.00	0	2	2026-07-08 18:01:46.798577-03	2026-07-26 18:35:41.859836-03
-4	Palito de Agua	14	600.00	0	2	2026-07-08 18:01:46.798577-03	2026-07-26 18:35:41.859836-03
+3	Palito de Crema	19	800.00	1	2	2026-07-08 18:01:46.798577-03	2026-07-26 18:35:41.859836-03
+4	Palito de Agua	14	600.00	1	2	2026-07-08 18:01:46.798577-03	2026-07-26 18:35:41.859836-03
 \.
 
 
@@ -144,6 +144,33 @@ COPY public.sabor (id_sabor, nombre, stock_baldes, disponible, cap_balde, create
 3	Frutilla	5	t	5L	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
 4	Dulce de Leche	0	t	5L	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
 5	No Disponible	10	f	5L	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
+6	Limón	10	t	5L	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
+\.
+
+
+--
+-- Data for Name: producto_sabor; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.producto_sabor (id_producto, id_sabor, created_at) FROM stdin;
+1	1	2026-07-08 18:01:46.798577-03
+1	2	2026-07-08 18:01:46.798577-03
+1	3	2026-07-08 18:01:46.798577-03
+1	4	2026-07-08 18:01:46.798577-03
+1	6	2026-07-08 18:01:46.798577-03
+2	1	2026-07-08 18:01:46.798577-03
+2	2	2026-07-08 18:01:46.798577-03
+2	3	2026-07-08 18:01:46.798577-03
+2	4	2026-07-08 18:01:46.798577-03
+2	6	2026-07-08 18:01:46.798577-03
+3	1	2026-07-08 18:01:46.798577-03
+3	2	2026-07-08 18:01:46.798577-03
+3	4	2026-07-08 18:01:46.798577-03
+4	3	2026-07-08 18:01:46.798577-03
+4	6	2026-07-08 18:01:46.798577-03
+5	1	2026-07-08 18:01:46.798577-03
+5	2	2026-07-08 18:01:46.798577-03
+5	4	2026-07-08 18:01:46.798577-03
 \.
 
 
@@ -393,7 +420,7 @@ SELECT pg_catalog.setval('public.rol_id_rol_seq', 2, true);
 -- Name: sabor_id_sabor_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.sabor_id_sabor_seq', 5, true);
+SELECT pg_catalog.setval('public.sabor_id_sabor_seq', 6, true);
 
 
 --

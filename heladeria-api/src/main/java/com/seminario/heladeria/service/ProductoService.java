@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Slf4j
@@ -77,6 +78,11 @@ public class ProductoService {
         producto.setMaxSabores(request.getMaxSabores());
         producto.setCategoria(categoria);
 
+        if (request.getIdsSabor() != null && !request.getIdsSabor().isEmpty()) {
+            List<Sabor> sabores = saborRepository.findAllById(request.getIdsSabor());
+            producto.setSabores(new HashSet<>(sabores));
+        }
+
         return ProductoResponse.from(productoRepository.save(producto));
     }
 
@@ -92,6 +98,11 @@ public class ProductoService {
         producto.setPrecioBase(request.getPrecioBase());
         producto.setMaxSabores(request.getMaxSabores());
         producto.setCategoria(categoria);
+
+        if (request.getIdsSabor() != null) {
+            List<Sabor> sabores = saborRepository.findAllById(request.getIdsSabor());
+            producto.setSabores(new HashSet<>(sabores));
+        }
 
         return ProductoResponse.from(productoRepository.save(producto));
     }

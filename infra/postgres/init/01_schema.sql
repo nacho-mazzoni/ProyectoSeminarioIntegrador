@@ -550,6 +550,20 @@ ALTER SEQUENCE public.producto_id_producto_seq OWNED BY public.producto.id_produ
 
 
 --
+-- Name: producto_sabor; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.producto_sabor (
+    id_producto bigint NOT NULL,
+    id_sabor bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.producto_sabor OWNER TO postgres;
+
+
+--
 -- TOC entry 229 (class 1259 OID 20828)
 -- Name: promocion; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -1021,6 +1035,14 @@ ALTER TABLE ONLY public.producto
 
 
 --
+-- Name: producto_sabor pk_producto_sabor; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.producto_sabor
+    ADD CONSTRAINT pk_producto_sabor PRIMARY KEY (id_producto, id_sabor);
+
+
+--
 -- TOC entry 5026 (class 2606 OID 20844)
 -- Name: promocion promocion_codigo_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
@@ -1480,6 +1502,22 @@ ALTER TABLE ONLY public.producto
 
 ALTER TABLE ONLY public.usuario
     ADD CONSTRAINT fk_usuario_rol FOREIGN KEY (id_rol) REFERENCES public.rol(id_rol);
+
+
+--
+-- Name: producto_sabor fk_producto_sabor_producto; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.producto_sabor
+    ADD CONSTRAINT fk_producto_sabor_producto FOREIGN KEY (id_producto) REFERENCES public.producto(id_producto) ON DELETE CASCADE;
+
+
+--
+-- Name: producto_sabor fk_producto_sabor_sabor; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.producto_sabor
+    ADD CONSTRAINT fk_producto_sabor_sabor FOREIGN KEY (id_sabor) REFERENCES public.sabor(id_sabor) ON DELETE CASCADE;
 
 
 -- Completed on 2026-07-31 19:28:04

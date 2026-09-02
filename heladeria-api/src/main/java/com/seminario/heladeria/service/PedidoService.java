@@ -70,11 +70,16 @@ public class PedidoService {
 
     @Transactional
     public Pedido cancelar(Pedido pedido) {
+        return cancelar(pedido, "Cancelado por el cliente");
+    }
+
+    @Transactional
+    public Pedido cancelar(Pedido pedido, String notas) {
         String estadoActual = getUltimoEstado(pedido.getIdPedido());
 
-        if (!"PENDIENTE".equals(estadoActual)) {
+        if (!"PENDIENTE".equals(estadoActual) && !"EN_PREPARACION".equals(estadoActual)) {
             log.error("Intento de cancelar pedido {} con estado {}", pedido.getIdPedido(), estadoActual);
-            throw new BusinessRuleException("Solo se pueden cancelar pedidos pendientes");
+            throw new BusinessRuleException("Solo se pueden cancelar pedidos pendientes o en preparación");
         }
 
         restaurarStock(pedido.getIdPedido());
@@ -82,7 +87,7 @@ public class PedidoService {
         HistorialEstado historial = new HistorialEstado();
         historial.setFechaHora(Instant.now());
         historial.setEstado("CANCELADO");
-        historial.setNotas("Cancelado por el cliente");
+        historial.setNotas(notas != null ? notas : "Cancelado por el cliente");
         historial.setPedido(pedido);
         historialEstadoRepository.save(historial);
 
@@ -188,7 +193,7 @@ public class PedidoService {
 
         HistorialEstado historial = new HistorialEstado();
         historial.setFechaHora(Instant.now());
-        historial.setEstado("MODIFICADO");
+        historial.setEstado("PENDIENTE");
         historial.setNotas("Pedido modificado por el cliente");
         historial.setPedido(pedido);
         historialEstadoRepository.save(historial);
@@ -242,6 +247,19 @@ public class PedidoService {
                 log.error("Producto {} excede maximo de sabores: {} > {}", producto.getNombre(),
                         detReq.getIdsSabor().size(), producto.getMaxSabores());
                 throw new BusinessRuleException("Máximo " + producto.getMaxSabores() + " sabores para " + producto.getNombre());
+            }
+
+            if (detReq.getIdsSabor() != null && !detReq.getIdsSabor().isEmpty() &&
+                    producto.getSabores() != null && !producto.getSabores().isEmpty()) {
+                Set<Long> allowedIds = producto.getSabores().stream()
+                        .map(Sabor::getIdSabor)
+                        .collect(java.util.stream.Collectors.toSet());
+                for (Long idSabor : detReq.getIdsSabor()) {
+                    if (!allowedIds.contains(idSabor)) {
+                        log.error("Sabor {} no está permitido para el producto {}", idSabor, producto.getNombre());
+                        throw new BusinessRuleException("El sabor seleccionado no está disponible para " + producto.getNombre());
+                    }
+                }
             }
 
             DetallePedido detalle = new DetallePedido();

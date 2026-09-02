@@ -15,7 +15,17 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 
-const ESTADOS = ["", "PENDIENTE", "EN_PREPARACION", "EN_CAMINO", "ENTREGADO", "CANCELADO"];
+const ESTADOS = [
+  "",
+  "PENDIENTE",
+  "EN_PREPARACION",
+  "LISTO_PARA_RETIRAR",
+  "LISTO_PARA_ENVIO",
+  "EN_CAMINO",
+  "ENTREGADO",
+  "FINALIZADO",
+  "CANCELADO",
+];
 
 function getUltimoEstado(historial: { estado: string }[]): string {
   return historial.length > 0 ? historial[historial.length - 1].estado : "";
@@ -44,7 +54,7 @@ export default function AdminOrdersPage() {
           <SelectContent>
             <SelectItem value=" ">Todos los estados</SelectItem>
             {ESTADOS.filter(Boolean).map((e) => (
-              <SelectItem key={e} value={e}>{e.replace("_", " ")}</SelectItem>
+              <SelectItem key={e} value={e}>{e.replaceAll("_", " ")}</SelectItem>
             ))}
           </SelectContent>
         </Select>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/cart-context";
-import { formatPrice, FREE_DELIVERY_THRESHOLD } from "@/lib/cart-utils";
+import { formatPrice } from "@/lib/cart-utils";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/sheet";
 import { CartItemRow } from "./CartItemRow";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Progress } from "@/components/ui/progress";
 
 interface CartDrawerProps {
   open: boolean;
@@ -23,8 +22,8 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
-  const { items, subtotal, total, deliveryFee } = useCart();
-  const remaining = Math.max(0, FREE_DELIVERY_THRESHOLD - subtotal);
+  const { items, subtotal } = useCart();
+  const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -34,13 +33,8 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           <SheetDescription>
             {items.length === 0
               ? "Todavía no hay nada."
-              : remaining > 0
-                ? `Agregá ${formatPrice(remaining)} más para envío gratis.`
-                : "¡Tenés envío gratis!"}
+              : `${itemCount} ${itemCount === 1 ? "producto agregado" : "productos agregados"}`}
           </SheetDescription>
-          {items.length > 0 && remaining > 0 && (
-            <Progress value={(subtotal / FREE_DELIVERY_THRESHOLD) * 100} className="mt-2 h-1.5" />
-          )}
         </SheetHeader>
 
         {items.length === 0 ? (
@@ -67,18 +61,12 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
             <SheetFooter className="gap-3 border-t border-border">
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Subtotal</span>
-                  <span className="font-medium text-foreground">{formatPrice(subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
                   <span>Envío</span>
-                  <span className="font-medium text-foreground">
-                    {deliveryFee === 0 ? "Gratis" : formatPrice(deliveryFee)}
-                  </span>
+                  <span className="font-medium text-foreground">A calcular en checkout</span>
                 </div>
                 <div className="flex justify-between pt-2 text-base font-semibold text-foreground">
-                  <span>Total</span>
-                  <span>{formatPrice(total)}</span>
+                  <span>Subtotal</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
               </div>
               <Button asChild size="lg" className="w-full" onClick={() => onOpenChange(false)}>

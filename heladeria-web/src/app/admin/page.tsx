@@ -14,8 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const ESTADO_COLORS: Record<string, string> = {
   PENDIENTE: "#D8C3A5",
   EN_PREPARACION: "#8B7355",
+  LISTO_PARA_RETIRAR: "#A88B68",
+  LISTO_PARA_ENVIO: "#967554",
   EN_CAMINO: "#6F5443",
   ENTREGADO: "#7A9E6D",
+  FINALIZADO: "#5B8C51",
   CANCELADO: "#8B3A2A",
 };
 

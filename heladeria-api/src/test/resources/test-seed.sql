@@ -1,3 +1,4 @@
+TRUNCATE TABLE producto_sabor CASCADE;
 TRUNCATE TABLE carrito_item_adicional CASCADE;
 TRUNCATE TABLE carrito_item_sabor CASCADE;
 TRUNCATE TABLE carrito_item CASCADE;
@@ -34,7 +35,7 @@ INSERT INTO zona_envio (id_zona, nombre_zona, costo_envio) VALUES
 
 INSERT INTO categoria (id_categoria, nombre, requiere_sabores) VALUES
     (1, 'Helado Pote', true),
-    (2, 'Helado Palito', false),
+    (2, 'Helado Palito', true),
     (3, 'Postre', true);
 
 INSERT INTO sabor (id_sabor, nombre, stock_baldes, disponible, cap_balde) VALUES
@@ -42,14 +43,22 @@ INSERT INTO sabor (id_sabor, nombre, stock_baldes, disponible, cap_balde) VALUES
     (2, 'Vainilla', 8, true, '5L'),
     (3, 'Frutilla', 5, true, '5L'),
     (4, 'Dulce de Leche', 0, true, '5L'),
-    (5, 'No Disponible', 10, false, '5L');
+    (5, 'No Disponible', 10, false, '5L'),
+    (6, 'Limón', 10, true, '5L');
 
 INSERT INTO producto (id_producto, nombre, stock_envases, precio_base, max_sabores, id_categoria) VALUES
     (1, 'Pote 1/2 Kg', 10, 2500.00, 2, 1),
     (2, 'Pote 1 Kg', 5, 4500.00, 3, 1),
-    (3, 'Palito de Crema', 20, 800.00, 0, 2),
-    (4, 'Palito de Agua', 15, 600.00, 0, 2),
+    (3, 'Palito de Crema', 20, 800.00, 1, 2),
+    (4, 'Palito de Agua', 15, 600.00, 1, 2),
     (5, 'Postre Especial', 8, 3200.00, 2, 3);
+
+INSERT INTO producto_sabor (id_producto, id_sabor) VALUES
+    (1, 1), (1, 2), (1, 3), (1, 4), (1, 6),
+    (2, 1), (2, 2), (2, 3), (2, 4), (2, 6),
+    (3, 1), (3, 2), (3, 4),
+    (4, 3), (4, 6),
+    (5, 1), (5, 2), (5, 4);
 
 INSERT INTO adicional (id_adicional, nombre, precio_extra, disponible) VALUES
     (1, 'Cremora', 200.00, true),

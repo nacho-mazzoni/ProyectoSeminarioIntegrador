@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 export function OrderCard({ order }: { order: PedidoResponse }) {
   const [cancelling, setCancelling] = useState(false);
   const ultimoEstado = order.historial?.[order.historial.length - 1];
-  const esCancelable = ultimoEstado?.estado === "PENDIENTE";
+  const esCancelable = ultimoEstado?.estado === "PENDIENTE" || ultimoEstado?.estado === "EN_PREPARACION";
 
   const handleCancel = async () => {
     if (!confirm("¿Estás seguro de cancelar este pedido?")) return;

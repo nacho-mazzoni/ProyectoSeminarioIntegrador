@@ -34,5 +34,3 @@ export function buildCartItem(
   };
 }
 
-export const DELIVERY_FEE = 2.5;
-export const FREE_DELIVERY_THRESHOLD = 25;

@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/services/api";
 import { Hero } from "@/components/home/Hero";
+import { StoreLocation } from "@/components/home/StoreLocation";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { CategoryCard } from "@/components/products/CategoryCard";
@@ -62,7 +63,7 @@ export default function HomePage() {
         <PageContainer>
           <div className="overflow-hidden rounded-4xl bg-primary px-8 py-14 text-center text-primary-foreground sm:px-16">
             <h2 className="mx-auto max-w-2xl text-3xl font-semibold sm:text-4xl">
-              Envío gratis en pedidos sobre $25
+              Envío gratis en pedidos sobre $50000
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-primary-foreground/85">
               Cargate de tus favoritos y ahorrate el costo de envío.
@@ -73,6 +74,8 @@ export default function HomePage() {
           </div>
         </PageContainer>
       </section>
+
+      <StoreLocation />
     </>
   );
 }

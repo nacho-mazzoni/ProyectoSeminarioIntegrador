@@ -3,6 +3,7 @@ package com.seminario.heladeria.dto.response;
 import com.seminario.heladeria.entity.Producto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class ProductoResponse {
 
@@ -12,6 +13,7 @@ public class ProductoResponse {
     private BigDecimal precioBase;
     private Integer maxSabores;
     private CategoriaResponse categoria;
+    private List<SaborResponse> sabores;
 
     public ProductoResponse() {}
 
@@ -23,6 +25,11 @@ public class ProductoResponse {
         r.precioBase = p.getPrecioBase();
         r.maxSabores = p.getMaxSabores();
         r.categoria = CategoriaResponse.from(p.getCategoria());
+        if (p.getSabores() != null) {
+            r.sabores = p.getSabores().stream().map(SaborResponse::from).toList();
+        } else {
+            r.sabores = List.of();
+        }
         return r;
     }
 
@@ -32,4 +39,5 @@ public class ProductoResponse {
     public BigDecimal getPrecioBase() { return precioBase; }
     public Integer getMaxSabores() { return maxSabores; }
     public CategoriaResponse getCategoria() { return categoria; }
+    public List<SaborResponse> getSabores() { return sabores; }
 }

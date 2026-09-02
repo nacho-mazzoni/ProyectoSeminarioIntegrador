@@ -110,13 +110,58 @@ public class AdminService {
                 .reduce((first, second) -> second)
                 .map(HistorialEstado::getEstado)
                 .orElse("PENDIENTE");
-        if ("ENTREGADO".equals(estadoActual) || "CANCELADO".equals(estadoActual)) {
-            throw new BusinessRuleException("No se puede cambiar el estado de un pedido " + estadoActual);
+
+        String nuevoEstado = request.getEstado();
+        boolean esDelivery = "delivery".equalsIgnoreCase(pedido.getMetodoEntrega());
+        boolean transitionValid = false;
+
+        switch (estadoActual) {
+            case "PENDIENTE":
+                transitionValid = "EN_PREPARACION".equals(nuevoEstado) || "CANCELADO".equals(nuevoEstado);
+                break;
+            case "EN_PREPARACION":
+                if ("CANCELADO".equals(nuevoEstado)) {
+                    transitionValid = true;
+                } else if (esDelivery && "LISTO_PARA_ENVIO".equals(nuevoEstado)) {
+                    transitionValid = true;
+                } else if (!esDelivery && "LISTO_PARA_RETIRAR".equals(nuevoEstado)) {
+                    transitionValid = true;
+                }
+                break;
+            case "LISTO_PARA_RETIRAR":
+                transitionValid = "FINALIZADO".equals(nuevoEstado);
+                break;
+            case "LISTO_PARA_ENVIO":
+                transitionValid = "EN_CAMINO".equals(nuevoEstado);
+                break;
+            case "EN_CAMINO":
+                transitionValid = "ENTREGADO".equals(nuevoEstado);
+                break;
+            case "FINALIZADO":
+            case "ENTREGADO":
+            case "CANCELADO":
+            default:
+                transitionValid = false;
+                break;
+        }
+
+        if (!transitionValid) {
+            log.error("Transición de estado no permitida para pedido {}: '{}' -> '{}' (método de entrega: '{}')",
+                    id, estadoActual, nuevoEstado, pedido.getMetodoEntrega());
+            throw new BusinessRuleException(
+                    String.format("Transición no permitida: no se puede pasar de '%s' a '%s' para un pedido con entrega '%s'",
+                            estadoActual, nuevoEstado, pedido.getMetodoEntrega())
+            );
+        }
+
+        if ("CANCELADO".equals(nuevoEstado)) {
+            pedido = pedidoService.cancelar(pedido, "Cancelado por el administrador");
+            return pedidoService.buildResponse(pedido);
         }
 
         HistorialEstado historial = new HistorialEstado();
         historial.setFechaHora(Instant.now());
-        historial.setEstado(request.getEstado());
+        historial.setEstado(nuevoEstado);
         historial.setPedido(pedido);
         historialEstadoRepository.save(historial);
 

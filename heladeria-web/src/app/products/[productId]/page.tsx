@@ -42,7 +42,14 @@ export default function ProductDetailPage() {
     queryFn: api.adicionales.listar,
   });
 
-  const disponiblesSabores = allSabores.filter((s) => s.disponible);
+  const productSabores = useMemo(() => {
+    if (product?.sabores && product.sabores.length > 0) {
+      return product.sabores;
+    }
+    return allSabores;
+  }, [product, allSabores]);
+
+  const disponiblesSabores = productSabores.filter((s) => s.disponible);
   const disponiblesAdicionales = allAdicionales.filter((a) => a.disponible);
 
   const maxSabores = product?.maxSabores ?? 0;
@@ -54,11 +61,15 @@ export default function ProductDetailPage() {
   );
 
   const toggleSabor = (sabor: SaborResponse) => {
+    if (maxSabores === 0) {
+      toast.error("Este producto no permite elegir sabores");
+      return;
+    }
     setSabores((prev) => {
       if (prev.some((s) => s.idSabor === sabor.idSabor)) {
         return prev.filter((s) => s.idSabor !== sabor.idSabor);
       }
-      if (maxSabores > 0 && prev.length >= maxSabores) {
+      if (prev.length >= maxSabores) {
         toast.error(`Solo podés elegir hasta ${maxSabores} sabor${maxSabores > 1 ? "es" : ""}`);
         return prev;
       }
@@ -76,6 +87,10 @@ export default function ProductDetailPage() {
   const handleAdd = () => {
     if (requiereSabores && sabores.length === 0) {
       toast.error("Este producto requiere al menos un sabor");
+      return;
+    }
+    if (maxSabores === 0 && sabores.length > 0) {
+      toast.error("Este producto no admite sabores");
       return;
     }
     if (maxSabores > 0 && sabores.length > maxSabores) {
@@ -129,13 +144,15 @@ export default function ProductDetailPage() {
             </p>
           </div>
 
-          {disponiblesSabores.length > 0 && (
+          {maxSabores > 0 && disponiblesSabores.length > 0 && (
             <fieldset className="space-y-3">
-              <legend className="text-sm font-semibold text-foreground">Elegí tus sabores</legend>
+              <legend className="text-sm font-semibold text-foreground">
+                {maxSabores === 1 ? "Elegí tu sabor" : `Elegí tus sabores (hasta ${maxSabores})`}
+              </legend>
               <div className="flex flex-wrap gap-2">
                 {disponiblesSabores.map((s) => {
                   const active = sabores.some((s2) => s2.idSabor === s.idSabor);
-                  const disabled = !active && maxSabores > 0 && sabores.length >= maxSabores;
+                  const disabled = !active && sabores.length >= maxSabores;
                   return (
                     <button
                       key={s.idSabor}

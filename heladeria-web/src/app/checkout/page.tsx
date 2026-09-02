@@ -83,6 +83,22 @@ export default function CheckoutPage() {
   const selectedAddressId = selectedAddress?.idDireccion;
   const selectedZone = zonas.find((z) => z.idZona === (selectedAddress?.idZona ?? 0));
 
+  const isDelivery = metodoEntrega === "delivery";
+  let shippingCost: number | null = 0;
+  let shippingLabel: string | undefined = undefined;
+
+  if (isDelivery) {
+    if (selectedZone) {
+      shippingCost = selectedZone.costoEnvio;
+    } else {
+      shippingCost = null;
+      shippingLabel = addresses.length === 0 ? "Agregar dirección" : "Fuera de cobertura";
+    }
+  } else {
+    shippingCost = 0;
+    shippingLabel = "Gratis (retiro en local)";
+  }
+
   if (items.length === 0) {
     return (
       <PageContainer className="py-20 text-center">
@@ -299,7 +315,7 @@ export default function CheckoutPage() {
         </div>
 
         <div className="lg:sticky lg:top-24 lg:h-fit">
-          <OrderSummary>
+          <OrderSummary shippingCost={shippingCost} shippingLabel={shippingLabel}>
             <Button
               size="lg"
               className="w-full rounded-full"

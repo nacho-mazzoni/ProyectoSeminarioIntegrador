@@ -12,7 +12,7 @@ export function Hero() {
       <PageContainer className="grid items-center gap-10 py-12 md:grid-cols-2 md:py-20">
         <div className="max-w-xl space-y-6">
           <h1 className="text-balance text-4xl font-semibold leading-[1.05] text-foreground sm:text-5xl lg:text-6xl">
-            Helado artesanal Rumba Habana, hecho todos los días y entregado frío.
+            Helado artesanal Rumba Habana, hecho todos los días y con mucho amor.
           </h1>
           <p className="text-lg text-muted-foreground">
             Ingredientes naturales, elaborados en pequeños lotes. Pedí tus sabores favoritos y

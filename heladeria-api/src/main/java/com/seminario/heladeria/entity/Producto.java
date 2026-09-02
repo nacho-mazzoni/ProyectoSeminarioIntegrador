@@ -3,6 +3,8 @@ package com.seminario.heladeria.entity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "producto")
@@ -28,6 +30,14 @@ public class Producto {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "producto_sabor",
+        joinColumns = @JoinColumn(name = "id_producto"),
+        inverseJoinColumns = @JoinColumn(name = "id_sabor")
+    )
+    private Set<Sabor> sabores = new HashSet<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -65,6 +75,9 @@ public class Producto {
 
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
+
+    public Set<Sabor> getSabores() { return sabores; }
+    public void setSabores(Set<Sabor> sabores) { this.sabores = sabores; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

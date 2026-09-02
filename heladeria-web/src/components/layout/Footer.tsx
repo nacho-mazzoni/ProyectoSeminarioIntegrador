@@ -64,7 +64,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-primary-foreground/20 pt-6 text-sm text-primary-foreground/60 sm:flex-row">
           <p>© {new Date().getFullYear()} Rumba Habana. Todos los derechos reservados.</p>
-          <p>Hecho con crema artesanal</p>
+          <p>Hecho con amor ♥</p>
         </div>
       </PageContainer>
     </footer>

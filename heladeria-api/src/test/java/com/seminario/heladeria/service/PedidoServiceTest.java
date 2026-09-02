@@ -221,4 +221,47 @@ class PedidoServiceTest {
                     .isAfterOrEqualTo(pedidos.get(i + 1).getFecha());
         }
     }
+
+    @Test
+    void cancelar_shouldCancelPendingPedidoAndRestoreStock() {
+        Pedido pedido = pedidoService.findById(1L);
+        Producto productoAntes = productoRepository.findById(1L).orElseThrow();
+        int stockAntes = productoAntes.getStockEnvases();
+
+        pedidoService.cancelar(pedido);
+
+        List<HistorialEstado> historial = historialEstadoRepository
+                .findByPedidoIdPedidoOrderByFechaHoraAsc(1L);
+        assertThat(historial.get(historial.size() - 1).getEstado()).isEqualTo("CANCELADO");
+
+        Producto productoDespues = productoRepository.findById(1L).orElseThrow();
+        assertThat(productoDespues.getStockEnvases()).isEqualTo(stockAntes + 2);
+    }
+
+    @Test
+    void cancelar_shouldCancelEnPreparacionPedido() {
+        Pedido pedido = pedidoService.findById(1L);
+        HistorialEstado prep = new HistorialEstado();
+        prep.setFechaHora(java.time.Instant.now());
+        prep.setEstado("EN_PREPARACION");
+        prep.setPedido(pedido);
+        historialEstadoRepository.save(prep);
+
+        pedidoService.cancelar(pedido, "Cancelado durante preparación");
+
+        List<HistorialEstado> historial = historialEstadoRepository
+                .findByPedidoIdPedidoOrderByFechaHoraAsc(1L);
+        HistorialEstado ultimo = historial.get(historial.size() - 1);
+        assertThat(ultimo.getEstado()).isEqualTo("CANCELADO");
+        assertThat(ultimo.getNotas()).isEqualTo("Cancelado durante preparación");
+    }
+
+    @Test
+    void cancelar_shouldThrowWhenPedidoEntregado() {
+        Pedido pedido = pedidoService.findById(2L); // pedido 2 has ENTREGADO in test-seed.sql
+
+        assertThatThrownBy(() -> pedidoService.cancelar(pedido))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Solo se pueden cancelar pedidos");
+    }
 }

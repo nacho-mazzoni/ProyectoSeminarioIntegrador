@@ -24,6 +24,7 @@ export interface ProductoResponse {
   precioBase: number
   maxSabores: number
   categoria: CategoriaResponse
+  sabores?: SaborResponse[]
 }
 
 export interface SaborResponse {
@@ -124,6 +125,7 @@ export interface Producto {
   precioBase: number
   maxSabores: number
   categoria: Categoria
+  sabores?: Sabor[]
 }
 
 export interface Sabor {

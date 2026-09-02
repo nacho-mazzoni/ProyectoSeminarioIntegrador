@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -87,6 +88,19 @@ public class CarritoService {
             throw new BusinessRuleException("Máximo " + producto.getMaxSabores() + " sabores permitidos");
         }
 
+        if (request.getIdsSabor() != null && !request.getIdsSabor().isEmpty() &&
+                producto.getSabores() != null && !producto.getSabores().isEmpty()) {
+            Set<Long> allowedIds = producto.getSabores().stream()
+                    .map(Sabor::getIdSabor)
+                    .collect(java.util.stream.Collectors.toSet());
+            for (Long idSabor : request.getIdsSabor()) {
+                if (!allowedIds.contains(idSabor)) {
+                    log.error("Sabor {} no permitido para producto {}", idSabor, producto.getNombre());
+                    throw new BusinessRuleException("El sabor seleccionado no está disponible para " + producto.getNombre());
+                }
+            }
+        }
+
         CarritoItem item = new CarritoItem();
         item.setCarrito(carrito);
         item.setProducto(producto);
@@ -140,6 +154,18 @@ public class CarritoService {
         }
         if (request.getIdsSabor() != null && request.getIdsSabor().size() > producto.getMaxSabores()) {
             throw new BusinessRuleException("Máximo " + producto.getMaxSabores() + " sabores permitidos");
+        }
+
+        if (request.getIdsSabor() != null && !request.getIdsSabor().isEmpty() &&
+                producto.getSabores() != null && !producto.getSabores().isEmpty()) {
+            Set<Long> allowedIds = producto.getSabores().stream()
+                    .map(Sabor::getIdSabor)
+                    .collect(java.util.stream.Collectors.toSet());
+            for (Long idSabor : request.getIdsSabor()) {
+                if (!allowedIds.contains(idSabor)) {
+                    throw new BusinessRuleException("El sabor seleccionado no está disponible para " + producto.getNombre());
+                }
+            }
         }
 
         item.setCantidad(request.getCantidad());
