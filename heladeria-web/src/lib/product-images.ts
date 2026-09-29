@@ -1,22 +1,14 @@
 const imageMap: Record<string, string> = {
-  "vainilla": "/assets/products/vanilla.jpg",
-  "chocolate": "/assets/products/chocolate.jpg",
-  "pistacho": "/assets/products/pistachio.jpg",
-  "frutilla": "/assets/products/strawberry.jpg",
-  "mango": "/assets/products/mango.jpg",
-  "dulce de leche": "/assets/products/cookies.jpg",
-  "crema": "/assets/products/vanilla.jpg",
-  "limón": "/assets/products/mango.jpg",
-  "tramontana": "/assets/products/cookies.jpg",
-  "granizado": "/assets/products/chocolate.jpg",
-  "kitkat": "/assets/products/cookies.jpg",
   "bombón": "/assets/products/chocolate.jpg",
   "torta": "/assets/products/strawberry.jpg",
   "postre": "/assets/products/pistachio.jpg",
   "palito": "/assets/products/vanilla.jpg",
   "pote": "/assets/products/vanilla.jpg",
-  "helado pote": "/assets/products/vanilla.jpg",
-  "helado palito": "/assets/products/strawberry.jpg",
+  "helado pote": "/assets/products/vanilla.png",
+  "helado 1/4": "/assets/products/pot1-4Kg.png",
+  "helado 1/2": "/assets/products/pote1-2Kg.png",
+  "helado 1kg": "/assets/products/pote1Kg.png",
+  "helado cucurucho": "/assets/products/heladosporgusto.png",
 };
 
 const fallbackImage = "/assets/products/vanilla.jpg";

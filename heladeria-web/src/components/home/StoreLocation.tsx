@@ -22,7 +22,7 @@ export function StoreLocation({
   hours = "Lunes a Domingos: 12:00 a 00:30 hs",
   phone = "+54 11 4821-5540",
   mapUrl = "https://maps.google.com/?q=Av.+Santa+Fe+3420,+Palermo,+Buenos+Aires",
-  imageSrc = "/assets/sucursal.jpg",
+  imageSrc = "/assets/sucursal.png",
 }: StoreLocationProps) {
   return (
     <section className="py-14">
