@@ -4,6 +4,7 @@ const imageMap: Record<string, string> = {
   "1kg": "/assets/products/pote1Kg.png",
   "1 kg": "/assets/products/pote1Kg.png",
   "cucurucho": "/assets/products/heladosporgusto.png",
+  "palito de crema": "/assets/products/palitodecrema.jpg",
   "palito": "/assets/products/heladosporgusto.png",
   "pote": "/assets/products/pote1Kg.png",
   "postre": "/assets/products/heladosporgusto.png",
