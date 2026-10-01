@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Locale;
 
 @Slf4j
 @Service
@@ -41,7 +42,8 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+        String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
+        Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.error("Intento de login con email no registrado: {}", request.getEmail());
                     return new BusinessRuleException("Credenciales inválidas");
@@ -67,7 +69,8 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
+        String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
+        if (usuarioRepository.findByEmail(email).isPresent()) {
             log.error("Registro con email ya existente: {}", request.getEmail());
             throw new BusinessRuleException("El email ya está registrado");
         }
@@ -79,7 +82,7 @@ public class AuthService {
                 });
 
         Usuario usuario = new Usuario();
-        usuario.setEmail(request.getEmail());
+        usuario.setEmail(email);
         usuario.setClave(passwordEncoder.encode(request.getPassword()));
         usuario.setActivo(true);
         usuario.setRol(rol);

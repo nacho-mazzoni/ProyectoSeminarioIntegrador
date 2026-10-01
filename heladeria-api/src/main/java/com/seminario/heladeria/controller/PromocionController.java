@@ -31,32 +31,32 @@ public class PromocionController {
     }
 
     @GetMapping("/admin/promociones")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<List<PromocionResponse>> listarAdmin() {
         return ResponseEntity.ok(promocionService.findAll());
     }
 
     @GetMapping("/admin/promociones/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<PromocionResponse> obtenerAdmin(@PathVariable Long id) {
         return ResponseEntity.ok(promocionService.findById(id));
     }
 
     @PostMapping("/admin/promociones")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<PromocionResponse> crear(@Valid @RequestBody PromocionRequest request) {
         return ResponseEntity.ok(promocionService.crear(request));
     }
 
     @PutMapping("/admin/promociones/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<PromocionResponse> actualizar(
             @PathVariable Long id, @Valid @RequestBody PromocionRequest request) {
         return ResponseEntity.ok(promocionService.actualizar(id, request));
     }
 
     @DeleteMapping("/admin/promociones/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         promocionService.eliminar(id);
         return ResponseEntity.noContent().build();

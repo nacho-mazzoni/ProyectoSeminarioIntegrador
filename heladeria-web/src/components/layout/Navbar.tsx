@@ -92,10 +92,10 @@ export function Navbar() {
                 <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuLabel className="truncate">{user?.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {user?.rol === "ADMINISTRADOR" && (
+                   {(user?.rol === "ADMINISTRADOR" || user?.rol === "CAJERO") && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link href="/admin">
+                         <Link href={user?.rol === "CAJERO" ? "/admin/pedidos" : "/admin"}>
                           <Shield className="mr-2 size-4" />
                           Panel Admin
                         </Link>

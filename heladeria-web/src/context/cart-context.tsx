@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useAuth } from "@/context/auth-context";
 import type { CartItem, ProductoResponse, SaborResponse, AdicionalResponse } from "@/lib/types";
 import { buildCartItem, lineTotal } from "@/lib/cart-utils";
 import { useAuth } from "@/context/auth-context";
@@ -50,10 +51,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const next = buildCartItem(product, quantity, sabores, adicionales);
     setItems((prev) => {
       const existing = prev.find((i) => i.id === next.id);
+      const nextQuantity = Math.min(product.stockEnvases, (existing?.quantity ?? 0) + quantity);
+      if (nextQuantity <= 0) return prev;
       if (existing) {
-        return prev.map((i) => (i.id === next.id ? { ...i, quantity: i.quantity + quantity } : i));
+        return prev.map((i) => (i.id === next.id ? { ...i, quantity: nextQuantity } : i));
       }
-      return [...prev, next];
+      return [...prev, { ...next, quantity: Math.min(product.stockEnvases, quantity) }];
     });
   };
 
@@ -62,7 +65,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems((prev) => prev.filter((i) => i.id !== id));
       return;
     }
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity } : i)));
+    setItems((prev) => prev.map((i) => {
+      if (i.id !== id) return i;
+      return { ...i, quantity: Math.min(i.product.stockEnvases, quantity) };
+    }));
   };
 
   const removeItem: CartContextValue["removeItem"] = (id) =>

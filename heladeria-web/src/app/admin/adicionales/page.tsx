@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Plus, Pencil, Trash2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/context/auth-context";
 import { api } from "@/services/api";
 import { formatPrice } from "@/lib/cart-utils";
 import type { AdicionalResponse } from "@/lib/types";
@@ -106,10 +107,12 @@ export default function AdminAdicionalesPage() {
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<AdicionalResponse | undefined>(undefined);
+  const { isReady, isAuthenticated } = useAuth();
 
   const { data: adicionales = [], isLoading } = useQuery({
     queryKey: ["admin-adicionales"],
     queryFn: api.admin.adicionales.listar,
+    enabled: isReady && isAuthenticated,
   });
 
   const deleteMutation = useMutation({

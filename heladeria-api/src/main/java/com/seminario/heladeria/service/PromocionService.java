@@ -38,19 +38,22 @@ public class PromocionService {
     public List<PromocionResponse> findActivas() {
         List<Promocion> activas = new ArrayList<>();
         activas.addAll(promocionRepository.findAllByActivaTrueAndFechaInicioIsNullAndFechaFinIsNull());
-        activas.addAll(promocionRepository.findAllByActivaTrueAndFechaInicioBeforeAndFechaFinAfter(
-                Instant.now(), Instant.now()));
+        Instant now = Instant.now();
+        activas.addAll(promocionRepository.findAllByActivaTrueAndFechaInicioBeforeAndFechaFinAfter(now, now));
+        activas.addAll(promocionRepository.findAllByActivaTrueAndFechaInicioIsNullAndFechaFinAfter(now));
+        activas.addAll(promocionRepository.findAllByActivaTrueAndFechaInicioBeforeAndFechaFinIsNull(now));
         return activas.stream().map(PromocionResponse::from).toList();
     }
 
     public PromocionResponse findByCodigo(String codigo) {
-        Promocion p = promocionRepository.findByCodigoAndActivaTrue(codigo)
+        Promocion p = promocionRepository.findVigenteByCodigo(codigo.trim().toUpperCase(), Instant.now())
                 .orElseThrow(() -> new BusinessRuleException("Promoción inválida o inactiva"));
         return PromocionResponse.from(p);
     }
 
     @Transactional
     public PromocionResponse crear(PromocionRequest request) {
+        validarFechas(request);
         if (promocionRepository.existsByCodigo(request.getCodigo())) {
             throw new BusinessRuleException("Ya existe una promocion con ese codigo");
         }
@@ -66,6 +69,7 @@ public class PromocionService {
 
     @Transactional
     public PromocionResponse actualizar(Long id, PromocionRequest request) {
+        validarFechas(request);
         Promocion p = promocionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promocion no encontrada"));
         if (!p.getCodigo().equals(request.getCodigo()) && promocionRepository.existsByCodigo(request.getCodigo())) {
@@ -85,6 +89,16 @@ public class PromocionService {
         if (!promocionRepository.existsById(id)) {
             throw new ResourceNotFoundException("Promocion no encontrada");
         }
-        promocionRepository.deleteById(id);
+        Promocion p = promocionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Promocion no encontrada"));
+        p.setActiva(false);
+        promocionRepository.save(p);
+    }
+
+    private void validarFechas(PromocionRequest request) {
+        if (request.getFechaInicio() != null && request.getFechaFin() != null
+                && !request.getFechaFin().isAfter(request.getFechaInicio())) {
+            throw new BusinessRuleException("La fecha de fin debe ser posterior a la fecha de inicio");
+        }
     }
 }

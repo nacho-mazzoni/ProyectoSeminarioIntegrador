@@ -54,6 +54,8 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       MP_ACCESS_TOKEN: ${MP_ACCESS_TOKEN}
       MP_NOTIFICATION_URL: ${MP_NOTIFICATION_URL:-}
+      MP_WEBHOOK_SIGNATURE_ENABLED: ${MP_WEBHOOK_SIGNATURE_ENABLED:-false}
+      MP_WEBHOOK_SECRET: ${MP_WEBHOOK_SECRET:-}
     volumes:
       - ./heladeria-api/src:/app/src
       - maven_cache:/root/.m2

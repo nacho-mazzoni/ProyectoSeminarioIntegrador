@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Plus, Pencil, Trash2, Tags } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/context/auth-context";
 import { api } from "@/services/api";
 import type { CategoriaResponse } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -99,10 +100,12 @@ export default function AdminCategoriasPage() {
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<CategoriaResponse | undefined>(undefined);
+  const { isReady, isAuthenticated } = useAuth();
 
   const { data: categorias = [], isLoading } = useQuery({
     queryKey: ["admin-categorias"],
     queryFn: api.admin.categorias.listar,
+    enabled: isReady && isAuthenticated,
   });
 
   const deleteMutation = useMutation({

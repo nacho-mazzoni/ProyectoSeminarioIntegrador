@@ -11,6 +11,7 @@ public class DashboardResponse {
     private long totalPedidos;
     private BigDecimal ingresosTotales;
     private List<TopProducto> topProductos;
+    private List<TopSabor> topSabores;
 
     public long getTotalUsuarios() { return totalUsuarios; }
     public void setTotalUsuarios(long totalUsuarios) { this.totalUsuarios = totalUsuarios; }
@@ -26,6 +27,8 @@ public class DashboardResponse {
 
     public List<TopProducto> getTopProductos() { return topProductos; }
     public void setTopProductos(List<TopProducto> topProductos) { this.topProductos = topProductos; }
+    public List<TopSabor> getTopSabores() { return topSabores; }
+    public void setTopSabores(List<TopSabor> topSabores) { this.topSabores = topSabores; }
 
     public static class TopProducto {
         private String nombre;
@@ -36,6 +39,17 @@ public class DashboardResponse {
             this.cantidadVendida = cantidadVendida;
         }
 
+        public String getNombre() { return nombre; }
+        public long getCantidadVendida() { return cantidadVendida; }
+    }
+
+    public static class TopSabor {
+        private String nombre;
+        private long cantidadVendida;
+        public TopSabor(String nombre, long cantidadVendida) {
+            this.nombre = nombre;
+            this.cantidadVendida = cantidadVendida;
+        }
         public String getNombre() { return nombre; }
         public long getCantidadVendida() { return cantidadVendida; }
     }

@@ -7,6 +7,7 @@ import com.seminario.heladeria.repository.*;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import com.seminario.heladeria.exception.ResourceNotFoundException;
+import com.seminario.heladeria.exception.BusinessRuleException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,14 +56,23 @@ public class ProductoService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         return productoRepository.findAll(spec).stream()
+                .filter(p -> p.getActivo() && p.getStockEnvases() > 0)
                 .map(ProductoResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> findAllProductoAdminResponses() {
+        return productoRepository.findAll().stream().map(ProductoResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
     public ProductoResponse findProductoResponseById(Long id) {
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
+        if (!Boolean.TRUE.equals(producto.getActivo()) || producto.getStockEnvases() <= 0) {
+            throw new ResourceNotFoundException("Producto no disponible");
+        }
         return ProductoResponse.from(producto);
     }
 
@@ -109,7 +119,18 @@ public class ProductoService {
 
     @Transactional
     public void eliminarProducto(Long id) {
-        productoRepository.deleteById(id);
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
+        producto.setActivo(false);
+        productoRepository.save(producto);
+    }
+
+    @Transactional
+    public ProductoResponse cambiarDisponibilidad(Long id, boolean activo) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
+        producto.setActivo(activo);
+        return ProductoResponse.from(productoRepository.save(producto));
     }
 
     @Transactional(readOnly = true)
@@ -178,7 +199,10 @@ public class ProductoService {
 
     @Transactional
     public void eliminarSabor(Long id) {
-        saborRepository.deleteById(id);
+        Sabor sabor = saborRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sabor no encontrado"));
+        sabor.setDisponible(false);
+        saborRepository.save(sabor);
     }
 
     @Transactional(readOnly = true)
@@ -216,6 +240,9 @@ public class ProductoService {
 
     @Transactional
     public void eliminarAdicional(Long id) {
-        adicionalRepository.deleteById(id);
+        Adicional adicional = adicionalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Adicional no encontrado"));
+        adicional.setDisponible(false);
+        adicionalRepository.save(adicional);
     }
 }

@@ -1,6 +1,8 @@
 mercadopago:
-  access-token: ${MP_ACCESS_TOKEN}
+  access-token: ${MP_ACCESS_TOKEN:}
   notification-url: ${MP_NOTIFICATION_URL:}
+  webhook-signature-enabled: ${MP_WEBHOOK_SIGNATURE_ENABLED:false}
+  webhook-secret: ${MP_WEBHOOK_SECRET:}
 
 spring:
   datasource:

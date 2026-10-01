@@ -48,6 +48,6 @@ class RolRepositoryTest {
     void findAll_shouldReturnBothRoles() {
         var result = rolRepository.findAll();
 
-        assertThat(result).hasSize(2);
+        assertThat(result).hasSize(3);
     }
 }

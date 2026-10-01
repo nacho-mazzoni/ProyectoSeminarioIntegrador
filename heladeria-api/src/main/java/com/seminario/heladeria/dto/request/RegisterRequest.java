@@ -2,14 +2,15 @@ package com.seminario.heladeria.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 public class RegisterRequest {
 
     @Email(message = "El email no es válido") @NotBlank(message = "El email es obligatorio")
     private String email;
 
-    @NotBlank(message = "La contraseña es obligatoria") @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    @NotBlank(message = "La contraseña es obligatoria")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,}$", message = "La contraseña debe tener al menos 8 caracteres, letras y números")
     private String password;
 
     private String telefono;

@@ -53,8 +53,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/zonas-envio/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/promociones/**").permitAll()
                 .requestMatchers("/api/pagos/notificacion").permitAll()
+                .requestMatchers("/api/admin/pedidos/**", "/api/admin/productos/**",
+                        "/api/admin/promociones/**").hasAnyRole("ADMINISTRADOR", "CAJERO")
                 .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
-                .anyRequest().authenticated()
+                .requestMatchers("/api/pedidos/**", "/api/carrito/**", "/api/direcciones/**", "/api/clientes/**")
+                    .hasRole("CLIENTE")
+                .anyRequest().hasAnyRole("CLIENTE", "CAJERO", "ADMINISTRADOR")
             )
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter))

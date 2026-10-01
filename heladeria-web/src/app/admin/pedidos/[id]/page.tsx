@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ArrowLeft, Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/auth-context";
 
 const LABELS_ESTADO: Record<string, string> = {
   PENDIENTE: "Pendiente",
@@ -48,19 +49,27 @@ export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const orderId = Number(id);
+  const qc = useQueryClient();
+  const { isReady, isAuthenticated } = useAuth();
   const [nuevoEstado, setNuevoEstado] = useState("");
+  const [motivo, setMotivo] = useState("");
 
   const { data: order, isLoading } = useQuery({
     queryKey: ["admin-order", orderId],
     queryFn: () => api.admin.pedidos.obtener(orderId),
-    enabled: !isNaN(orderId),
+    enabled: isReady && isAuthenticated && !isNaN(orderId),
   });
 
   const mutation = useMutation({
-    mutationFn: (estado: string) => api.admin.pedidos.cambiarEstado(orderId, { estado }),
+    mutationFn: ({ estado, motivo }: { estado: string; motivo?: string }) => api.admin.pedidos.cambiarEstado(orderId, { estado, motivo }),
     onSuccess: (updated) => {
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      qc.invalidateQueries({ queryKey: ["admin-order", orderId] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
       toast.success(`Estado actualizado a "${updated.historial[updated.historial.length - 1].estado}"`);
       setNuevoEstado("");
+      setMotivo("");
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "No se pudo actualizar el estado"),
   });
@@ -81,6 +90,7 @@ export default function AdminOrderDetailPage() {
   const ultimoEstado = order.historial.length > 0
     ? order.historial[order.historial.length - 1].estado
     : "";
+  const transiciones = TRANSICIONES[ultimoEstado]?.(order.metodoEntrega) ?? [];
 
   return (
     <div className="space-y-6">
@@ -97,6 +107,10 @@ export default function AdminOrderDetailPage() {
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Pedido #</dt>
                 <dd className="font-medium">{order.idPedido}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Seguimiento</dt>
+                <dd className="font-medium">{order.numeroSeguimiento ?? `RH-${order.idPedido}`}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Cliente</dt>
@@ -124,6 +138,18 @@ export default function AdminOrderDetailPage() {
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Promoción</dt>
                   <dd className="font-medium">{order.promocion}</dd>
+                </div>
+              )}
+              {order.metodoPago && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Método de pago</dt>
+                  <dd className="font-medium">{order.metodoPago === "mercado_pago" ? "Mercado Pago" : "Efectivo"}</dd>
+                </div>
+              )}
+              {order.estadoPago && (
+                <div className="flex items-center justify-between">
+                  <dt className="text-muted-foreground">Estado del pago</dt>
+                  <dd><OrderStatusBadge status={order.estadoPago.toUpperCase() === "APROBADO" ? "PAGADO" : order.estadoPago.toUpperCase() === "RECHAZADO" ? "RECHAZADO" : order.estadoPago} /></dd>
                 </div>
               )}
               <Separator />

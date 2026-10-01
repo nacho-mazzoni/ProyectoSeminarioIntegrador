@@ -28,19 +28,23 @@ public class ReporteController {
 
     @GetMapping("/pedidos")
     public ResponseEntity<ReportePedidosResponse> pedidos(
-            @RequestParam(defaultValue = "#{T(java.time.Instant).now().minus(30, T(java.time.temporal.ChronoUnit).DAYS)}") Instant desde,
+             @RequestParam(required = false) String periodo,
+             @RequestParam(defaultValue = "#{T(java.time.Instant).now().minus(30, T(java.time.temporal.ChronoUnit).DAYS)}") Instant desde,
             @RequestParam(defaultValue = "#{T(java.time.Instant).now()}") Instant hasta,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(reporteService.getPedidos(desde, hasta, page, size));
+        var rango = reporteService.rango(periodo, desde, hasta);
+        return ResponseEntity.ok(reporteService.getPedidos(rango.desde(), rango.hasta(), page, size));
     }
 
     @GetMapping("/ingresos")
     public ResponseEntity<ReporteIngresosResponse> ingresos(
+            @RequestParam(required = false) String periodo,
             @RequestParam(required = false) Instant desde,
             @RequestParam(required = false) Instant hasta) {
         if (desde == null) desde = Instant.now().minus(java.time.Duration.ofDays(30));
         if (hasta == null) hasta = Instant.now();
-        return ResponseEntity.ok(reporteService.getIngresos(desde, hasta));
+        var rango = reporteService.rango(periodo, desde, hasta);
+        return ResponseEntity.ok(reporteService.getIngresos(rango.desde(), rango.hasta()));
     }
 }

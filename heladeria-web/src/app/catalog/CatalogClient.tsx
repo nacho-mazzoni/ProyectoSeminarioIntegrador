@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { AlertTriangle, IceCreamCone, Search, X } from "lucide-react";
+import { AlertCircle, AlertTriangle, IceCreamCone, Search, X } from "lucide-react";
 import { api } from "@/services/api";
 import { useAuth } from "@/context/auth-context";
 import { PageContainer } from "@/components/shared/PageContainer";
@@ -26,7 +26,7 @@ export function CatalogClient() {
     queryFn: api.categorias.listar,
   });
 
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading, error } = useQuery({
     queryKey: ["products"],
     queryFn: api.productos.listar,
   });
@@ -54,11 +54,11 @@ export function CatalogClient() {
   return (
     <PageContainer className="py-10">
       {!isAuthenticated && (
-        <div className="mb-6 flex items-center justify-center gap-2 rounded-2xl border border-yellow-300 bg-yellow-50 px-4 py-3 text-center text-sm font-medium text-yellow-800">
+        <div className="mb-6 flex items-center justify-center gap-2 rounded-2xl border border-border bg-secondary px-4 py-3 text-center text-sm font-medium text-foreground">
           <AlertTriangle className="size-4 shrink-0" />
           <span>
             Iniciá sesión para poder agregar productos al carrito.{" "}
-            <Link href="/login" className="underline underline-offset-2 hover:text-yellow-900">Iniciar sesión</Link>
+            <Link href="/login" className="underline underline-offset-2 hover:text-primary">Iniciar sesión</Link>
           </span>
         </div>
       )}
@@ -103,7 +103,9 @@ export function CatalogClient() {
       </div>
 
       <div className="mt-8">
-        {!isLoading && filtered.length === 0 ? (
+        {error ? (
+          <EmptyState icon={AlertCircle} title="No pudimos cargar el menú" description={error instanceof Error ? error.message : "Intentá nuevamente más tarde."} />
+        ) : !isLoading && filtered.length === 0 ? (
           <EmptyState
             icon={IceCreamCone}
             title="No se encontraron sabores"

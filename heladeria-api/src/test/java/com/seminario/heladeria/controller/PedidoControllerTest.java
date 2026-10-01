@@ -100,7 +100,7 @@ class PedidoControllerTest {
         mockMvc.perform(post("/api/pedidos").with(authentication(auth(1L)))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"idDireccion\":1,\"idZona\":1,\"metodoEntrega\":\"delivery\",\"detalles\":[{\"idProducto\":1,\"cantidad\":2}]}"))
+                        .content("{\"idDireccion\":1,\"idZona\":1,\"metodoEntrega\":\"delivery\",\"metodoPago\":\"efectivo\",\"detalles\":[{\"idProducto\":1,\"cantidad\":2}]}"))
                 .andExpect(status().isOk());
     }
 

@@ -23,6 +23,7 @@ export function ProductCard({ product }: { product: ProductoResponse }) {
       toast.info("Seleccioná los sabores en la página del producto");
       return;
     }
+    if (sinStock) { toast.error("Este producto no tiene stock disponible"); return; }
     addItem(product, 1, [], []);
     toast.success(`${product.nombre} agregado al carrito`);
   };

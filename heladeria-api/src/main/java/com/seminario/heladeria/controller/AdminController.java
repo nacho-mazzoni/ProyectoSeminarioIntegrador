@@ -4,8 +4,10 @@ import com.seminario.heladeria.dto.request.*;
 import com.seminario.heladeria.dto.response.*;
 import com.seminario.heladeria.service.AdminService;
 import jakarta.validation.Valid;
+import com.seminario.heladeria.entity.Usuario;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,23 +36,25 @@ public class AdminController {
     }
 
     @GetMapping("/pedidos")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<List<PedidoResponse>> listarPedidos() {
-        return ResponseEntity.ok(adminService.listarPedidos());
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
+    public ResponseEntity<List<PedidoResponse>> listarPedidos(
+            @RequestParam(required = false) String estado) {
+        return ResponseEntity.ok(adminService.listarPedidos(estado));
     }
 
     @GetMapping("/pedidos/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<PedidoResponse> obtenerPedido(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.obtenerPedido(id));
     }
 
     @PutMapping("/pedidos/{id}/estado")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<PedidoResponse> cambiarEstado(
-            @PathVariable Long id,
-            @Valid @RequestBody CambioEstadoRequest request) {
-        return ResponseEntity.ok(adminService.cambiarEstadoPedido(id, request));
+             @PathVariable Long id,
+             @Valid @RequestBody CambioEstadoRequest request,
+             @AuthenticationPrincipal Usuario operador) {
+        return ResponseEntity.ok(adminService.cambiarEstadoPedido(id, request, operador));
     }
 
     // --- SABORES ---

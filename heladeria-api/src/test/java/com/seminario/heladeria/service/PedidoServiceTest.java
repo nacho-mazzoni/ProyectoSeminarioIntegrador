@@ -33,6 +33,9 @@ class PedidoServiceTest {
     private ProductoRepository productoRepository;
 
     @Autowired
+    private SaborRepository saborRepository;
+
+    @Autowired
     private PedidoRepository pedidoRepository;
 
     @Autowired
@@ -56,6 +59,7 @@ class PedidoServiceTest {
     void crear_shouldCreatePedidoWithDeliveryAndPromo() {
         PedidoRequest request = new PedidoRequest();
         request.setMetodoEntrega("delivery");
+        request.setMetodoPago("efectivo");
         request.setIdDireccion(1L);
         request.setCodigoPromocion("PROMO10");
         request.setDetalles(List.of(detalleRequest));
@@ -75,7 +79,7 @@ class PedidoServiceTest {
     void crear_shouldApplyPromoDiscount() {
         PedidoRequest request = new PedidoRequest();
         request.setMetodoEntrega("retiro");
-        request.setIdDireccion(1L);
+        request.setMetodoPago("efectivo");
         request.setCodigoPromocion("PROMO20");
         request.setDetalles(List.of(detalleRequest));
 
@@ -91,6 +95,7 @@ class PedidoServiceTest {
     void crear_shouldAddDeliveryCost() {
         PedidoRequest request = new PedidoRequest();
         request.setMetodoEntrega("delivery");
+        request.setMetodoPago("efectivo");
         request.setIdDireccion(1L);
         request.setDetalles(List.of(detalleRequest));
 
@@ -105,7 +110,7 @@ class PedidoServiceTest {
     void crear_shouldNotAddDeliveryCostForRetiro() {
         PedidoRequest request = new PedidoRequest();
         request.setMetodoEntrega("retiro");
-        request.setIdDireccion(1L);
+        request.setMetodoPago("efectivo");
         request.setDetalles(List.of(detalleRequest));
 
         Pedido pedido = pedidoService.crear(cliente, request);
@@ -118,7 +123,7 @@ class PedidoServiceTest {
     void crear_shouldCreateHistorialEstado() {
         PedidoRequest request = new PedidoRequest();
         request.setMetodoEntrega("retiro");
-        request.setIdDireccion(1L);
+        request.setMetodoPago("efectivo");
         request.setDetalles(List.of(detalleRequest));
 
         Pedido pedido = pedidoService.crear(cliente, request);
@@ -137,7 +142,7 @@ class PedidoServiceTest {
 
         PedidoRequest request = new PedidoRequest();
         request.setMetodoEntrega("retiro");
-        request.setIdDireccion(1L);
+        request.setMetodoPago("efectivo");
         request.setDetalles(List.of(det));
 
         assertThatThrownBy(() -> pedidoService.crear(cliente, request))
@@ -149,45 +154,46 @@ class PedidoServiceTest {
     void crear_shouldThrowWhenPromoInvalid() {
         PedidoRequest request = new PedidoRequest();
         request.setMetodoEntrega("retiro");
-        request.setIdDireccion(1L);
+        request.setMetodoPago("efectivo");
         request.setCodigoPromocion("CODIGO_INVALIDO");
         request.setDetalles(List.of(detalleRequest));
 
         assertThatThrownBy(() -> pedidoService.crear(cliente, request))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Promocion");
+                .hasMessageContaining("Promoci");
     }
 
     @Test
     void crear_shouldThrowWhenPromoExpired() {
         PedidoRequest request = new PedidoRequest();
         request.setMetodoEntrega("retiro");
-        request.setIdDireccion(1L);
+        request.setMetodoPago("efectivo");
         request.setCodigoPromocion("EXPIRADA");
         request.setDetalles(List.of(detalleRequest));
 
         assertThatThrownBy(() -> pedidoService.crear(cliente, request))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Promocion");
+                .hasMessageContaining("Promoci");
     }
 
     @Test
     void crear_shouldThrowWhenDireccionNotFound() {
         PedidoRequest request = new PedidoRequest();
-        request.setMetodoEntrega("retiro");
+        request.setMetodoEntrega("delivery");
+        request.setMetodoPago("efectivo");
         request.setIdDireccion(999L);
         request.setDetalles(List.of(detalleRequest));
 
         assertThatThrownBy(() -> pedidoService.crear(cliente, request))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Direccion");
+                .hasMessageContaining("Direcc");
     }
 
     @Test
     void crear_shouldWorkWithoutPromo() {
         PedidoRequest request = new PedidoRequest();
         request.setMetodoEntrega("retiro");
-        request.setIdDireccion(1L);
+        request.setMetodoPago("efectivo");
         request.setDetalles(List.of(detalleRequest));
 
         Pedido pedido = pedidoService.crear(cliente, request);
@@ -209,6 +215,61 @@ class PedidoServiceTest {
         assertThatThrownBy(() -> pedidoService.findById(999L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Pedido no encontrado");
+    }
+
+    @Test
+    void crear_shouldPersistTrackingAndConsumeFlavorStockPerUnit() {
+        PedidoRequest request = new PedidoRequest();
+        request.setMetodoEntrega("retiro");
+        request.setMetodoPago("efectivo");
+        request.setDetalles(List.of(detalleRequest));
+
+        Pedido pedido = pedidoService.crear(cliente, request);
+
+        assertThat(pedido.getNumeroSeguimiento()).startsWith("RH-");
+        assertThat(saborRepository.findById(1L).orElseThrow().getStockBaldes()).isEqualTo(8);
+        assertThat(saborRepository.findById(2L).orElseThrow().getStockBaldes()).isEqualTo(6);
+    }
+
+    @Test
+    void crear_shouldRejectFlavorsForCategoryThatDoesNotRequireThem() {
+        PedidoRequest.DetalleRequest detalle = new PedidoRequest.DetalleRequest();
+        detalle.setIdProducto(3L);
+        detalle.setCantidad(1);
+        detalle.setIdsSabor(List.of(1L));
+        PedidoRequest request = new PedidoRequest();
+        request.setMetodoEntrega("retiro");
+        request.setMetodoPago("efectivo");
+        request.setDetalles(List.of(detalle));
+
+        assertThatThrownBy(() -> pedidoService.crear(cliente, request))
+                .hasMessageContaining("no admite sabores");
+    }
+
+    @Test
+    void crear_shouldRejectDuplicateFlavors() {
+        detalleRequest.setIdsSabor(List.of(1L, 1L));
+        PedidoRequest request = new PedidoRequest();
+        request.setMetodoEntrega("retiro");
+        request.setMetodoPago("efectivo");
+        request.setDetalles(List.of(detalleRequest));
+
+        assertThatThrownBy(() -> pedidoService.crear(cliente, request))
+                .hasMessageContaining("sabores repetidos");
+    }
+
+    @Test
+    void cancelar_shouldRestoreFlavorStock() {
+        PedidoRequest request = new PedidoRequest();
+        request.setMetodoEntrega("retiro");
+        request.setMetodoPago("efectivo");
+        request.setDetalles(List.of(detalleRequest));
+        Pedido pedido = pedidoService.crear(cliente, request);
+
+        pedidoService.cancelar(pedido);
+
+        assertThat(saborRepository.findById(1L).orElseThrow().getStockBaldes()).isEqualTo(10);
+        assertThat(saborRepository.findById(2L).orElseThrow().getStockBaldes()).isEqualTo(8);
     }
 
     @Test

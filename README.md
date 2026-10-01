@@ -157,6 +157,8 @@ Todos los secretos se administran desde `.env` (archivo local, ignorado por Git)
 | `JWT_EXPIRATION`        | No                | Expiración del token en milisegundos (por defecto `86400000` = 1 día).   |
 | `MP_ACCESS_TOKEN`       | No*               | Access Token de Mercado Pago (solo para pagos con Mercado Pago).         |
 | `MP_NOTIFICATION_URL`   | No                | URL de notificaciones de pago de Mercado Pago.                           |
+| `MP_WEBHOOK_SECRET`     | Si con MP         | Secreto para validar la firma HMAC de las notificaciones.                |
+| `MP_WEBHOOK_SIGNATURE_ENABLED` | No           | Variable legacy; la firma se exige automáticamente cuando hay token MP. |
 | `DB_URL` / `DB_USERNAME` / `DB_PASSWORD` | No | Solo para el perfil `prod` (producción).                   |
 
 \* Sin `MP_ACCESS_TOKEN` el sistema funciona con pagos en **efectivo**; la creación de
@@ -173,6 +175,9 @@ El script de seed carga datos de demostración (usuarios con contraseña encript
 | Administrador| `admin@heladeria.com` | `admin123`     |
 | Cliente      | `cliente@test.com`    | `password123`  |
 
+El rol `Cajero` se crea en el seed y puede acceder al Backoffice de pedidos,
+productos y promociones. No tiene acceso a usuarios, roles, reportes ni al checkout.
+
 ---
 
 ## Inicialización de la base de datos
@@ -182,6 +187,9 @@ En una instalación limpia, PostgreSQL se inicializa automáticamente con los sc
 
 - `01_schema.sql` — esquema completo (tablas, secuencias, funciones y constraints).
 - `02_seed.sql` — datos de demostración (productos, sabores, zonas, usuarios, pedidos…).
+
+Las bases existentes deben aplicar también las migraciones versionadas en
+`infra/postgres/migrations/` en orden (`V1`, `V2` y `V3`).
 
 > **Importante:** los scripts de init solo se ejecutan **cuando el volumen se crea por
 > primera vez**. Si ya existe un volumen `postgres_data` con datos, no se vuelven a correr.

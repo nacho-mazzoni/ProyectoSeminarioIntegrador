@@ -8,12 +8,14 @@ import com.seminario.heladeria.service.DireccionService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/direcciones")
+@PreAuthorize("hasRole('CLIENTE')")
 public class DireccionController {
 
     private final DireccionService direccionService;

@@ -68,7 +68,7 @@ class ProductoServiceTest {
         request.setNombre("Producto Actualizado");
         request.setStockEnvases(20);
         request.setPrecioBase(new BigDecimal("5000.00"));
-        request.setMaxSabores(4);
+        request.setMaxSabores(0);
         request.setIdCategoria(2L);
 
         var result = productoService.actualizarProducto(1L, request);
@@ -84,7 +84,7 @@ class ProductoServiceTest {
 
         assertThatThrownBy(() -> productoService.findProductoResponseById(5L))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Producto no encontrado");
+                 .hasMessageContaining("Producto no disponible");
     }
 
     @Test

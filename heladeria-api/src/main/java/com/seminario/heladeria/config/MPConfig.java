@@ -13,6 +13,8 @@ public class MPConfig {
 
     @PostConstruct
     public void init() {
-        MercadoPagoConfig.setAccessToken(accessToken);
+        if (accessToken != null && !accessToken.isBlank()) {
+            MercadoPagoConfig.setAccessToken(accessToken);
+        }
     }
 }

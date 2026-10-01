@@ -70,7 +70,7 @@ class AuthControllerTest {
                         .with(user("test@test.com"))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"new@test.com\",\"password\":\"pass123\"}"))
+                        .content("{\"email\":\"new@test.com\",\"password\":\"pass1234\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("token"));
     }

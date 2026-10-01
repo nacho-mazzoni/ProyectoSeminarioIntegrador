@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Montserrat } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { PublicChrome } from "@/components/layout/PublicChrome";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -21,21 +20,15 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "Rumba Habana",
   description: "Rumba Habana — Helados artesanales, pedí online",
+  icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" suppressHydrationWarning className={`${playfair.variable} ${montserrat.variable}`}>
-      <head>
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-      </head>
       <body>
         <Providers>
-          <div className="flex min-h-dvh flex-col">
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          <div className="flex min-h-dvh flex-col"><PublicChrome>{children}</PublicChrome></div>
         </Providers>
       </body>
     </html>

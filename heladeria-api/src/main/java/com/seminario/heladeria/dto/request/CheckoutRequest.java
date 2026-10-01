@@ -8,7 +8,6 @@ public class CheckoutRequest {
     @NotBlank(message = "Seleccioná un método de entrega")
     private String metodoEntrega;
 
-    @NotNull(message = "Seleccioná una dirección")
     private Long idDireccion;
 
     private String codigoPromocion;
