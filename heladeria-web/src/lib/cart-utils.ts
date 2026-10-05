@@ -8,8 +8,12 @@ export function formatPrice(value: number): string {
   }).format(value);
 }
 
-export function computeUnitPrice(product: ProductoResponse, adicionales: AdicionalResponse[]): number {
-  return product.precioBase + adicionales.reduce((sum, a) => sum + a.precioExtra, 0);
+export function computeUnitPrice(product: ProductoResponse, adicionales: AdicionalResponse[], saboresCount?: number): number {
+  let price = product.precioBase;
+  if (product.maxBochas && product.precioPorBocha && saboresCount && saboresCount > 1) {
+    price += product.precioPorBocha * (saboresCount - 1);
+  }
+  return price + adicionales.reduce((sum, a) => sum + a.precioExtra, 0);
 }
 
 export function lineTotal(item: CartItem): number {
@@ -30,7 +34,7 @@ export function buildCartItem(
     quantity,
     sabores,
     adicionales,
-    unitPrice: computeUnitPrice(product, adicionales),
+    unitPrice: computeUnitPrice(product, adicionales, sabores.length),
   };
 }
 

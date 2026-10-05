@@ -88,6 +88,16 @@ public class CarritoService {
             throw new BusinessRuleException("Máximo " + producto.getMaxSabores() + " sabores permitidos");
         }
 
+        if (producto.getMaxBochas() != null) {
+            int bochas = request.getIdsSabor() != null ? request.getIdsSabor().size() : 0;
+            if (bochas < 1) {
+                throw new BusinessRuleException("Este producto requiere al menos 1 bocha");
+            }
+            if (bochas > producto.getMaxBochas()) {
+                throw new BusinessRuleException("Máximo " + producto.getMaxBochas() + " bochas permitidas");
+            }
+        }
+
         if (request.getIdsSabor() != null && !request.getIdsSabor().isEmpty() &&
                 producto.getSabores() != null && !producto.getSabores().isEmpty()) {
             Set<Long> allowedIds = producto.getSabores().stream()
@@ -154,6 +164,16 @@ public class CarritoService {
         }
         if (request.getIdsSabor() != null && request.getIdsSabor().size() > producto.getMaxSabores()) {
             throw new BusinessRuleException("Máximo " + producto.getMaxSabores() + " sabores permitidos");
+        }
+
+        if (producto.getMaxBochas() != null) {
+            int bochas = request.getIdsSabor() != null ? request.getIdsSabor().size() : 0;
+            if (bochas < 1) {
+                throw new BusinessRuleException("Este producto requiere al menos 1 bocha");
+            }
+            if (bochas > producto.getMaxBochas()) {
+                throw new BusinessRuleException("Máximo " + producto.getMaxBochas() + " bochas permitidas");
+            }
         }
 
         if (request.getIdsSabor() != null && !request.getIdsSabor().isEmpty() &&

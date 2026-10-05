@@ -27,6 +27,12 @@ public class Producto {
     @Column(name = "max_sabores", nullable = false)
     private Integer maxSabores = 0;
 
+    @Column(name = "max_bochas")
+    private Integer maxBochas;
+
+    @Column(name = "precio_por_bocha", precision = 10, scale = 2)
+    private BigDecimal precioPorBocha;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
@@ -72,6 +78,12 @@ public class Producto {
 
     public Integer getMaxSabores() { return maxSabores; }
     public void setMaxSabores(Integer maxSabores) { this.maxSabores = maxSabores; }
+
+    public Integer getMaxBochas() { return maxBochas; }
+    public void setMaxBochas(Integer maxBochas) { this.maxBochas = maxBochas; }
+
+    public BigDecimal getPrecioPorBocha() { return precioPorBocha; }
+    public void setPrecioPorBocha(BigDecimal precioPorBocha) { this.precioPorBocha = precioPorBocha; }
 
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }

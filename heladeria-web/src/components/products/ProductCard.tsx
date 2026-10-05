@@ -19,7 +19,7 @@ export function ProductCard({ product }: { product: ProductoResponse }) {
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (product.categoria.requiereSabores || product.maxSabores > 0) {
+    if (product.categoria.requiereSabores || product.maxSabores > 0 || product.maxBochas) {
       toast.info("Seleccioná los sabores en la página del producto");
       return;
     }

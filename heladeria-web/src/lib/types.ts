@@ -23,6 +23,8 @@ export interface ProductoResponse {
   stockEnvases: number
   precioBase: number
   maxSabores: number
+  maxBochas?: number
+  precioPorBocha?: number
   categoria: CategoriaResponse
   sabores?: SaborResponse[]
 }

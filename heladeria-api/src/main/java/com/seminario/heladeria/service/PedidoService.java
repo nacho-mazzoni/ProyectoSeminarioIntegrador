@@ -136,7 +136,12 @@ public class PedidoService {
 
             DetallePedido detalle = new DetallePedido();
             detalle.setCantidad(detReq.getCantidad());
-            detalle.setPrecioUnitHist(producto.getPrecioBase());
+            BigDecimal precioUnitario = producto.getPrecioBase();
+            if (producto.getMaxBochas() != null && detReq.getIdsSabor() != null && detReq.getIdsSabor().size() > 1) {
+                precioUnitario = precioUnitario.add(
+                        producto.getPrecioPorBocha().multiply(BigDecimal.valueOf(detReq.getIdsSabor().size() - 1)));
+            }
+            detalle.setPrecioUnitHist(precioUnitario);
             detalle.setPedido(pedido);
             detalle.setProducto(producto);
 
@@ -170,7 +175,7 @@ public class PedidoService {
 
             detallePedidoRepository.save(detalle);
 
-            BigDecimal subtotal = producto.getPrecioBase()
+            BigDecimal subtotal = precioUnitario
                     .multiply(BigDecimal.valueOf(detReq.getCantidad()));
             total = total.add(subtotal);
 
@@ -249,6 +254,16 @@ public class PedidoService {
                 throw new BusinessRuleException("Máximo " + producto.getMaxSabores() + " sabores para " + producto.getNombre());
             }
 
+            if (producto.getMaxBochas() != null) {
+                int bochas = detReq.getIdsSabor() != null ? detReq.getIdsSabor().size() : 0;
+                if (bochas < 1) {
+                    throw new BusinessRuleException("El producto " + producto.getNombre() + " requiere al menos 1 bocha");
+                }
+                if (bochas > producto.getMaxBochas()) {
+                    throw new BusinessRuleException("Máximo " + producto.getMaxBochas() + " bochas para " + producto.getNombre());
+                }
+            }
+
             if (detReq.getIdsSabor() != null && !detReq.getIdsSabor().isEmpty() &&
                     producto.getSabores() != null && !producto.getSabores().isEmpty()) {
                 Set<Long> allowedIds = producto.getSabores().stream()
@@ -264,7 +279,12 @@ public class PedidoService {
 
             DetallePedido detalle = new DetallePedido();
             detalle.setCantidad(detReq.getCantidad());
-            detalle.setPrecioUnitHist(producto.getPrecioBase());
+            BigDecimal precioUnitario = producto.getPrecioBase();
+            if (producto.getMaxBochas() != null && detReq.getIdsSabor() != null && detReq.getIdsSabor().size() > 1) {
+                precioUnitario = precioUnitario.add(
+                        producto.getPrecioPorBocha().multiply(BigDecimal.valueOf(detReq.getIdsSabor().size() - 1)));
+            }
+            detalle.setPrecioUnitHist(precioUnitario);
             detalle.setPedido(pedido);
             detalle.setProducto(producto);
 
@@ -298,7 +318,7 @@ public class PedidoService {
 
             detallePedidoRepository.save(detalle);
 
-            BigDecimal subtotal = producto.getPrecioBase()
+            BigDecimal subtotal = precioUnitario
                     .multiply(BigDecimal.valueOf(detReq.getCantidad()));
             total = total.add(subtotal);
 

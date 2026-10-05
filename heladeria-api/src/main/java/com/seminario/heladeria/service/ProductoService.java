@@ -76,6 +76,8 @@ public class ProductoService {
         producto.setStockEnvases(request.getStockEnvases());
         producto.setPrecioBase(request.getPrecioBase());
         producto.setMaxSabores(request.getMaxSabores());
+        producto.setMaxBochas(request.getMaxBochas());
+        producto.setPrecioPorBocha(request.getPrecioPorBocha());
         producto.setCategoria(categoria);
 
         if (request.getIdsSabor() != null && !request.getIdsSabor().isEmpty()) {
@@ -97,6 +99,8 @@ public class ProductoService {
         producto.setStockEnvases(request.getStockEnvases());
         producto.setPrecioBase(request.getPrecioBase());
         producto.setMaxSabores(request.getMaxSabores());
+        producto.setMaxBochas(request.getMaxBochas());
+        producto.setPrecioPorBocha(request.getPrecioPorBocha());
         producto.setCategoria(categoria);
 
         if (request.getIdsSabor() != null) {

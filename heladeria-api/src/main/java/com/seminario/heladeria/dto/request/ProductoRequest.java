@@ -21,6 +21,10 @@ public class ProductoRequest {
     @PositiveOrZero(message = "No puede ser negativo")
     private Integer maxSabores;
 
+    private Integer maxBochas;
+
+    private BigDecimal precioPorBocha;
+
     @NotNull(message = "Seleccioná una categoría")
     private Long idCategoria;
 
@@ -37,6 +41,12 @@ public class ProductoRequest {
 
     public Integer getMaxSabores() { return maxSabores; }
     public void setMaxSabores(Integer maxSabores) { this.maxSabores = maxSabores; }
+
+    public Integer getMaxBochas() { return maxBochas; }
+    public void setMaxBochas(Integer maxBochas) { this.maxBochas = maxBochas; }
+
+    public BigDecimal getPrecioPorBocha() { return precioPorBocha; }
+    public void setPrecioPorBocha(BigDecimal precioPorBocha) { this.precioPorBocha = precioPorBocha; }
 
     public Long getIdCategoria() { return idCategoria; }
     public void setIdCategoria(Long idCategoria) { this.idCategoria = idCategoria; }

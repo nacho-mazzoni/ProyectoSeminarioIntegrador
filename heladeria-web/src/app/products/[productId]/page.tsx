@@ -54,10 +54,11 @@ export default function ProductDetailPage() {
 
   const maxSabores = product?.maxSabores ?? 0;
   const requiereSabores = product?.categoria.requiereSabores ?? false;
+  const maxBochas = product?.maxBochas ?? null;
 
   const unitPrice = useMemo(
-    () => (product ? computeUnitPrice(product, adicionales) : 0),
-    [product, adicionales],
+    () => (product ? computeUnitPrice(product, adicionales, sabores.length) : 0),
+    [product, adicionales, sabores.length],
   );
 
   const toggleSabor = (sabor: SaborResponse) => {
