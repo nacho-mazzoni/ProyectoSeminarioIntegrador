@@ -34,19 +34,19 @@ public class AdminController {
     }
 
     @GetMapping("/pedidos")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<List<PedidoResponse>> listarPedidos() {
         return ResponseEntity.ok(adminService.listarPedidos());
     }
 
     @GetMapping("/pedidos/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<PedidoResponse> obtenerPedido(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.obtenerPedido(id));
     }
 
     @PutMapping("/pedidos/{id}/estado")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'CAJERO')")
     public ResponseEntity<PedidoResponse> cambiarEstado(
             @PathVariable Long id,
             @Valid @RequestBody CambioEstadoRequest request) {

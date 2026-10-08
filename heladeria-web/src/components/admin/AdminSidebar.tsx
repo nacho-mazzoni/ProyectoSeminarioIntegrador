@@ -33,13 +33,17 @@ const links = [
 
 export function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
+
+  const visibleLinks = user?.rol === "CAJERO"
+    ? links.filter((link) => link.href === "/admin/pedidos")
+    : links;
 
   return (
     <aside className="flex h-full flex-col bg-primary text-primary-foreground">
       <div className="flex items-center justify-between px-4 py-5">
-        <Link href="/admin" className="flex items-center gap-2">
+        <Link href={user?.rol === "CAJERO" ? "/admin/pedidos" : "/admin"} className="flex items-center gap-2">
           <span className="grid size-9 place-items-center rounded-xl bg-primary-foreground/15">
             <IceCream className="size-5" />
           </span>
@@ -54,7 +58,7 @@ export function AdminSidebar({ onClose }: { onClose?: () => void }) {
 
       <ScrollArea className="flex-1 px-3 py-2">
         <nav className="flex flex-col gap-1">
-          {links.map((link) => {
+          {visibleLinks.map((link) => {
             const isActive = link.href === "/admin" ? pathname === "/admin" : pathname.startsWith(link.href);
             return (
               <Link

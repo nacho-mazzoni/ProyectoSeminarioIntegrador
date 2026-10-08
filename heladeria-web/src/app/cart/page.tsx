@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, LogIn, ShieldAlert, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
+import { isStaff } from "@/lib/utils";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { CartItemRow } from "@/components/cart/CartItemRow";
 import { OrderSummary } from "@/components/cart/OrderSummary";
@@ -32,16 +33,16 @@ export default function CartPage() {
     );
   }
 
-  if (user?.rol === "ADMINISTRADOR") {
+  if (isStaff(user?.rol)) {
     return (
       <PageContainer className="py-16">
         <EmptyState
           icon={ShieldAlert}
           title="Acceso restringido"
-          description="Los administradores no pueden usar el carrito de compras."
+          description="El personal del local no puede usar el carrito de compras."
           action={
             <Button asChild size="lg" className="rounded-full">
-              <Link href="/admin">Ir al Panel de Control</Link>
+              <Link href={user?.rol === "CAJERO" ? "/admin/pedidos" : "/admin"}>Ir al Panel de Control</Link>
             </Button>
           }
         />

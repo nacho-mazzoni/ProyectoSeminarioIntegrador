@@ -6,6 +6,13 @@ export interface UsuarioResponse {
   telefono?: string
 }
 
+export interface CrearUsuarioRequest {
+  email: string
+  password: string
+  telefono?: string
+  idRol: number
+}
+
 export interface AuthResponse {
   token: string
   usuario: UsuarioResponse

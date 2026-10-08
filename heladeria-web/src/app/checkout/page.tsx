@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import { cn, isStaff } from "@/lib/utils";
 
 export default function CheckoutPage() {
   const qc = useQueryClient();
@@ -37,8 +37,8 @@ export default function CheckoutPage() {
     if (isReady) {
       if (!isAuthenticated) {
         navigate.push("/login");
-      } else if (user?.rol === "ADMINISTRADOR") {
-        navigate.push("/admin");
+      } else if (isStaff(user?.rol)) {
+        navigate.push(user?.rol === "CAJERO" ? "/admin/pedidos" : "/admin");
       }
     }
   }, [isReady, isAuthenticated, user, navigate]);

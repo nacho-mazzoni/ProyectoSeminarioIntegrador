@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/zonas-envio/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/promociones/**").permitAll()
                 .requestMatchers("/api/pagos/notificacion").permitAll()
+                .requestMatchers("/api/admin/pedidos/**").hasAnyRole("ADMINISTRADOR", "CAJERO")
                 .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
                 .anyRequest().authenticated()
             )

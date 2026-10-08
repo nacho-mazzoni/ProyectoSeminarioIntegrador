@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { IceCream, Menu, ShoppingBag, Shield, User } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
+import { isStaff } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -65,7 +66,7 @@ export function Navbar() {
           </nav>
 
           <div className="flex items-center gap-1.5">
-            {user?.rol !== "ADMINISTRADOR" && (
+            {!isStaff(user?.rol) && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -106,7 +107,7 @@ export function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link href="/account">Perfil</Link>
                   </DropdownMenuItem>
-                  {user?.rol !== "ADMINISTRADOR" && (
+                  {!isStaff(user?.rol) && (
                     <>
                       <DropdownMenuItem asChild>
                         <Link href="/orders">Pedidos</Link>

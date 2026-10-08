@@ -21,7 +21,7 @@ TRUNCATE TABLE cliente CASCADE;
 TRUNCATE TABLE usuario CASCADE;
 TRUNCATE TABLE rol CASCADE;
 
-INSERT INTO rol (id_rol, nombre_rol) VALUES (1, 'Administrador'), (2, 'Cliente');
+INSERT INTO rol (id_rol, nombre_rol) VALUES (1, 'Administrador'), (2, 'Cliente'), (3, 'Cajero');
 
 INSERT INTO usuario (id_usuario, email, clave, activo, id_rol) VALUES
     (1, 'admin@heladeria.com', '$2a$10$N9mGcVJ5eX1Y1Y1Y1Y1Y1u1Y1Y1Y1Y1Y1Y1Y1Y1Y1Y1Y1Y1Y1e', true, 1),

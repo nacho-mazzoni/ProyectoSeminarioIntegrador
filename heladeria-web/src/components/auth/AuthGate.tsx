@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LogIn, ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAuth } from "@/context/auth-context";
+import { isStaff } from "@/lib/utils";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { Button } from "@/components/ui/button";
@@ -38,16 +39,16 @@ export function AuthGate({ children, customerOnly = false }: { children: ReactNo
     );
   }
 
-  if (customerOnly && user?.rol === "ADMINISTRADOR") {
+  if (customerOnly && isStaff(user?.rol)) {
     return (
       <PageContainer className="py-16">
         <EmptyState
           icon={ShieldAlert}
           title="Acceso restringido"
-          description="Los administradores no pueden acceder a esta sección de clientes."
+          description="El personal del local no puede acceder a esta sección de clientes."
           action={
             <Button asChild size="lg" className="rounded-full">
-              <Link href="/admin">Ir al Panel de Control</Link>
+              <Link href={user?.rol === "CAJERO" ? "/admin/pedidos" : "/admin"}>Ir al Panel de Control</Link>
             </Button>
           }
         />

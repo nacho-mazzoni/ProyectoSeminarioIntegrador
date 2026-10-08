@@ -44,6 +44,7 @@ COPY public.adicional (id_adicional, nombre, precio_extra, disponible, created_a
 COPY public.rol (id_rol, nombre_rol, created_at, updated_at) FROM stdin;
 1	Administrador	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
 2	Cliente	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
+3	Cajero	2026-07-08 18:01:46.798577-03	2026-07-08 18:01:46.798577-03
 \.
 
 

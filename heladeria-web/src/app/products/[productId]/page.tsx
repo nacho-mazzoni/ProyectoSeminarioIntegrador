@@ -17,7 +17,7 @@ import { PageContainer } from "@/components/shared/PageContainer";
 import { QuantitySelector } from "@/components/shared/QuantitySelector";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn, isStaff } from "@/lib/utils";
 
 export default function ProductDetailPage() {
   const { productId } = useParams<{ productId: string }>();
@@ -205,7 +205,7 @@ export default function ProductDetailPage() {
             </fieldset>
           )}
 
-          {isAuthenticated && user?.rol !== "ADMINISTRADOR" ? (
+          {isAuthenticated && !isStaff(user?.rol) ? (
             <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-soft sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <QuantitySelector value={qty} onChange={setQty} />
@@ -216,10 +216,10 @@ export default function ProductDetailPage() {
                 Agregar al carrito
               </Button>
             </div>
-          ) : user?.rol === "ADMINISTRADOR" ? (
+          ) : isStaff(user?.rol) ? (
             <div className="rounded-3xl border border-border bg-card p-6 shadow-soft text-center">
               <p className="text-sm text-muted-foreground">
-                Los administradores no pueden agregar productos al carrito.
+                El personal del local no puede agregar productos al carrito.
               </p>
             </div>
           ) : (

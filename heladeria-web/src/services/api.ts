@@ -17,6 +17,8 @@ import type {
   ZonaRequest,
   CambioEstadoRequest,
   Promocion,
+  CrearUsuarioRequest,
+  Rol,
 } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
@@ -184,6 +186,14 @@ export const api = {
     },
     usuarios: {
       listar: () => getAuth<UsuarioResponse[]>("/admin/usuarios"),
+      crear: (data: CrearUsuarioRequest) => postAuth<UsuarioResponse>("/admin/usuarios", data),
+      actualizarRol: (id: number, data: { idRol: number }) =>
+        putAuth<UsuarioResponse>(`/admin/usuarios/${id}/rol`, data),
+      toggleActivo: (id: number) =>
+        putAuth<UsuarioResponse>(`/admin/usuarios/${id}/activo`, {}),
+    },
+    roles: {
+      listar: () => getAuth<Rol[]>("/admin/roles"),
     },
     promociones: {
       listar: () => getAuth<Promocion[]>("/admin/promociones"),

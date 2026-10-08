@@ -10,7 +10,7 @@ import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, isStaff } from "@/lib/utils";
 
 export function ProductCard({ product }: { product: ProductoResponse }) {
   const { addItem } = useCart();
@@ -27,7 +27,7 @@ export function ProductCard({ product }: { product: ProductoResponse }) {
     toast.success(`${product.nombre} agregado al carrito`);
   };
 
-  const canAdd = isAuthenticated && user?.rol !== "ADMINISTRADOR";
+  const canAdd = isAuthenticated && !isStaff(user?.rol);
 
   return (
     <Link
